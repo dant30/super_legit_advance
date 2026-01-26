@@ -8,8 +8,8 @@ super_legit_advance/
 │   ├── README.md
 │   ├── requirements/
 │   │   ├── base.txt
-│   │   ├── development.txt
-│   │   └── production.txt
+│   │   ├── dev.txt
+│   │   └── prod.txt
 │   ├── apps/
 │   │   ├── __init__.py
 │   │   ├── users/               # Authentication & user management
