@@ -1,0 +1,32 @@
+Dear {{customer_name}},
+
+Your loan application #{{loan_id}} has been approved!
+
+Loan Details:
+Amount: KES {{loan_amount:,.2f}}
+Interest Rate: {{interest_rate}}%
+Repayment Period: {{repayment_period}} months
+Monthly Installment: KES {{monthly_installment:,.2f}}
+Total Repayment: KES {{total_repayment:,.2f}}
+
+Disbursement:
+- Funds will be disbursed within 24 hours
+- First payment due: {{first_payment_date}}
+- M-Pesa Paybill: {{paybill_number}}
+- Account: {{account_number}}
+
+Important:
+1. Keep your loan documents safe
+2. Make payments on time to avoid penalties
+3. Contact us for any queries
+
+Need help? Call {{customer_service_phone}} or email {{support_email}}
+
+Thank you for choosing Super Legit Advance!
+We're here to support your financial journey.
+
+---
+
+Super Legit Advance
+Building Financial Freedom Together
+{{company_address}}

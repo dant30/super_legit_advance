@@ -1,0 +1,78 @@
+a Django project that includes various applications related to loan management,
+repayments, customers management, M-Pesa payment integration, and reporting and designe to be used in the office 
+by the staff, customers should not access.
+ Here’s a summary of the key components and their relationships:
+
+Project Structure
+Project Root: super_legit_advance
+Apps:
+Repayments: Handles loan repayments, including models, views, serializers, and URLs.
+M-Pesa: Integrates M-Pesa payment services, including models, views, and serializers.
+Loans: Manages loan-related functionalities.
+Customers: Manages customer data and interactions.
+Reports: Generates various reports related to loans and payments.
+Notifications: Handles notifications and reminders for payments.
+Core: Contains shared logic, utilities, and management commands.
+Key Components
+Models:
+
+Repayment: Tracks loan repayments with various statuses (e.g., Pending, Completed, Overdue).
+Penalty: Manages penalties for late payments.
+MpesaPayment: Tracks M-Pesa payment requests and results.
+Views:
+
+Repayment API Views: Includes views for creating, updating, canceling, and waiving repayments.
+M-Pesa API Views: Handles M-Pesa payment requests and callbacks.
+Serializers:
+
+RepaymentSerializer: Serializes repayment data for API responses.
+MpesaPaymentSerializer: Serializes M-Pesa payment data.
+Management Commands:
+
+send_reminders.py: Sends reminders for upcoming payments and overdue items.
+Utilities:
+
+RepaymentCalculator: Contains logic for calculating repayment amounts, interest, and penalties.
+Functionality
+Repayment Management: Users can create, update, cancel, and waive repayments through the API.
+M-Pesa Integration: The system can initiate payments via M-Pesa and handle callbacks for payment status updates.
+Reporting: The application can generate reports summarizing loans, payments, and customer interactions.
+Notifications: The system sends reminders for upcoming payments and overdue items.
+Example Code Snippets
+Repayment Waiver:
+repayment.waive_amount(
+    amount=amount,
+    reason=reason,
+    waived_by=request.user
+)
+
+M-Pesa Payment Validation:
+if repayment_id:
+    repayment = Repayment.objects.get(id=repayment_id)
+    if repayment.is_paid:
+        raise serializers.ValidationError({'repayment_id': 'Repayment is already paid.'})
+
+Bulk Repayment Creation:
+repayment = Repayment.objects.create(
+    loan=loan,
+    customer=loan.customer,
+    amount_due=repayment_data['amount_due'],
+    due_date=repayment_data['due_date'],
+    ...
+)
+
+
+You can now:
+
+Access your API at http://127.0.0.1:8000/api/
+View API documentation at:
+Swagger UI: http://127.0.0.1:8000/api/docs/
+ReDoc: http://127.0.0.1:8000/api/redoc/
+Admin panel at http://127.0.0.1:8000/admin/
+
+Conclusion
+This Django project is structured to manage loans and repayments effectively,
+integrating with M-Pesa for payment processing and providing reporting capabilities. 
+The modular design allows for easy maintenance and scalability,
+making it suitable for a financial application. If you have specific questions or
+need further details about any part of the project, feel free to ask!

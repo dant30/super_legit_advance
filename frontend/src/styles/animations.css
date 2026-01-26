@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  /* ==========================
+     ENTRY ANIMATIONS
+     ========================== */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out both;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out both;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out both;
+  }
+
+  /* ==========================
+     MICRO INTERACTIONS
+     ========================== */
+  .hover-lift {
+    @apply transition-transform duration-200 ease-out hover:-translate-y-1;
+  }
+
+  .hover-grow {
+    @apply transition-transform duration-200 ease-out hover:scale-105;
+  }
+
+  /* ==========================
+     SKELETON / SHIMMER
+     ========================== */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: theme(colors.gray.200); /* fallback */
+    border-radius: 0.25rem;
+  }
+
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 150%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* ==========================
+     KEYFRAMES
+     ========================== */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-150%); }
+    100% { transform: translateX(150%); }
+  }
+}

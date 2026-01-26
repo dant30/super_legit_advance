@@ -1,0 +1,667 @@
+<!-- Repayment Schedule Template -->
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repayment Schedule - Super Legit Advance</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1.5cm;
+            @top-center {
+                content: "Repayment Schedule";
+                font-size: 14px;
+                font-weight: bold;
+            }
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10px;
+            }
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 10px;
+            line-height: 1.4;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #2c3e50;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 20px;
+            margin: 0 0 5px 0;
+        }
+        
+        .header .subtitle {
+            color: #7f8c8d;
+            font-size: 12px;
+            margin: 3px 0;
+        }
+        
+        .customer-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .info-item {
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+            font-size: 9px;
+            margin-bottom: 2px;
+        }
+        
+        .info-value {
+            font-size: 10px;
+        }
+        
+        .loan-summary {
+            background-color: #e8f4fd;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #b6d4fe;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+        }
+        
+        .summary-item {
+            text-align: center;
+        }
+        
+        .summary-label {
+            font-size: 9px;
+            color: #555;
+            margin-bottom: 3px;
+        }
+        
+        .summary-value {
+            font-size: 12px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .summary-value.amount {
+            font-family: 'Courier New', monospace;
+        }
+        
+        .table-container {
+            margin: 20px 0;
+            overflow-x: visible;
+        }
+        
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+            table-layout: fixed;
+        }
+        
+        .schedule-table th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 8px 5px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #1a252f;
+            position: sticky;
+            top: 0;
+        }
+        
+        .schedule-table td {
+            padding: 6px 5px;
+            border: 1px solid #ddd;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .schedule-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .schedule-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .due-date {
+            font-weight: bold;
+        }
+        
+        .amount-cell {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            padding-right: 8px !important;
+        }
+        
+        .status-cell {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 8px;
+        }
+        
+        .status-paid {
+            color: #27ae60;
+            background-color: #d5f4e6;
+        }
+        
+        .status-pending {
+            color: #f39c12;
+            background-color: #fef5e7;
+        }
+        
+        .status-overdue {
+            color: #e74c3c;
+            background-color: #fde8e8;
+        }
+        
+        .installment-highlight {
+            background-color: #fff3cd !important;
+            border-left: 3px solid #ffc107 !important;
+            border-right: 3px solid #ffc107 !important;
+        }
+        
+        .totals-row {
+            background-color: #2c3e50 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+        
+        .totals-row td {
+            border: 1px solid #1a252f !important;
+        }
+        
+        .payment-instructions {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+            font-size: 9px;
+        }
+        
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .method {
+            padding: 8px;
+            background-color: white;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+        
+        .method-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            font-size: 8px;
+            color: #7f8c8d;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 40px;
+            color: rgba(0, 0, 0, 0.05);
+            z-index: -1;
+            font-weight: bold;
+        }
+        
+        .notes-section {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 9px;
+        }
+        
+        .notes-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .chart-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .chart {
+            height: 150px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            border-radius: 5px;
+            position: relative;
+            margin-bottom: 10px;
+        }
+        
+        .chart-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 9px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        
+        .important-note {
+            background-color: #fde8e8;
+            border: 1px solid #f5c6cb;
+            padding: 8px;
+            border-radius: 3px;
+            margin: 10px 0;
+            font-size: 9px;
+            color: #721c24;
+        }
+        
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .contact-item {
+            padding: 5px;
+            background-color: white;
+            border: 1px solid #eee;
+            border-radius: 3px;
+        }
+        
+        .contact-label {
+            font-weight: bold;
+            font-size: 8px;
+            color: #7f8c8d;
+        }
+        
+        .contact-value {
+            font-size: 9px;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark">REPAYMENT SCHEDULE</div>
+    
+    <div class="header">
+        <h1>LOAN REPAYMENT SCHEDULE</h1>
+        <div class="subtitle">Loan Number: {{ loan.loan_number }}</div>
+        <div class="subtitle">Generated on: {{ generated_date }}</div>
+    </div>
+    
+    <div class="customer-info">
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">BORROWER</div>
+                <div class="info-value">{{ customer.full_name }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">CUSTOMER NUMBER</div>
+                <div class="info-value">{{ customer.customer_number }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">PHONE NUMBER</div>
+                <div class="info-value">{{ customer.phone_number }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">EMAIL</div>
+                <div class="info-value">{{ customer.email|default:"Not Provided" }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="loan-summary">
+        <div class="summary-grid">
+            <div class="summary-item">
+                <div class="summary-label">LOAN AMOUNT</div>
+                <div class="summary-value amount">KES {{ loan.amount_approved|floatformat:2 }}</div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-label">INTEREST RATE</div>
+                <div class="summary-value">{{ loan.interest_rate }}% p.a.</div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-label">LOAN TERM</div>
+                <div class="summary-value">{{ loan.term_months }} months</div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-label">PROCESSING FEE</div>
+                <div class="summary-value amount">KES {{ loan.processing_fee|floatformat:2 }}</div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-label">DISBURSEMENT DATE</div>
+                <div class="summary-value">{{ loan.disbursement_date|date:"d/m/Y" }}</div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-label">MATURITY DATE</div>
+                <div class="summary-value">{{ loan.due_date|date:"d/m/Y" }}</div>
+            </div>
+        </div>
+        
+        <div class="summary-grid" style="margin-top: 10px;">
+            <div class="summary-item">
+                <div class="summary-label">MONTHLY INSTALLMENT</div>
+                <div class="summary-value amount">KES {{ monthly_installment|floatformat:2 }}</div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-label">TOTAL INTEREST</div>
+                <div class="summary-value amount">KES {{ total_interest|floatformat:2 }}</div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-label">TOTAL REPAYMENT</div>
+                <div class="summary-value amount">KES {{ total_repayment|floatformat:2 }}</div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-label">APR (ANNUAL % RATE)</div>
+                <div class="summary-value">{{ apr }}%</div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-label">OUTSTANDING BALANCE</div>
+                <div class="summary-value amount">KES {{ loan.outstanding_balance|floatformat:2 }}</div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-label">DAYS TO MATURITY</div>
+                <div class="summary-value">{{ days_to_maturity }} days</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="chart-container">
+        <div class="chart">
+            <div class="chart-label">
+                Total Repayment: KES {{ total_repayment|floatformat:2 }}
+            </div>
+        </div>
+        <div class="chart-legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #3498db;"></div>
+                <span>Principal: KES {{ loan.amount_approved|floatformat:2 }}</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #2ecc71;"></div>
+                <span>Interest: KES {{ total_interest|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="important-note">
+        <strong>IMPORTANT:</strong> Please ensure payments are made on or before the due dates to avoid late payment penalties. 
+        A penalty of {{ penalty_rate }}% per month will be charged on overdue amounts.
+    </div>
+    
+    <div class="table-container">
+        <table class="schedule-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 10%;">Due Date</th>
+                    <th style="width: 12%;">Opening Balance</th>
+                    <th style="width: 12%;">Principal Due</th>
+                    <th style="width: 12%;">Interest Due</th>
+                    <th style="width: 12%;">Total Due</th>
+                    <th style="width: 12%;">Cumulative Principal</th>
+                    <th style="width: 12%;">Cumulative Interest</th>
+                    <th style="width: 12%;">Closing Balance</th>
+                    <th style="width: 8%;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for installment in schedule %}
+                <tr {% if installment.is_current %}class="installment-highlight"{% endif %}>
+                    <td>{{ installment.installment_number }}</td>
+                    <td class="due-date">{{ installment.due_date|date:"d/m/Y" }}</td>
+                    <td class="amount-cell">KES {{ installment.opening_balance|floatformat:2 }}</td>
+                    <td class="amount-cell">KES {{ installment.principal|floatformat:2 }}</td>
+                    <td class="amount-cell">KES {{ installment.interest|floatformat:2 }}</td>
+                    <td class="amount-cell">KES {{ installment.total_due|floatformat:2 }}</td>
+                    <td class="amount-cell">KES {{ installment.cumulative_principal|floatformat:2 }}</td>
+                    <td class="amount-cell">KES {{ installment.cumulative_interest|floatformat:2 }}</td>
+                    <td class="amount-cell">KES {{ installment.closing_balance|floatformat:2 }}</td>
+                    <td class="status-cell status-{{ installment.status|lower }}">
+                        {{ installment.status }}
+                    </td>
+                </tr>
+                {% endfor %}
+                
+                <tr class="totals-row">
+                    <td colspan="3"><strong>TOTALS</strong></td>
+                    <td class="amount-cell"><strong>KES {{ total_principal|floatformat:2 }}</strong></td>
+                    <td class="amount-cell"><strong>KES {{ total_interest|floatformat:2 }}</strong></td>
+                    <td class="amount-cell"><strong>KES {{ total_repayment|floatformat:2 }}</strong></td>
+                    <td colspan="3"></td>
+                    <td></td>
+                </tr>
+                
+                <tr class="totals-row">
+                    <td colspan="3"><strong>PAID TO DATE</strong></td>
+                    <td class="amount-cell"><strong>KES {{ paid_principal|floatformat:2 }}</strong></td>
+                    <td class="amount-cell"><strong>KES {{ paid_interest|floatformat:2 }}</strong></td>
+                    <td class="amount-cell"><strong>KES {{ paid_total|floatformat:2 }}</strong></td>
+                    <td colspan="3"></td>
+                    <td></td>
+                </tr>
+                
+                <tr class="totals-row">
+                    <td colspan="3"><strong>BALANCE DUE</strong></td>
+                    <td class="amount-cell"><strong>KES {{ balance_principal|floatformat:2 }}</strong></td>
+                    <td class="amount-cell"><strong>KES {{ balance_interest|floatformat:2 }}</strong></td>
+                    <td class="amount-cell"><strong>KES {{ balance_total|floatformat:2 }}</strong></td>
+                    <td colspan="3"></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="payment-instructions">
+        <div style="font-weight: bold; margin-bottom: 8px; color: #2c3e50;">PAYMENT INSTRUCTIONS</div>
+        <div class="payment-methods">
+            <div class="method">
+                <div class="method-title">M-PESA PAYMENT</div>
+                <div>1. Go to M-Pesa Menu</div>
+                <div>2. Select "Lipa Na M-Pesa"</div>
+                <div>3. Select "Pay Bill"</div>
+                <div>4. Enter Business No: <strong>{{ paybill_number }}</strong></div>
+                <div>5. Enter Account No: <strong>{{ loan.loan_number }}</strong></div>
+                <div>6. Enter Amount: <strong>KES {{ monthly_installment|floatformat:2 }}</strong></div>
+                <div>7. Enter your M-Pesa PIN</div>
+                <div>8. Confirm payment</div>
+            </div>
+            
+            <div class="method">
+                <div class="method-title">BANK TRANSFER</div>
+                <div>Bank: <strong>{{ bank_name }}</strong></div>
+                <div>Account Name: <strong>Super Legit Advance Ltd</strong></div>
+                <div>Account Number: <strong>{{ account_number }}</strong></div>
+                <div>Branch: <strong>{{ branch_name }}</strong></div>
+                <div>Swift Code: <strong>{{ swift_code }}</strong></div>
+                <div>Reference: <strong>{{ loan.loan_number }}</strong></div>
+                <div style="margin-top: 10px; font-style: italic;">
+                    Please email transfer confirmation to: payments@superlegitadvance.com
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="contact-info">
+        <div class="contact-item">
+            <div class="contact-label">CUSTOMER SERVICE</div>
+            <div class="contact-value">+254 700 000 000</div>
+        </div>
+        
+        <div class="contact-item">
+            <div class="contact-label">WHATSAPP</div>
+            <div class="contact-value">+254 711 000 000</div>
+        </div>
+        
+        <div class="contact-item">
+            <div class="contact-label">EMAIL</div>
+            <div class="contact-value">support@superlegitadvance.com</div>
+        </div>
+    </div>
+    
+    <div class="notes-section">
+        <div class="notes-title">IMPORTANT NOTES:</div>
+        <ol style="margin: 5px 0; padding-left: 15px;">
+            <li>This schedule is computer-generated and subject to the terms of your loan agreement.</li>
+            <li>Payments received after 5:00 PM will be credited the next business day.</li>
+            <li>Public holidays may affect payment processing times.</li>
+            <li>Always quote your loan number when making payments.</li>
+            <li>Keep payment confirmation messages for reference.</li>
+            <li>Contact us at least 3 days before due date if you anticipate payment difficulties.</li>
+            <li>Early repayment discounts may be available - contact us for details.</li>
+        </ol>
+    </div>
+    
+    <div class="footer">
+        <p>
+            <strong>Super Legit Advance Ltd</strong> | Registered Office: Nairobi, Kenya | 
+            Phone: +254 700 000 000 | Email: info@superlegitadvance.com | 
+            Website: www.superlegitadvance.com
+        </p>
+        <p>
+            Licensed by Central Bank of Kenya | Member of Association of Microfinance Institutions Kenya
+        </p>
+        <p style="font-size: 7px; color: #95a5a6; margin-top: 5px;">
+            This document is generated automatically. Any discrepancies should be reported within 7 days. 
+            Terms and conditions apply as per the loan agreement.
+        </p>
+    </div>
+    
+    {% if include_amortization %}
+    <div class="page-break"></div>
+    
+    <div class="header">
+        <h1>AMORTIZATION SCHEDULE DETAILS</h1>
+        <div class="subtitle">Loan Number: {{ loan.loan_number }}</div>
+    </div>
+    
+    <div class="important-note">
+        This page shows the detailed amortization calculation for each installment.
+    </div>
+    
+    <div class="table-container">
+        <table class="schedule-table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Payment Date</th>
+                    <th>Beginning Balance</th>
+                    <th>Payment</th>
+                    <th>Principal</th>
+                    <th>Interest</th>
+                    <th>Ending Balance</th>
+                    <th>Interest % of Payment</th>
+                    <th>Cumulative Interest</th>
+                    <th>Cumulative Principal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for amort in amortization %}
+                <tr>
+                    <td>{{ amort.month }}</td>
+                    <td>{{ amort.payment_date|date:"d/m/Y" }}</td>
+                    <td class="amount-cell">KES {{ amort.beginning_balance|floatformat:2 }}</td>
+                    <td class="amount-cell">KES {{ amort.payment|floatformat:2 }}</td>
+                    <td class="amount-cell">KES {{ amort.principal|floatformat:2 }}</td>
+                    <td class="amount-cell">KES {{ amort.interest|floatformat:2 }}</td>
+                    <td class="amount-cell">KES {{ amort.ending_balance|floatformat:2 }}</td>
+                    <td>{{ amort.interest_percentage|floatformat:1 }}%</td>
+                    <td class="amount-cell">KES {{ amort.cumulative_interest|floatformat:2 }}</td>
+                    <td class="amount-cell">KES {{ amort.cumulative_principal|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="notes-section">
+        <div class="notes-title">AMORTIZATION EXPLANATION:</div>
+        <ul style="margin: 5px 0; padding-left: 15px;">
+            <li><strong>Beginning Balance:</strong> Loan balance at the start of the period</li>
+            <li><strong>Payment:</strong> Total amount due for the period (Principal + Interest)</li>
+            <li><strong>Principal:</strong> Portion of payment that reduces the loan balance</li>
+            <li><strong>Interest:</strong> Cost of borrowing for the period</li>
+            <li><strong>Ending Balance:</strong> Remaining balance after payment</li>
+            <li><strong>Interest % of Payment:</strong> Percentage of payment that is interest</li>
+            <li>Note: In early payments, a larger percentage goes toward interest</li>
+            <li>As the loan matures, more of each payment goes toward principal</li>
+        </ul>
+    </div>
+    {% endif %}
+</body>
+</html>

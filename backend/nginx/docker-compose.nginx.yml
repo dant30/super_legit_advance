@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx-dev.conf:/etc/nginx/conf.d/default.conf
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - super_legit_network
+
+  backend:
+    build: .
+    command: gunicorn super_legit_advance.wsgi:application --bind 0.0.0.0:8000 --workers 4
+    volumes:
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+    environment:
+      - DATABASE_URL=postgres://postgres:password@db:5432/sla_db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    networks:
+      - super_legit_network
+
+  frontend:
+    build: ../frontend
+    command: npm run preview
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    networks:
+      - super_legit_network
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=sla_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - super_legit_network
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - super_legit_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  nginx_logs:
+
+networks:
+  super_legit_network:
+    driver: bridge

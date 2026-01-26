@@ -1,0 +1,32 @@
+Hi {{customer_name}},
+
+Payment Reminder: KES {{amount_due:,.2f}} due on {{due_date}}
+
+Loan: #{{loan_id}}
+Installment: {{installment_number}}/{{total_installments}}
+Remaining Balance: KES {{remaining_balance:,.2f}}
+
+Payment Options:
+1. M-Pesa:
+   - Paybill: {{paybill_number}}
+   - Account: {{account_number}}
+
+2. Bank Transfer:
+   - Bank: {{bank_name}}
+   - Account: {{bank_account}}
+   - Branch: {{bank_branch}}
+
+Important:
+- Pay before {{due_date}} to avoid late fees
+- Late payment: KES {{late_fee:,.2f}} per day
+- Auto-debit enabled? {{auto_debit_status}}
+
+Already paid? Ignore this message.
+Need help? Call {{support_phone}}
+
+Thank you for staying current!
+
+---
+
+Super Legit Advance
+Your Financial Partner

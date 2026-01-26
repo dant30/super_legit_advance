@@ -1,0 +1,106 @@
+{
+  "name": "Super Legit Advance",
+  "short_name": "SLA",
+  "description": "Loan Management System for microfinance institutions",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0ea5e9",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/logo-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Home",
+      "description": "Go to dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/dashboard-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "New Loan",
+      "short_name": "Loan",
+      "description": "Create new loan",
+      "url": "/loans/create",
+      "icons": [{ "src": "/icons/loan-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "New Customer",
+      "short_name": "Customer",
+      "description": "Add new customer",
+      "url": "/customers/create",
+      "icons": [{ "src": "/icons/customer-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/dashboard.png",
+      "type": "image/png",
+      "sizes": "1280x720",
+      "form_factor": "wide",
+      "label": "Dashboard Overview"
+    },
+    {
+      "src": "/screenshots/mobile-dashboard.png",
+      "type": "image/png",
+      "sizes": "750x1334",
+      "form_factor": "narrow",
+      "label": "Mobile Dashboard"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "protocol_handlers": [
+    {
+      "protocol": "web+superlegit",
+      "url": "/launch?url=%s"
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "document",
+          "accept": ["image/*", ".pdf", ".doc", ".docx"]
+        }
+      ]
+    }
+  },
+  "file_handlers": [
+    {
+      "action": "/upload",
+      "accept": {
+        "application/pdf": [".pdf"],
+        "image/*": [".jpg", ".jpeg", ".png"],
+        "text/csv": [".csv"],
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
+      }
+    }
+  ]
+}

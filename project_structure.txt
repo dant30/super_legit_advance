@@ -1,0 +1,561 @@
+super_legit_advance/
+├── backend/                      # Django backend API (to be deployed separate)
+│   ├── manage.py
+│   ├── pyproject.toml           # Modern Python config
+│   ├── Dockerfile
+│   ├── docker-compose.yml       # Backend-only compose
+│   ├── .env.example
+│   ├── README.md
+│   ├── requirements/
+│   │   ├── base.txt
+│   │   ├── development.txt
+│   │   └── production.txt
+│   ├── apps/
+│   │   ├── __init__.py
+│   │   ├── users/               # Authentication & user management
+│   │   │   ├── __init__.py
+│   │   │   ├── apps.py
+│   │   │   ├── models/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── user.py
+│   │   │   │   └── staff.py
+│   │   │   ├── views/
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── api.py
+│   │   │   ├── serializers/
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── user.py
+│   │   │   ├── urls.py
+│   │   │   ├── admin.py
+│   │   │   ├── migrations/
+│   │   │   │   └── __init__.py
+│   │   │   ├── tests/
+│   │   │   │   └── __init__.py
+│   │   │   └── permissions.py
+│   │   ├── loans/               # Core loans functionality
+│   │   │   ├── __init__.py
+│   │   │   ├── apps.py
+│   │   │   ├── models/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── loan.py
+│   │   │   │   ├── application.py
+│   │   │   │   └── collateral.py
+│   │   │   ├── views/
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── api.py
+│   │   │   ├── serializers/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── loan.py
+│   │   │   │   └── application.py
+│   │   │   ├── urls.py
+│   │   │   ├── admin.py
+│   │   │   ├── migrations/
+│   │   │   │   └── __init__.py
+│   │   │   ├── tests/
+│   │   │   │   └── __init__.py
+│   │   │   └── calculators/
+│   │   │       ├── __init__.py
+│   │   │       └── loan_calculator.py
+│   │   ├── customers/           # Customer management
+│   │   │   ├── __init__.py
+│   │   │   ├── apps.py
+│   │   │   ├── models/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── customer.py
+│   │   │   │   ├── guarantor.py
+│   │   │   │   └── employment.py
+│   │   │   ├── views/
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── api.py
+│   │   │   ├── serializers/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── customer.py
+│   │   │   │   └── guarantor.py
+│   │   │   ├── urls.py
+│   │   │   ├── admin.py
+│   │   │   ├── migrations/
+│   │   │   │   └── __init__.py
+│   │   │   ├── tests/
+│   │   │   │   └── __init__.py
+│   │   │   └── validators/
+│   │   │       ├── __init__.py
+│   │   │       └── customer_validator.py
+│   │   ├── repayments/          # Repayment tracking
+│   │   │   ├── __init__.py
+│   │   │   ├── apps.py
+│   │   │   ├── models/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── repayment.py
+│   │   │   │   ├── schedule.py
+│   │   │   │   └── penalty.py
+│   │   │   ├── views/
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── api.py
+│   │   │   ├── serializers/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── repayment.py
+│   │   │   │   └── schedule.py
+│   │   │   ├── urls.py
+│   │   │   ├── admin.py
+│   │   │   ├── migrations/
+│   │   │   │   └── __init__.py
+│   │   │   ├── tests/
+│   │   │   │   └── __init__.py
+│   │   │   └── calculators/
+│   │   │       ├── __init__.py
+│   │   │       └── repayment_calculator.py
+│   │   ├── mpesa/               # M-Pesa Payment Integration
+│   │   │   ├── __init__.py
+│   │   │   ├── apps.py
+│   │   │   ├── models/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── payment.py
+│   │   │   │   ├── transaction.py
+│   │   │   │   └── callback.py
+│   │   │   ├── views/
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── api.py
+│   │   │   ├── serializers/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── payment.py
+│   │   │   │   └── transaction.py
+│   │   │   ├── urls.py
+│   │   │   ├── admin.py
+│   │   │   ├── migrations/
+│   │   │   │   └── __init__.py
+│   │   │   ├── tests/
+│   │   │   │   └── __init__.py
+│   │   │   ├── services/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── mpesa_service.py
+│   │   │   │   ├── stk_push.py
+│   │   │   │   └── callback_handler.py
+│   │   │   └── utils/
+│   │   │       ├── __init__.py
+│   │   │       ├── security.py
+│   │   │       └── helpers.py
+│   │   ├── notifications/       # SMS & Email Notifications
+│   │   │   ├── __init__.py
+│   │   │   ├── apps.py
+│   │   │   ├── models/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── notification.py
+│   │   │   │   ├── template.py
+│   │   │   │   └── sms_log.py
+│   │   │   ├── views/
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── api.py
+│   │   │   ├── serializers/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── notification.py
+│   │   │   │   └── template.py
+│   │   │   ├── urls.py
+│   │   │   ├── admin.py
+│   │   │   ├── migrations/
+│   │   │   │   └── __init__.py
+│   │   │   ├── tests/
+│   │   │   │   └── __init__.py
+│   │   │   ├── services/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── sms_service.py
+│   │   │   │   ├── email_service.py
+│   │   │   │   └── notification_service.py
+│   │   │   ├── templates/
+│   │   │   │   └── sms/
+│   │   │   │       ├── loan_approved.txt
+│   │   │   │       ├── payment_reminder.txt
+│   │   │   │       └── overdue_notice.txt
+│   │   │   └── tasks/
+│   │   │       ├── __init__.py
+│   │   │       ├── send_sms.py
+│   │   │       └── send_payment_reminders.py
+│   │   ├── reports/             # Reporting module
+│   │   │   ├── __init__.py
+│   │   │   ├── apps.py
+│   │   │   ├── views/
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── api.py
+│   │   │   ├── serializers/
+│   │   │   │   └── __init__.py
+│   │   │   ├── urls.py
+│   │   │   ├── templates/
+│   │   │   │   └── pdf/
+│   │   │   │       ├── loan_agreement.html
+│   │   │   │       └── repayment_schedule.html
+│   │   │   ├── generators/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── pdf_generator.py
+│   │   │   │   └── excel_generator.py
+│   │   │   └── utils.py
+│   │   ├── audit/               # Audit logging
+│   │   │   ├── __init__.py
+│   │   │   ├── apps.py
+│   │   │   ├── models/
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── audit_log.py
+│   │   │   ├── views/
+│   │   │   │   └── __init__.py
+│   │   │   ├── urls.py
+│   │   │   ├── admin.py
+│   │   │   ├── migrations/
+│   │   │   │   └── __init__.py
+│   │   │   └── middleware.py
+│   │   └── core/                # Shared utilities
+│   │       ├── __init__.py
+│   │       ├── apps.py
+│   │       ├── models/
+│   │       │   ├── __init__.py
+│   │       │   └── base.py
+│   │       ├── utils/
+│   │       │   ├── __init__.py
+│   │       │   ├── permissions.py
+│   │       │   ├── validators.py
+│   │       │   ├── helpers.py
+│   │       │   └── date_utils.py
+│   │       ├── mixins/
+│   │       │   ├── __init__.py
+│   │       │   └── api_mixins.py
+│   │       ├── management/
+│   │       │   └── commands/
+│   │       │       ├── __init__.py
+│   │       │       ├── send_reminders.py
+│   │       │       ├── generate_reports.py
+│   │       │       └── process_overdue.py
+│   │       └── constants.py
+│   ├── super_legit_advance/     # Django project
+│   │   ├── __init__.py
+│   │   ├── asgi.py
+│   │   ├── wsgi.py
+│   │   ├── urls.py
+│   │   └── settings/
+│   │       ├── __init__.py
+│   │       ├── base.py
+│   │       ├── development.py
+│   │       ├── production.py
+│   │       └── testing.py
+│   ├── media/                   # Uploaded files
+│   │   ├── documents/
+│   │   ├── contracts/
+│   │   └── identity_docs/
+│   ├── static/                  # Static files
+│   │   └── admin/
+│   ├── scripts/                 # Deployment scripts
+│   │   ├── deploy.sh
+│   │   ├── backup_db.sh
+│   │   └── setup_dev.sh
+│   └── nginx/
+│       └── nginx.conf
+|
+|
+├── frontend/                    # React frontend (office interface and to be deployed separate)
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── Dockerfile
+│   ├── vite.config.js
+│   ├── tailwind.config.js
+│   ├── postcss.config.js
+│   ├── tsconfig.json
+│   ├── index.html
+│   ├── .env.example
+│   ├── public/
+│   │   ├── favicon.ico
+│   │   ├── logo.png
+│   │   └── manifest.json
+│   └── src/
+│       ├── main.tsx
+│       ├── App.tsx
+│       ├── App.css
+│       ├── vite-env.d.ts
+│       ├── lib/
+│       │   ├── api/
+│       │   │   ├── auth.ts
+│       │   │   ├── loans.ts
+│       │   │   ├── audit.ts
+│       │   │   ├── notification.ts
+│       │   │   ├── reports.ts
+│       │   │   ├── customers.ts
+│       │   │   ├── repayments.ts
+│       │   │   └── mpesa.ts
+│       │   ├── utils/
+│       │   │   ├── formatters.ts
+│       │   │   ├── theme.ts
+│       │   │   ├── reportUtils.ts
+│       │   │   ├── validators.ts
+│       │   │   ├── cn.ts
+│       │   │   └── constants.ts
+│       │   └── axios.ts
+│       ├── components/
+│       │   ├── layout/
+│       │   │   ├── Header.tsx
+│       │   │   ├── Sidebar.tsx
+│       │   │   ├── Footer.tsx
+│       │   │   └── Layout.tsx
+│       │   ├── ui/
+│       │   │   ├── Button/
+│       │   │   │   ├── Button.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── Card/
+│       │   │   │   ├── Card.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── Table/
+│       │   │   │   ├── Table.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── Input/
+│       │   │   │   ├── Input.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── Modal/
+│       │   │   │   ├── Modal.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── Checkbox/
+│       │   │   │   ├── Checkbox.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── Badge/
+│       │   │   │   ├── Badge.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── Alert/
+│       │   │   │   ├── Alert.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── Tooltip/
+│       │   │   │   ├── Tooltip.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── Toast/
+│       │   │   │   ├── Toast.tsx
+|       |   |   |   ├── ToastProvider.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── Tabs/
+│       │   │   │   ├── Tabs.tsx
+│       │   │   │   └── index.ts
+│       │   │   |── Accordion/
+│       │   │   |   ├── Accordion.tsx
+│       │   │   |   └── index.ts
+│       │   │   ├── Theme/
+│       │   │   │   ├── ThemeInitializer.tsx
+│       │   │   │   └── index.ts
+│       │   │   └── Select/
+│       │   │        ├── Select.tsx
+│       │   │        └── index.ts
+│       │   ├── shared/
+│       │   │   ├── Loading.tsx
+│       │   │   ├── Error.tsx
+│       │   │   ├── EmptyState.tsx
+│       │   │   ├── ConfirmDialog.tsx
+│       │   │   ├── Pagination.tsx
+│       │   │   ├── Breadcrumbs.tsx            
+│       │   │   └── FileUpload.tsx
+│       │   ├── dashboard/
+│       │   |   ├── LoanOverview.tsx              # Loan summary widget
+│       │   |   ├── CollectionTarget.tsx          # Collection progress
+│       │   |   ├── CustomerStats.tsx             # Customer metrics
+│       │   |   ├── RecentActivities.tsx          # Activity feed
+│       │   |   ├── PendingTasks.tsx              # Task list
+│       │   |   └── PerformanceMetrics.tsx        # Staff performance
+│       │   ├── reports/
+│       │   │   ├── Charts/
+│       │   │   │   ├── LoanStatusChart.tsx        # Pie/Donut chart
+│       │   │   │   ├── RepaymentTrends.tsx        # Line chart
+│       │   │   │   ├── CustomerGrowthChart.tsx    # Bar chart
+│       │   │   │   ├── CollectionPerformance.tsx  # Area chart
+│       │   │   │   └── DelinquencyHeatmap.tsx     # Calendar heatmap
+│       │   │   ├── Filters/
+│       │   │   │   ├── DateRangeFilter.tsx
+│       │   │   │   ├── StatusFilter.tsx
+│       │   │   │   ├── StaffFilter.tsx
+│       │   │   │   ├── CustomerFilter.tsx
+│       │   │   │   └── ExportButtons.tsx          # Excel/PDF/CSV export
+│       │   │   ├── print/
+│       │   │   |   ├── ReportHeader.tsx
+│       │   │   |   ├── ReportFooter.tsx
+│       │   │   |   └── PrintLayout.tsx
+│       │   │   ├── Metrics/
+│       │   │   │   ├── KpiCards.tsx               # KPI summary cards
+│       │   │   │   ├── ComparisonChart.tsx        # YoY/MoM comparisons
+│       │   │   │   ├── TrendIndicator.tsx         # Up/down indicators
+│       │   │   │   └── GoalTracker.tsx            # Progress toward goals
+│       │   │   └── Tables/
+│       │   │       ├── ReportTable.tsx            # Configurable data table
+│       │   │       ├── SummaryTable.tsx           # Aggregated data
+│       │   │       └── DetailTable.tsx            # Detailed view
+│       │   ├── loans/
+│       │   │   ├── LoanForm.tsx
+│       │   │   ├── LoanTable.tsx
+│       │   │   ├── LoanCard.tsx
+│       │   │   |── Calculator.tsx
+│       │   │   ├── ApplicationWizard.tsx          # Multi-step loan application
+│       │   │   ├── CollateralManager.tsx          # Collateral tracking
+│       │   │   ├── RiskCalculator.tsx             # Risk assessment
+│       │   │   ├── ApprovalWorkflow.tsx           # Approval process steps
+│       │   │   ├── DisbursementTracker.tsx        # Disbursement status
+│       │   │   └── LoanRestructuring.tsx          # Loan modification
+│       │   ├── auth/                 
+│       │   │   ├── PasswordStrength.tsx            # Password strength indicator
+│       │   │   ├── TwoFactorSetup.tsx              # 2FA QR code & setup
+│       │   │   ├── SecurityQuestions.tsx           # Security questions setup
+│       │   │   ├── SessionManager.tsx              # Active sessions
+│       │   │   └── PasswordResetForm.tsx           # Password reset form component
+|       |   ├── admin/
+|       |   |   ├── UserPermissions.tsx            # Permission matrix editor
+|       |   |   ├── RoleManager.tsx                # Drag & drop role permissions
+|       |   |   ├── SystemHealth.tsx               # System monitoring dashboard
+|       |   |   ├── DataExport.tsx                 # Export data controls
+|       |   |   ├── AuditLogViewer.tsx             # Detailed audit log viewer
+|       |   |   └── BackupManager.tsx              # Backup/restore interface
+│       │   ├── customers/
+│       │   │   ├── CustomerForm.tsx
+│       │   │   |── CustomerCard.tsx
+│       │   │   ├── CustomerDocuments.tsx          # Document upload/view
+│       │   │   ├── GuarantorManager.tsx           # Add/remove guarantors
+│       │   │   ├── CreditScore.tsx                # Credit score display
+│       │   │   ├── RiskAssessment.tsx             # Risk level calculator
+│       │   │   ├── EmploymentInfo.tsx             # Employment form
+│       │   │   ├── BlacklistForm.tsx              # Blacklist reason form
+│       │   │   └── KYCVerification.tsx            # KYC status tracker
+│       │   │── notifications/
+│       │   │   ├── NotificationBell.tsx          # Notification dropdown
+│       │   │   ├── SMSComposer.tsx               # SMS message composer
+│       │   │   ├── TemplateManager.tsx           # Message templates
+│       │   │   ├── BulkMessenger.tsx             # Bulk SMS sending
+│       │   │   └── NotificationSettings.tsx      # User notification prefs
+│       │   │── payments/
+│       │   │   ├── PaymentForm.tsx
+│       │   │   |── MpesaPayment.tsx
+│       │   │   ├── PaymentSchedule.tsx            # Interactive schedule
+│       │   │   ├── LatePaymentCalculator.tsx      # Penalty calculator
+│       │   │   ├── MpesaCallbackHandler.tsx       # Mpesa response handler
+│       │   │   ├── ReceiptGenerator.tsx           # Payment receipt
+│       │   │   └── PaymentAllocation.tsx          # How payment is allocated
+│       │   └── search/                        # NEW
+│       │           ├── GlobalSearch.tsx
+│       │           ├── AdvancedFilter.tsx
+│       │           ├── SavedSearches.tsx
+│       │           └── QuickFilters.tsx
+│       ├── pages/
+│       │   ├── Dashboard.tsx
+│       │   ├── Login.tsx
+│       │   ├── NotFound.tsx
+│       │   ├── Unauthorized.tsx
+|       |   ├── ActivityLog.tsx
+|       |   ├── Maintenance.tsx                 # Maintenance mode page
+│       │   ├── docs/                          # ADD THIS DIRECTORY
+│       │   │   ├── ApiDocumentation.tsx       # API docs with Swagger UI
+│       │   │   ├── UserGuide.tsx              # User manual
+│       │   │   ├── SystemGuide.tsx            # System admin guide
+│       │   │   └── Tutorials.tsx
+│       │   ├── legal/                     # ADD THIS
+│       │   │   ├── TermsOfService.tsx
+│       │   │   ├── PrivacyPolicy.tsx
+│       │   │   ├── DataProtection.tsx
+│       │   │   └── AcceptableUse.tsx
+│       │   ├── support/                       # ADD THIS DIRECTORY
+│       │   │   ├── HelpCenter.tsx             # Main help page
+│       │   │   ├── ContactSupport.tsx         # Contact form
+│       │   │   ├── SystemStatus.tsx           # System uptime/status
+│       │   │   └── FeatureRequest.tsx         # Request new features
+│       │   ├── auth/
+|       |   |   ├── ForgotPassword.tsx       # Request password reset
+|       |   |   ├── ResetPassword.tsx        # Reset password with token
+|       |   |   ├── VerifyEmail.tsx          # Email verification (optional)
+|       |   |   └── TwoFactorAuth.tsx        # 2FA setup/verification
+│       │   ├── admin/
+|       |   |   ├── Staff/
+|       |   |   │   ├── List.tsx
+|       |   |   │   ├── Create.tsx
+|       |   |   │   ├── Edit.tsx
+|       |   |   │   ├── Detail.tsx
+|       |   |   │   ├── Performance.tsx     # KPIs, collections handled
+|       |   |   │   ├── Tasks.tsx           # Assign / track tasks
+|       |   |   │   └── Schedule.tsx        # Shifts / work calendar
+|       |   |   ├── settings/
+|       |   |   |   ├── Configuration.tsx       # System settings
+|       |   |   |   ├── LoanProducts.tsx        # Manage loan products
+|       |   |   |   ├── InterestRates.tsx       # Manage interest rates
+|       |   |   |   └── BackupRestore.tsx       # System backup/restore
+|       |   |   ├── Roles/
+|       |   |   |   ├── List.tsx            # List roles & permissions
+|       |   |   |   ├── Create.tsx          # Create new role
+|       |   |   |   └── Assign.tsx          # Assign roles to users
+│       │   │   └── AuditLogs/
+|       |   |       └── List.tsx 
+│       │   ├── loans/
+│       │   │   ├── routes.tsx
+│       │   │   ├── List.tsx
+│       │   │   ├── Create.tsx
+│       │   │   ├── Detail.tsx
+│       │   │   └── Calculator.tsx
+│       │   ├── customers/
+│       │   │   ├── routes.tsx
+│       │   │   ├── List.tsx
+│       │   │   ├── Create.tsx
+│       │   │   |── Detail.tsx
+│       │   │   ├── Blacklist.tsx           # Blacklisted customers
+│       │   │   ├── Guarantors.tsx          # Guarantor management
+│       │   │   ├── EmploymentInfo.tsx      # Employment details
+│       │   │   └── Documents.tsx           # Customer documents
+│       │   ├── repayments/
+│       │   │   ├── routes.tsx
+│       │   │   ├── List.tsx
+│       │   │   ├── Schedule.tsx
+│       │   │   └── Payment.tsx
+│       │   ├── reports/
+│       │   │   ├── routes.tsx
+│       │   │   ├── Overview.tsx
+│       │   │   ├── LoansReport.tsx
+│       │   │   ├── CustomerReport.tsx      # Customer statistics
+│       │   │   ├── CollectionReport.tsx    # Collections performance
+│       │   │   ├── DelinquencyReport.tsx   # Delinquent loans report
+│       │   │   |── PerformanceReport.tsx   # Staff performance metrics
+│       │   │   └── PaymentsReport.tsx
+│       │   ├── notifications/
+│       │   │   ├── routes.tsx
+│       │   │   ├── List.tsx
+│       │   │   └── SendSMS.tsx
+│       │   └── settings/
+│       │       ├── routes.tsx
+│       │       ├── Profile.tsx
+│       │       └── System.tsx
+│       ├── hooks/
+│       │   ├── useAuth.ts
+│       │   ├── useMediaQuery.ts
+│       │   ├── useLoans.ts
+│       │   ├── useAudit.ts
+│       │   ├── useNotifications.ts
+│       │   ├── useRepayments.ts
+│       │   ├── useReports.ts
+│       │   ├── useCustomers.ts
+│       │   └── useMpesa.ts
+│       ├── store/
+│       │   ├── slices/
+│       │   │   ├── authSlice.ts
+│       │   │   ├── loanSlice.ts
+│       │   │   ├── auditSlice.ts
+│       │   │   ├── customerSlice.ts
+│       │   │   ├── notificationSlice.ts
+│       │   │   ├── reportsSlice.ts
+│       │   │   ├── repaymentSlice.ts
+│       │   │   ├── mpesaSlice.ts
+│       │   │   └── uiSlice.ts
+│       │   ├── store.ts
+│       │   └── selectors.ts
+│       ├── types/
+│       │   ├── api.ts
+│       │   ├── auth.ts
+│       │   ├── audit.ts
+│       │   ├── notifications.ts
+│       │   ├── repayments.ts
+│       │   ├── reports.ts
+│       │   ├── loans.ts
+│       │   ├── customers.ts
+│       │   └── mpesa.ts
+│       ├── styles/
+│       │   ├── tailwind.css
+│       │   ├── globals.css
+│       │   ├── components.css
+│       │   └── animations.css
+│       └── router/
+│           ├── routes.tsx
+│           ├── PrivateRoute.tsx
+│           └── AdminRoute.tsx
+├── docker-compose.yml           # Full stack development
+├── docker-compose.prod.yml      # Production deployment
+├── .gitignore
+├── README.md
+└── CHANGELOG.md

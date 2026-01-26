@@ -1,0 +1,362 @@
+# backend/apps/core/constants.py
+"""
+System-wide constants for Super Legit Advance.
+"""
+
+# User roles
+ROLE_ADMIN = "admin"
+ROLE_STAFF = "staff"
+ROLE_OFFICER = "loan_officer"
+ROLE_CUSTOMER = "customer"
+
+ROLE_CHOICES = (
+    (ROLE_ADMIN, "Administrator"),
+    (ROLE_STAFF, "Staff Member"),
+    (ROLE_OFFICER, "Loan Officer"),
+    (ROLE_CUSTOMER, "Customer"),
+)
+
+# System statuses
+STATUS_DRAFT = "draft"
+STATUS_PENDING = "pending"
+STATUS_ACTIVE = "active"
+STATUS_INACTIVE = "inactive"
+STATUS_COMPLETED = "completed"
+STATUS_FAILED = "failed"
+STATUS_CANCELLED = "cancelled"
+STATUS_OVERDUE = "overdue"
+STATUS_DEFAULTED = "defaulted"
+STATUS_ARCHIVED = "archived"
+
+STATUS_CHOICES = (
+    (STATUS_DRAFT, "Draft"),
+    (STATUS_PENDING, "Pending"),
+    (STATUS_ACTIVE, "Active"),
+    (STATUS_INACTIVE, "Inactive"),
+    (STATUS_COMPLETED, "Completed"),
+    (STATUS_FAILED, "Failed"),
+    (STATUS_CANCELLED, "Cancelled"),
+    (STATUS_OVERDUE, "Overdue"),
+    (STATUS_DEFAULTED, "Defaulted"),
+    (STATUS_ARCHIVED, "Archived"),
+)
+
+# Loan specific statuses
+LOAN_STATUS_CHOICES = (
+    (STATUS_DRAFT, "Draft"),
+    (STATUS_PENDING, "Pending Review"),
+    (STATUS_ACTIVE, "Active"),
+    (STATUS_COMPLETED, "Paid Off"),
+    (STATUS_OVERDUE, "Overdue"),
+    (STATUS_DEFAULTED, "Defaulted"),
+    (STATUS_CANCELLED, "Cancelled"),
+)
+
+# Repayment statuses
+REPAYMENT_STATUS_PENDING = "pending"
+REPAYMENT_STATUS_UPCOMING = "upcoming"
+REPAYMENT_STATUS_PAID = "paid"
+REPAYMENT_STATUS_OVERDUE = "overdue"
+REPAYMENT_STATUS_PARTIAL = "partial"
+REPAYMENT_STATUS_FAILED = "failed"
+REPAYMENT_STATUS_CANCELLED = "cancelled"
+
+REPAYMENT_STATUS_CHOICES = (
+    (REPAYMENT_STATUS_PENDING, "Pending"),
+    (REPAYMENT_STATUS_UPCOMING, "Upcoming"),
+    (REPAYMENT_STATUS_PAID, "Paid"),
+    (REPAYMENT_STATUS_OVERDUE, "Overdue"),
+    (REPAYMENT_STATUS_PARTIAL, "Partial Payment"),
+    (REPAYMENT_STATUS_FAILED, "Failed"),
+    (REPAYMENT_STATUS_CANCELLED, "Cancelled"),
+)
+
+# Payment methods
+PAYMENT_METHOD_MPESA = "mpesa"
+PAYMENT_METHOD_CASH = "cash"
+PAYMENT_METHOD_BANK = "bank_transfer"
+PAYMENT_METHOD_CHEQUE = "cheque"
+
+PAYMENT_METHOD_CHOICES = (
+    (PAYMENT_METHOD_MPESA, "M-Pesa"),
+    (PAYMENT_METHOD_CASH, "Cash"),
+    (PAYMENT_METHOD_BANK, "Bank Transfer"),
+    (PAYMENT_METHOD_CHEQUE, "Cheque"),
+)
+
+# Gender choices
+GENDER_MALE = "male"
+GENDER_FEMALE = "female"
+GENDER_OTHER = "other"
+
+GENDER_CHOICES = (
+    (GENDER_MALE, "Male"),
+    (GENDER_FEMALE, "Female"),
+    (GENDER_OTHER, "Other"),
+)
+
+# Marital status
+MARITAL_SINGLE = "single"
+MARITAL_MARRIED = "married"
+MARITAL_DIVORCED = "divorced"
+MARITAL_WIDOWED = "widowed"
+
+MARITAL_STATUS_CHOICES = (
+    (MARITAL_SINGLE, "Single"),
+    (MARITAL_MARRIED, "Married"),
+    (MARITAL_DIVORCED, "Divorced"),
+    (MARITAL_WIDOWED, "Widowed"),
+)
+
+# Employment types
+EMPLOYMENT_TYPE_SALARIED = "salaried"
+EMPLOYMENT_TYPE_SELF_EMPLOYED = "self_employed"
+EMPLOYMENT_TYPE_UNEMPLOYED = "unemployed"
+EMPLOYMENT_TYPE_STUDENT = "student"
+EMPLOYMENT_TYPE_RETIRED = "retired"
+
+EMPLOYMENT_TYPE_CHOICES = (
+    (EMPLOYMENT_TYPE_SALARIED, "Salaried Employee"),
+    (EMPLOYMENT_TYPE_SELF_EMPLOYED, "Self-Employed"),
+    (EMPLOYMENT_TYPE_UNEMPLOYED, "Unemployed"),
+    (EMPLOYMENT_TYPE_STUDENT, "Student"),
+    (EMPLOYMENT_TYPE_RETIRED, "Retired"),
+)
+
+# ID types
+ID_TYPE_NATIONAL_ID = "national_id"
+ID_TYPE_PASSPORT = "passport"
+ID_TYPE_ALIEN_ID = "alien_id"
+ID_TYPE_DRIVING_LICENSE = "driving_license"
+
+ID_TYPE_CHOICES = (
+    (ID_TYPE_NATIONAL_ID, "National ID"),
+    (ID_TYPE_PASSPORT, "Passport"),
+    (ID_TYPE_ALIEN_ID, "Alien ID"),
+    (ID_TYPE_DRIVING_LICENSE, "Driving License"),
+)
+
+# Notification types
+NOTIFICATION_TYPE_SMS = "sms"
+NOTIFICATION_TYPE_EMAIL = "email"
+NOTIFICATION_TYPE_PUSH = "push"
+NOTIFICATION_TYPE_IN_APP = "in_app"
+
+NOTIFICATION_TYPE_CHOICES = (
+    (NOTIFICATION_TYPE_SMS, "SMS"),
+    (NOTIFICATION_TYPE_EMAIL, "Email"),
+    (NOTIFICATION_TYPE_PUSH, "Push Notification"),
+    (NOTIFICATION_TYPE_IN_APP, "In-App Notification"),
+)
+
+# Notification categories
+NOTIFICATION_CATEGORY_LOAN = "loan"
+NOTIFICATION_CATEGORY_PAYMENT = "payment"
+NOTIFICATION_CATEGORY_SYSTEM = "system"
+NOTIFICATION_CATEGORY_SECURITY = "security"
+NOTIFICATION_CATEGORY_MARKETING = "marketing"
+
+NOTIFICATION_CATEGORY_CHOICES = (
+    (NOTIFICATION_CATEGORY_LOAN, "Loan Related"),
+    (NOTIFICATION_CATEGORY_PAYMENT, "Payment Related"),
+    (NOTIFICATION_CATEGORY_SYSTEM, "System Notification"),
+    (NOTIFICATION_CATEGORY_SECURITY, "Security Alert"),
+    (NOTIFICATION_CATEGORY_MARKETING, "Marketing"),
+)
+
+# Audit log actions
+AUDIT_ACTION_CREATE = "create"
+AUDIT_ACTION_UPDATE = "update"
+AUDIT_ACTION_DELETE = "delete"
+AUDIT_ACTION_VIEW = "view"
+AUDIT_ACTION_LOGIN = "login"
+AUDIT_ACTION_LOGOUT = "logout"
+AUDIT_ACTION_PASSWORD_CHANGE = "password_change"
+AUDIT_ACTION_STATUS_CHANGE = "status_change"
+AUDIT_ACTION_PENALTY_APPLIED = "penalty_applied"
+
+AUDIT_ACTION_CHOICES = (
+    (AUDIT_ACTION_CREATE, "Create"),
+    (AUDIT_ACTION_UPDATE, "Update"),
+    (AUDIT_ACTION_DELETE, "Delete"),
+    (AUDIT_ACTION_VIEW, "View"),
+    (AUDIT_ACTION_LOGIN, "Login"),
+    (AUDIT_ACTION_LOGOUT, "Logout"),
+    (AUDIT_ACTION_PASSWORD_CHANGE, "Password Change"),
+    (AUDIT_ACTION_STATUS_CHANGE, "Status Change"),
+    (AUDIT_ACTION_PENALTY_APPLIED, "Penalty Applied"),
+)
+
+# Loan calculation methods
+LOAN_CALCULATION_SIMPLE_INTEREST = "simple_interest"
+LOAN_CALCULATION_COMPOUND_INTEREST = "compound_interest"
+LOAN_CALCULATION_FLAT_RATE = "flat_rate"
+
+LOAN_CALCULATION_CHOICES = (
+    (LOAN_CALCULATION_SIMPLE_INTEREST, "Simple Interest"),
+    (LOAN_CALCULATION_COMPOUND_INTEREST, "Compound Interest"),
+    (LOAN_CALCULATION_FLAT_RATE, "Flat Rate"),
+)
+
+# Repayment frequencies
+REPAYMENT_FREQUENCY_DAILY = "daily"
+REPAYMENT_FREQUENCY_WEEKLY = "weekly"
+REPAYMENT_FREQUENCY_BIWEEKLY = "biweekly"
+REPAYMENT_FREQUENCY_MONTHLY = "monthly"
+REPAYMENT_FREQUENCY_QUARTERLY = "quarterly"
+
+REPAYMENT_FREQUENCY_CHOICES = (
+    (REPAYMENT_FREQUENCY_DAILY, "Daily"),
+    (REPAYMENT_FREQUENCY_WEEKLY, "Weekly"),
+    (REPAYMENT_FREQUENCY_BIWEEKLY, "Bi-weekly"),
+    (REPAYMENT_FREQUENCY_MONTHLY, "Monthly"),
+    (REPAYMENT_FREQUENCY_QUARTERLY, "Quarterly"),
+)
+
+# Document types
+DOCUMENT_TYPE_ID = "id_document"
+DOCUMENT_TYPE_PAYSLIP = "payslip"
+DOCUMENT_TYPE_BANK_STATEMENT = "bank_statement"
+DOCUMENT_TYPE_LOAN_AGREEMENT = "loan_agreement"
+DOCUMENT_TYPE_REPAYMENT_SCHEDULE = "repayment_schedule"
+DOCUMENT_TYPE_COLLATERAL = "collateral_document"
+
+DOCUMENT_TYPE_CHOICES = (
+    (DOCUMENT_TYPE_ID, "ID Document"),
+    (DOCUMENT_TYPE_PAYSLIP, "Payslip"),
+    (DOCUMENT_TYPE_BANK_STATEMENT, "Bank Statement"),
+    (DOCUMENT_TYPE_LOAN_AGREEMENT, "Loan Agreement"),
+    (DOCUMENT_TYPE_REPAYMENT_SCHEDULE, "Repayment Schedule"),
+    (DOCUMENT_TYPE_COLLATERAL, "Collateral Document"),
+)
+
+# System limits and defaults
+DEFAULT_INTEREST_RATE = 12.5  # Annual percentage
+MAX_LOAN_AMOUNT = 500000.00
+MIN_LOAN_AMOUNT = 1000.00
+MAX_LOAN_TERM_MONTHS = 60  # 5 years
+MIN_LOAN_TERM_MONTHS = 1
+LATE_PAYMENT_PENALTY_RATE = 5.0  # Percentage
+GRACE_PERIOD_DAYS = 7
+DEFAULT_OVERDUE_DAYS_FOR_DEFAULT = 30
+MAX_FILE_SIZE_MB = 5  # 5MB
+
+# Cache keys
+CACHE_KEY_LOAN_STATS = "loan_stats_{}"
+CACHE_KEY_CUSTOMER_COUNT = "customer_count"
+CACHE_KEY_SYSTEM_SETTINGS = "system_settings"
+CACHE_KEY_ACTIVE_LOANS = "active_loans"
+CACHE_KEY_OVERDUE_REPAYMENTS = "overdue_repayments"
+
+# API response codes
+API_SUCCESS = 200
+API_CREATED = 201
+API_BAD_REQUEST = 400
+API_UNAUTHORIZED = 401
+API_FORBIDDEN = 403
+API_NOT_FOUND = 404
+API_METHOD_NOT_ALLOWED = 405
+API_VALIDATION_ERROR = 422
+API_SERVER_ERROR = 500
+
+# Financial year start month (July)
+FINANCIAL_YEAR_START_MONTH = 7
+
+# Timezone
+DEFAULT_TIMEZONE = "Africa/Nairobi"
+
+# SMS templates
+SMS_TEMPLATE_LOAN_APPROVED = "loan_approved"
+SMS_TEMPLATE_PAYMENT_REMINDER = "payment_reminder"
+SMS_TEMPLATE_PAYMENT_RECEIVED = "payment_received"
+SMS_TEMPLATE_OVERDUE_NOTICE = "overdue_notice"
+SMS_TEMPLATE_LOAN_DEFAULT = "loan_default"
+
+# Email templates
+EMAIL_TEMPLATE_WELCOME = "welcome"
+EMAIL_TEMPLATE_LOAN_APPROVED = "loan_approved"
+EMAIL_TEMPLATE_PAYMENT_RECEIPT = "payment_receipt"
+EMAIL_TEMPLATE_OVERDUE_NOTICE = "overdue_notice"
+EMAIL_TEMPLATE_MONTHLY_STATEMENT = "monthly_statement"
+
+# Report types
+REPORT_TYPE_DAILY = "daily"
+REPORT_TYPE_WEEKLY = "weekly"
+REPORT_TYPE_MONTHLY = "monthly"
+REPORT_TYPE_QUARTERLY = "quarterly"
+REPORT_TYPE_ANNUAL = "annual"
+REPORT_TYPE_CUSTOM = "custom"
+
+# Export formats
+EXPORT_FORMAT_PDF = "pdf"
+EXPORT_FORMAT_EXCEL = "excel"
+EXPORT_FORMAT_CSV = "csv"
+EXPORT_FORMAT_JSON = "json"
+
+# Security settings
+PASSWORD_MIN_LENGTH = 8
+PASSWORD_MAX_ATTEMPTS = 5
+SESSION_TIMEOUT_MINUTES = 30
+TOKEN_EXPIRY_HOURS = 24
+
+# M-Pesa settings
+MPESA_ENVIRONMENT_SANDBOX = "sandbox"
+MPESA_ENVIRONMENT_PRODUCTION = "production"
+MPESA_TRANSACTION_TYPE_CUSTOMER_PAYBILL_ONLINE = "CustomerPayBillOnline"
+
+# Africa's Talking settings
+AFRICASTALKING_ENVIRONMENT_SANDBOX = "sandbox"
+AFRICASTALKING_ENVIRONMENT_PRODUCTION = "production"
+
+# System paths
+MEDIA_ROOT = "media/"
+REPORTS_ROOT = "media/reports/"
+LOGS_ROOT = "logs/"
+BACKUP_ROOT = "backups/"
+
+# Date formats
+DATE_FORMAT = "%Y-%m-%d"
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+DISPLAY_DATE_FORMAT = "%d %b %Y"
+DISPLAY_DATETIME_FORMAT = "%d %b %Y %I:%M %p"
+
+# Currency
+DEFAULT_CURRENCY = "KES"
+CURRENCY_SYMBOL = "KSh"
+CURRENCY_FORMAT = "{symbol} {amount:,.2f}"
+
+# Pagination
+DEFAULT_PAGE_SIZE = 20
+MAX_PAGE_SIZE = 100
+
+# Logging levels
+LOG_LEVEL_DEBUG = "DEBUG"
+LOG_LEVEL_INFO = "INFO"
+LOG_LEVEL_WARNING = "WARNING"
+LOG_LEVEL_ERROR = "ERROR"
+LOG_LEVEL_CRITICAL = "CRITICAL"
+
+# System modes
+SYSTEM_MODE_DEVELOPMENT = "development"
+SYSTEM_MODE_STAGING = "staging"
+SYSTEM_MODE_PRODUCTION = "production"
+
+# API versions
+API_VERSION_V1 = "v1"
+API_VERSION_V2 = "v2"
+CURRENT_API_VERSION = API_VERSION_V1
+
+# HTTP methods
+HTTP_METHOD_GET = "GET"
+HTTP_METHOD_POST = "POST"
+HTTP_METHOD_PUT = "PUT"
+HTTP_METHOD_PATCH = "PATCH"
+HTTP_METHOD_DELETE = "DELETE"
+HTTP_METHOD_HEAD = "HEAD"
+HTTP_METHOD_OPTIONS = "OPTIONS"
+
+# Content types
+CONTENT_TYPE_JSON = "application/json"
+CONTENT_TYPE_FORM = "application/x-www-form-urlencoded"
+CONTENT_TYPE_MULTIPART = "multipart/form-data"
+CONTENT_TYPE_XML = "application/xml"

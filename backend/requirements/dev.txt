@@ -1,0 +1,17 @@
+# Base dependencies
+-r base.txt
+
+# -------------------------
+# Development Tools
+# -------------------------
+django-extensions>=3.2,<4.0
+django-debug-toolbar>=4.2,<5.0
+django-seed>=0.3,<1.0
+
+# -------------------------
+# Testing
+# -------------------------
+pytest>=7.4,<8.0
+pytest-django>=4.7,<5.0
+pytest-cov>=4.1,<5.0
+factory-boy>=3.3,<4.0

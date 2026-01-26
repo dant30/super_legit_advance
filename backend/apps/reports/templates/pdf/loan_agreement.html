@@ -1,0 +1,535 @@
+<!-- Loan Agreement Template -->
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Agreement - Super Legit Advance</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @top-center {
+                content: "Loan Agreement";
+                font-size: 14px;
+                font-weight: bold;
+            }
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10px;
+            }
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin: 0;
+        }
+        
+        .header .subtitle {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+            font-weight: bold;
+            border-left: 4px solid #3498db;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            margin-bottom: 10px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 3px;
+            font-size: 11px;
+        }
+        
+        .info-value {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 11px;
+        }
+        
+        .table th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .signature-section {
+            margin-top: 50px;
+            page-break-inside: avoid;
+        }
+        
+        .signature-box {
+            display: inline-block;
+            width: 45%;
+            margin: 0 2%;
+            text-align: center;
+            vertical-align: top;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #333;
+            width: 80%;
+            margin: 40px auto 10px;
+        }
+        
+        .signature-label {
+            font-size: 11px;
+            color: #555;
+            margin-top: 5px;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            font-size: 10px;
+            color: #7f8c8d;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        
+        .highlight {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+            font-size: 11px;
+        }
+        
+        .terms-list {
+            padding-left: 20px;
+            margin: 15px 0;
+        }
+        
+        .terms-list li {
+            margin-bottom: 8px;
+            text-align: justify;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .total-row {
+            font-weight: bold;
+            background-color: #e8f4fd !important;
+        }
+        
+        .amount {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .company-logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .company-logo img {
+            max-width: 150px;
+            height: auto;
+        }
+        
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 60px;
+            color: rgba(0, 0, 0, 0.1);
+            z-index: -1;
+            font-weight: bold;
+        }
+        
+        .confidential {
+            border: 2px solid #e74c3c;
+            padding: 10px;
+            margin: 20px 0;
+            background-color: #fdf2f2;
+            text-align: center;
+            font-weight: bold;
+            color: #c0392b;
+        }
+        
+        .repayment-schedule {
+            margin-top: 30px;
+        }
+        
+        .schedule-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+        
+        .disclaimer {
+            font-size: 9px;
+            color: #95a5a6;
+            text-align: justify;
+            margin-top: 30px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark">CONFIDENTIAL</div>
+    
+    <div class="header">
+        <div class="company-logo">
+            <!-- Logo would be inserted here -->
+            <h2>SUPER LEGIT ADVANCE</h2>
+        </div>
+        <h1>LOAN AGREEMENT</h1>
+        <div class="subtitle">Agreement No: {{ loan.loan_number }}</div>
+        <div class="subtitle">Date: {{ agreement_date }}</div>
+    </div>
+    
+    <div class="confidential">
+        CONFIDENTIAL LOAN AGREEMENT - FOR AUTHORIZED PERSONNEL ONLY
+    </div>
+    
+    <div class="section">
+        <div class="section-title">PARTIES TO THIS AGREEMENT</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">LENDER</div>
+                <div class="info-value">
+                    <strong>SUPER LEGIT ADVANCE LTD</strong><br>
+                    P.O. Box 12345-00100<br>
+                    Nairobi, Kenya<br>
+                    Phone: +254 700 000 000<br>
+                    Email: legal@superlegitadvance.com<br>
+                    Business Registration No: CPR/2023/12345
+                </div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">BORROWER</div>
+                <div class="info-value">
+                    <strong>{{ customer.full_name }}</strong><br>
+                    ID Number: {{ customer.id_number }}<br>
+                    Phone: {{ customer.phone_number }}<br>
+                    Email: {{ customer.email|default:"Not Provided" }}<br>
+                    Address: {{ customer.physical_address }}<br>
+                    County: {{ customer.county }}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">LOAN DETAILS</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Loan Amount</div>
+                <div class="info-value amount">KES {{ loan.amount_approved|floatformat:2 }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Interest Rate</div>
+                <div class="info-value">{{ loan.interest_rate }}% per annum</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Loan Term</div>
+                <div class="info-value">{{ loan.term_months }} months</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Processing Fee</div>
+                <div class="info-value amount">KES {{ loan.processing_fee|floatformat:2 }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Disbursement Date</div>
+                <div class="info-value">{{ loan.disbursement_date|date:"F d, Y" }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Maturity Date</div>
+                <div class="info-value">{{ loan.due_date|date:"F d, Y" }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Monthly Installment</div>
+                <div class="info-value amount">KES {{ monthly_installment|floatformat:2 }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Total Repayment</div>
+                <div class="info-value amount">KES {{ total_repayment|floatformat:2 }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Total Interest</div>
+                <div class="info-value amount">KES {{ total_interest|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">REPAYMENT SCHEDULE</div>
+        <div class="repayment-schedule">
+            <div class="schedule-title">AMORTIZATION SCHEDULE</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Installment No.</th>
+                        <th>Due Date</th>
+                        <th>Principal</th>
+                        <th>Interest</th>
+                        <th>Total Due</th>
+                        <th>Remaining Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for installment in schedule %}
+                    <tr>
+                        <td>{{ installment.installment_number }}</td>
+                        <td>{{ installment.due_date|date:"d/m/Y" }}</td>
+                        <td class="amount">KES {{ installment.principal|floatformat:2 }}</td>
+                        <td class="amount">KES {{ installment.interest|floatformat:2 }}</td>
+                        <td class="amount">KES {{ installment.total_due|floatformat:2 }}</td>
+                        <td class="amount">KES {{ installment.remaining_balance|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="2"><strong>TOTAL</strong></td>
+                        <td class="amount"><strong>KES {{ loan.amount_approved|floatformat:2 }}</strong></td>
+                        <td class="amount"><strong>KES {{ total_interest|floatformat:2 }}</strong></td>
+                        <td class="amount"><strong>KES {{ total_repayment|floatformat:2 }}</strong></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="page-break"></div>
+    
+    <div class="section">
+        <div class="section-title">TERMS AND CONDITIONS</div>
+        
+        <div class="highlight">
+            <strong>IMPORTANT NOTICE:</strong> This is a legally binding agreement. Please read all terms carefully before signing.
+        </div>
+        
+        <ol class="terms-list">
+            <li>
+                <strong>Loan Purpose:</strong> The Borrower confirms that the loan shall be used for {{ loan.purpose|default:"the purpose stated in the loan application" }}.
+            </li>
+            
+            <li>
+                <strong>Repayment Obligation:</strong> The Borrower agrees to repay the loan in {{ loan.term_months }} equal monthly installments of KES {{ monthly_installment|floatformat:2 }} each, commencing on {{ first_payment_date|date:"F d, Y" }}.
+            </li>
+            
+            <li>
+                <strong>Payment Method:</strong> Payments shall be made through M-Pesa to Paybill Number {{ paybill_number }} or as otherwise directed by the Lender.
+            </li>
+            
+            <li>
+                <strong>Late Payment Penalty:</strong> A penalty of {{ penalty_rate }}% per month shall be charged on any overdue amount, in addition to the normal interest.
+            </li>
+            
+            <li>
+                <strong>Prepayment:</strong> The Borrower may prepay the loan in whole or in part at any time. No prepayment penalty shall apply.
+            </li>
+            
+            <li>
+                <strong>Default:</strong> The loan shall be considered in default if:
+                <ul>
+                    <li>Any installment remains unpaid for more than 30 days</li>
+                    <li>The Borrower provides false information</li>
+                    <li>The Borrower becomes bankrupt or insolvent</li>
+                </ul>
+            </li>
+            
+            <li>
+                <strong>Consequences of Default:</strong> Upon default, the entire outstanding balance shall become immediately due and payable. The Lender may also:
+                <ul>
+                    <li>Charge additional penalty fees</li>
+                    <li>Report the default to credit bureaus</li>
+                    <li>Initiate legal recovery proceedings</li>
+                </ul>
+            </li>
+            
+            <li>
+                <strong>Security:</strong> This loan is secured by:
+                <ul>
+                    <li>Personal guarantee of the Borrower</li>
+                    {% for guarantor in guarantors %}
+                    <li>Guarantee by {{ guarantor.full_name }} (ID: {{ guarantor.id_number }})</li>
+                    {% endfor %}
+                    {% if collateral %}
+                    <li>{{ collateral.description }} valued at KES {{ collateral.value|floatformat:2 }}</li>
+                    {% endif %}
+                </ul>
+            </li>
+            
+            <li>
+                <strong>Credit Reporting:</strong> The Borrower authorizes the Lender to report loan performance to licensed credit reference bureaus in Kenya.
+            </li>
+            
+            <li>
+                <strong>Governing Law:</strong> This agreement shall be governed by and construed in accordance with the laws of Kenya.
+            </li>
+            
+            <li>
+                <strong>Dispute Resolution:</strong> Any disputes arising from this agreement shall first be resolved through mediation. If mediation fails, the matter shall be referred to arbitration in Nairobi.
+            </li>
+            
+            <li>
+                <strong>Notices:</strong> All notices shall be in writing and delivered to the addresses specified above, or via SMS/email to the contact details provided.
+            </li>
+            
+            <li>
+                <strong>Amendment:</strong> This agreement may only be amended in writing and signed by both parties.
+            </li>
+            
+            <li>
+                <strong>Entire Agreement:</strong> This document constitutes the entire agreement between the parties and supersedes all prior discussions and understandings.
+            </li>
+        </ol>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">DECLARATIONS</div>
+        
+        <div class="highlight">
+            <strong>BORROWER'S DECLARATION:</strong><br>
+            I, {{ customer.full_name }}, hereby:
+            <ol>
+                <li>Confirm that all information provided in my loan application is true and accurate</li>
+                <li>Understand and accept all terms and conditions of this loan agreement</li>
+                <li>Agree to repay the loan as per the repayment schedule</li>
+                <li>Authorize Super Legit Advance to deduct repayments as specified</li>
+                <li>Understand that failure to repay will affect my credit rating</li>
+            </ol>
+        </div>
+        
+        <div class="highlight">
+            <strong>LENDER'S DECLARATION:</strong><br>
+            Super Legit Advance Ltd agrees to:
+            <ol>
+                <li>Disburse the loan amount of KES {{ loan.amount_approved|floatformat:2 }} to the Borrower</li>
+                <li>Maintain confidentiality of the Borrower's information</li>
+                <li>Provide accurate statements and receipts for all transactions</li>
+                <li>Comply with all applicable laws and regulations</li>
+            </ol>
+        </div>
+    </div>
+    
+    <div class="signature-section">
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="signature-label">SIGNATURE OF BORROWER</div>
+            <div class="signature-label">{{ customer.full_name }}</div>
+            <div class="signature-label">Date: __________________</div>
+            <div class="signature-label">ID Number: {{ customer.id_number }}</div>
+        </div>
+        
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="signature-label">SIGNATURE FOR LENDER</div>
+            <div class="signature-label">Authorized Signatory</div>
+            <div class="signature-label">Date: __________________</div>
+            <div class="signature-label">Super Legit Advance Ltd</div>
+        </div>
+    </div>
+    
+    <div class="signature-section">
+        <div class="section-title">GUARANTORS</div>
+        <div class="info-grid">
+            {% for guarantor in guarantors %}
+            <div class="info-item">
+                <div class="info-label">GUARANTOR {{ forloop.counter }}</div>
+                <div class="info-value">
+                    <strong>{{ guarantor.full_name }}</strong><br>
+                    ID: {{ guarantor.id_number }}<br>
+                    Relationship: {{ guarantor.relationship }}<br>
+                    Phone: {{ guarantor.phone_number }}<br>
+                    <div class="signature-line" style="width: 60%; margin: 20px auto 5px;"></div>
+                    <div class="signature-label">Signature</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>
+            <strong>Super Legit Advance Ltd</strong> | Registered Office: Nairobi, Kenya | 
+            Phone: +254 700 000 000 | Email: info@superlegitadvance.com | 
+            Website: www.superlegitadvance.com
+        </p>
+        <p>
+            Licensed by Central Bank of Kenya | Member of Association of Microfinance Institutions Kenya
+        </p>
+        <p class="disclaimer">
+            This document is computer-generated and does not require a seal. It is valid without signature if 
+            the Borrower has accepted the terms digitally through our system. Any alteration to this document 
+            invalidates it. Keep this agreement in a safe place for reference. For any queries, contact our 
+            customer service.
+        </p>
+        <p>
+            Document Generated: {{ generated_date }} | Reference: {{ loan.loan_number }} | Page 1 of 2
+        </p>
+    </div>
+</body>
+</html>

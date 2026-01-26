@@ -1,0 +1,34 @@
+URGENT: {{customer_name}}
+
+Your loan #{{loan_id}} is OVERDUE by {{overdue_days}} days!
+
+Payment Status:
+- Amount Due: KES {{overdue_amount:,.2f}}
+- Late Fees: KES {{late_fee:,.2f}}
+- Total Owed: KES {{total_due:,.2f}}
+- Due Date: {{due_date}}
+- Current Status: {{loan_status}}
+
+CONSEQUENCES:
+⚠️ Credit Score Impact
+⚠️ Additional Penalties
+⚠️ Legal Action Possible
+⚠️ Loan Default Risk
+
+IMMEDIATE ACTION REQUIRED:
+1. Pay FULL amount now
+2. Contact Collections immediately
+3. Discuss payment plan if needed
+
+Payment: {{paybill_number}} Account: {{account_number}}
+
+Contact Collections:
+📞 {{collection_phone}}
+📧 {{collection_email}}
+📍 {{collection_address}}
+
+This is FINAL NOTICE. Act now to avoid serious consequences.
+
+---
+
+Super Legit Advance Collections Department
