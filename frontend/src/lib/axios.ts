@@ -1,5 +1,5 @@
 // frontend/src/lib/axios.ts
-import axios, { AxiosError, AxiosInstance } from 'axios'
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
 
 // Normalize API URL (remove trailing slash)
 const API_URL =
@@ -8,9 +8,8 @@ const API_URL =
 const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 30000
 
 interface FailedRequest extends AxiosError {
-  config: {
+  config: AxiosRequestConfig & {
     _retry?: boolean
-    headers?: Record<string, string>
   }
 }
 
@@ -47,8 +46,9 @@ axiosInstance.interceptors.response.use(
     // Only refresh if 401 and not already retried
     if (
       error.response?.status === 401 &&
-      !originalRequest?._retry &&
-      !originalRequest?.url?.includes('/auth/token/')
+      !originalRequest._retry &&
+      originalRequest.url &&
+      !originalRequest.url.includes('/auth/token/')
     ) {
       originalRequest._retry = true
 
