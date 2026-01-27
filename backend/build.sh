@@ -1,56 +1,64 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Backend build script for Render
-# - Installs deps (optional if Render handles)
-# - Waits for DB
-# - Runs migrations and collects static files
+# Super Legit Advance - Render Build Script
+# This script prepares the Django app for deployment on Render
 
-cd "$(dirname "$0")"
+echo "🔨 Building Super Legit Advance..."
 
-# Optional: install deps if Render doesn't
-if [ -f "requirements.txt" ]; then
-  python -m pip install --upgrade pip
-  pip install -r requirements.txt
-fi
+# 1. Install dependencies
+echo "📦 Installing dependencies..."
+pip install --upgrade pip
+pip install -r requirements/prod.txt
 
-# Wait for DB to be ready (uses DATABASE_URL)
-echo "Waiting for database..."
+# 2. Wait for database to be ready
+echo "⏳ Waiting for database to be available..."
 MAX_RETRIES=20
 SLEEP=3
 n=0
-until python - <<'PY' 2>/dev/null
-import os, sys
+
+until python -c "
+import os
+import sys
 from urllib.parse import urlparse
-import psycopg2
-url = os.environ.get('DATABASE_URL')
-if not url:
+try:
+    import psycopg2
+    url = os.environ.get('DATABASE_URL')
+    if not url:
+        sys.exit(1)
+    p = urlparse(url)
+    conn = psycopg2.connect(
+        dbname=p.path.lstrip('/'),
+        user=p.username,
+        password=p.password,
+        host=p.hostname,
+        port=p.port or 5432
+    )
+    conn.close()
+    print('✅ Database connection successful')
+except Exception as e:
+    print(f'❌ Database not ready: {e}')
     sys.exit(1)
-p = urlparse(url)
-conn = psycopg2.connect(dbname=p.path.lstrip('/'), user=p.username, password=p.password, host=p.hostname, port=p.port)
-conn.close()
-print("DB ok")
-PY
-do
+" 2>/dev/null; do
   n=$((n+1))
   if [ $n -ge $MAX_RETRIES ]; then
-    echo "Database did not become available after $MAX_RETRIES attempts" >&2
+    echo "❌ Database did not become available after $MAX_RETRIES attempts"
     exit 1
   fi
-  echo "DB not ready, retrying in $SLEEP seconds... ($n/$MAX_RETRIES)"
+  echo "  Retrying in $SLEEP seconds... ($n/$MAX_RETRIES)"
   sleep $SLEEP
 done
 
-echo "Running Django migrations..."
-export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-super_legit_advance.settings.production}
+# 3. Run migrations
+echo "🗄️  Running database migrations..."
 python manage.py migrate --noinput
 
-echo "Collecting static files..."
-python manage.py collectstatic --noinput
+# 4. Collect static files
+echo "📁 Collecting static files..."
+python manage.py collectstatic --noinput --clear
 
-# Optionally create default data / superuser (uncomment if desired)
-# python manage.py loaddata initial_data.json
-# echo "from django.contrib.auth import get_user_model; User = get_user_model(); \
-# if not User.objects.filter(username='admin').exists(): User.objects.create_superuser('admin','admin@local','admin123')" | python manage.py shell
+# 5. Create default data (optional)
+echo "🌱 Setting up default data..."
+python manage.py setup_default_data
 
-echo "Build script completed."
+echo "✅ Build completed successfully!"

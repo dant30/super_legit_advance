@@ -1,0 +1,87 @@
+services:
+  # Backend API
+  - type: web
+    name: super-legit-backend
+    env: python
+    plan: free
+    region: ohio
+    
+    buildCommand: >
+      cd backend &&
+      chmod +x build.sh &&
+      ./build.sh
+    
+    startCommand: >
+      cd backend &&
+      gunicorn super_legit_advance.wsgi:application \
+        --bind 0.0.0.0:$PORT \
+        --workers 2 \
+        --timeout 60
+    
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      
+      - key: DJANGO_SETTINGS_MODULE
+        value: "super_legit_advance.settings.production"
+      
+      - key: DEBUG
+        value: "false"
+      
+      - key: SECRET_KEY
+        generateValue: true
+      
+      - key: ALLOWED_HOSTS
+        value: "*.onrender.com,your-domain.com"
+      
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://your-frontend-url.onrender.com"
+      
+      - key: DATABASE_URL
+        fromDatabase:
+          name: super-legit-db
+          property: connectionString
+      
+      - key: REDIS_URL
+        value: "redis://default:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}"
+    
+    # Mount static/media files
+    staticPublicPath: /static
+    
+  # Frontend (optional)
+  - type: web
+    name: super-legit-frontend
+    env: node
+    plan: free
+    region: ohio
+    
+    buildCommand: >
+      npm ci &&
+      npm run build
+    
+    startCommand: "npm run preview"
+    
+    publishPath: dist
+    
+    envVars:
+      - key: VITE_API_URL
+        value: "https://super-legit-backend.onrender.com/api"
+
+  # PostgreSQL Database
+  - type: pserv
+    name: super-legit-db
+    plan: free
+    region: ohio
+    
+    databaseName: sla_db
+    username: postgres
+    ipAllowList:
+      - source: 0.0.0.0/0
+
+  # Redis Cache (optional but recommended)
+  - type: redis
+    name: super-legit-redis
+    plan: free
+    region: ohio
+    ipAllowList:
+      - source: 0.0.0.0/0
