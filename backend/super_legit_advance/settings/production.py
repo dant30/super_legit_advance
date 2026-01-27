@@ -6,6 +6,7 @@ Production settings for super_legit_advance project.
 from .base import *
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
+import dj_database_url
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -14,15 +15,20 @@ DEBUG = False
 SECRET_KEY = env('SECRET_KEY')
 
 # Allowed hosts - must be set in production
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost'])
 
 # CORS settings for production
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[])
 CORS_ALLOW_ALL_ORIGINS = False
 
 # Database - PostgreSQL in production
-DATABASES['default']['CONN_MAX_AGE'] = 500
-DATABASES['default']['ATOMIC_REQUESTS'] = True
+DATABASES = {
+    'default': dj_database_url.config(
+        default=env('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
 
 # Security settings
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -46,8 +52,16 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
 
 # Redis settings
-CACHES['default']['OPTIONS']['CLIENT_CLASS'] = 'django_redis.client.DefaultClient'
-CACHES['default']['OPTIONS']['CONNECTION_POOL_KWARGS'] = {'max_connections': 100}
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": env('REDIS_URL', default='redis://localhost:6379/0'),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CONNECTION_POOL_KWARGS": {"max_connections": 50}
+        }
+    }
+}
 
 # Celery settings
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
