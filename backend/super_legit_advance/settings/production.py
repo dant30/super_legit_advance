@@ -103,7 +103,7 @@ LOGGING['loggers']['apps'] = {
 
 # Sentry error tracking (optional)
 SENTRY_DSN = env('SENTRY_DSN', default=None)
-if SENTRY_DSN:
+if SENTRY_DSN:  # ✓ Only initialize if DSN is provided
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[DjangoIntegration()],
