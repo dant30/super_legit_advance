@@ -83,7 +83,23 @@ LOGGING['loggers']['django.security'] = {
     'level': 'WARNING',
     'propagate': False,
 }
-LOGGING['loggers']['apps']['level'] = 'INFO'
+
+# ✓ FIXED: Only update loggers that exist, or create new ones with proper structure
+if 'apps.audit' in LOGGING['loggers']:
+    LOGGING['loggers']['apps.audit']['level'] = 'INFO'
+
+if 'apps.mpesa' in LOGGING['loggers']:
+    LOGGING['loggers']['apps.mpesa']['level'] = 'INFO'
+
+if 'apps.notifications' in LOGGING['loggers']:
+    LOGGING['loggers']['apps.notifications']['level'] = 'INFO'
+
+# Or add a generic app logger if needed:
+LOGGING['loggers']['apps'] = {
+    'handlers': ['console'],
+    'level': 'INFO',
+    'propagate': False,
+}
 
 # Sentry error tracking (optional)
 SENTRY_DSN = env('SENTRY_DSN', default=None)
