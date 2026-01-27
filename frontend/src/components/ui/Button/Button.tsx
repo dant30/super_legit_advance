@@ -9,6 +9,7 @@ type ButtonVariant =
   | 'danger'
   | 'outline'
   | 'ghost'
+  | 'secondary'
 
 type ButtonSize = 'sm' | 'md' | 'lg'
 
