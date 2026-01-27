@@ -103,13 +103,14 @@ LOGGING['loggers']['apps'] = {
 
 # Sentry error tracking (optional)
 SENTRY_DSN = env('SENTRY_DSN', default=None)
-if SENTRY_DSN:  # ✓ Only initialize if DSN is provided
+
+if not DEBUG and SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[DjangoIntegration()],
-        traces_sample_rate=1.0,
+        traces_sample_rate=0.1,  # 👈 start low, raise later if needed
         send_default_pii=True,
-        environment='production',
+        environment="production",
     )
 
 # REST Framework settings for production
