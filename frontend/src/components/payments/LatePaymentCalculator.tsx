@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Calculator } from 'lucide-react'
 
 import { Card } from '@/components/ui/Card'
-import Input from '@/components/ui/Input'
+import { Input } from '@/components/ui/Input'
 
 interface LatePaymentCalculatorProps {
   principalAmount: number

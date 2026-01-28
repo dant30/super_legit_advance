@@ -1,7 +1,7 @@
 // frontend/src/components/shared/ConfirmDialog.tsx
 import React from 'react'
-import Modal from '@/components/ui/Modal'
-import Button from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
+import { Button } from '@/components/ui/Button'
 import { AlertTriangle, Info, CheckCircle, XCircle } from 'lucide-react'
 import clsx from 'clsx'
 

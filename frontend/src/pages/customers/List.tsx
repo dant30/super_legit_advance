@@ -6,15 +6,15 @@ import { useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 
 import { customerAPI } from '@/lib/api/customers'
-import Button from '@/components/ui/Button'
-import Input from '@/components/ui/Input'
-import Table from '@/components/ui/Table'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Table } from '@/components/ui/Table'
 import { Card } from '@/components/ui/Card'
-import Modal from '@/components/ui/Modal'
+import { Modal } from '@/components/ui/Modal'
 import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
-import Pagination from '@/components/shared/Pagination'
-import Badge from '@/components/ui/Badge'
+import { Pagination } from '@/components/shared/Pagination'
+import { Badge } from '@/components/ui/Badge'
 
 interface Filter {
   page?: number

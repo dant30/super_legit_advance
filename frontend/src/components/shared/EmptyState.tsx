@@ -1,7 +1,7 @@
 // frontend/src/components/shared/EmptyState.tsx
 import React from 'react'
 import { LucideIcon, Inbox, Search, FileText, Users } from 'lucide-react'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import clsx from 'clsx'
 
 interface EmptyStateProps {

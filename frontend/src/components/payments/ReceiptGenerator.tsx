@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { FileText, Download, Printer } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Repayment } from '@/lib/api/repayments'
 

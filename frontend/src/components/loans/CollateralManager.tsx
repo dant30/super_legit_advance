@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-react'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import Input from '@/components/ui/Input'
+import { Input } from '@/components/ui/Input'
 import { useLoans } from '@/hooks/useLoans'
 import Loading from '@/components/shared/Loading'
 

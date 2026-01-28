@@ -12,7 +12,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery'
 import Header from './Header'
 import Sidebar from './Sidebar'
 import Footer from './Footer'
-import Button from '../ui/Button/Button'
+import { Button } from '../ui/Button/Button'
 
 const DESKTOP_QUERY = '(min-width: 1020px)'
 const SCROLL_THRESHOLD = 300

@@ -2,8 +2,8 @@ import { useForm } from 'react-hook-form'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 
-import Button from '@/components/ui/Button'
-import Input from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import { repaymentsAPI } from '@/lib/api/repayments'
 

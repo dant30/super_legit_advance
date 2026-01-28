@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { TrendingUp, AlertCircle, CheckCircle2, Clock } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 
 interface DisbursementTrackerProps {
   loanId: number
