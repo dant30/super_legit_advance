@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { repaymentsAPI } from '@/lib/api/repayments'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
+import Badge from '@/components/ui/Badge'
 import Loading from '@/components/shared/Loading'
 import Error from '@/components/shared/Error'
 

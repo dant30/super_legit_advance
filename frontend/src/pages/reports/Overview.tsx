@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 import { useQuery } from '@tanstack/react-query'
 import { Card } from '@/components/ui/Card'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import { 
   TrendingUp, DollarSign, Users, FileText, 
   BarChart3, PieChart, LineChart, Activity 
