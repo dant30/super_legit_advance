@@ -95,6 +95,44 @@ export const searchAuditLogs = createAsyncThunk(
   }
 )
 
+
+// ---- Audit State ----
+interface AuditState {
+  logs: AuditLog[]
+  currentLog: AuditLog | null
+  stats: AuditStats | null
+  userActivity: UserActivity | null
+  securityEvents: AuditLog[]
+  complianceEvents: AuditLog[]
+  loading: boolean
+  error: string | null
+  filters: Record<string, any>
+  pagination: {
+    count: number
+    next: string | null
+    previous: string | null
+  }
+}
+
+// ---- Initial State ----
+const initialState: AuditState = {
+  logs: [],
+  currentLog: null,
+  stats: null,
+  userActivity: null,
+  securityEvents: [],
+  complianceEvents: [],
+  loading: false,
+  error: null,
+  filters: {},
+  pagination: {
+    count: 0,
+    next: null,
+    previous: null
+  }
+}
+
+
 const auditSlice = createSlice({
   name: 'audit',
   initialState,

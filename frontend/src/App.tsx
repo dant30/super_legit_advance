@@ -52,13 +52,13 @@ function App() {
       import.meta.env.VITE_GOOGLE_ANALYTICS_ID
     ) {
       import('react-ga4').then((ReactGA) => {
-        ReactGA.send({
-          hitType: 'pageview',
-          page: location.pathname + location.search,
-        })
-      })
+        ReactGA.initialize(import.meta.env.VITE_GOOGLE_ANALYTICS_ID);
+        ReactGA.send("pageview", {
+          page_path: location.pathname + location.search,
+        });
+      });
     }
-  }, [location])
+  }, [location]);
 
   if (loading) {
     return (
