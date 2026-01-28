@@ -55,7 +55,7 @@ const Table = <T extends Record<string, any>>({
 
   selectable = false,
   selectedRows = [],
-  onSelect,
+  //onSelect,
 
   striped = true,
   hoverable = true,
