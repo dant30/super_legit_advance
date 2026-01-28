@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import Toast, type { ToastProps } from './Toast'
+import Toast from './Toast'
+import type { ToastProps } from './Toast'
 
 export interface ToastMessage extends Omit<ToastProps, 'onClose'> {
   id: string
