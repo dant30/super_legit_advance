@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async'
 import { Bell, Trash2 } from 'lucide-react'
 
 import { Card } from '@/components/ui/Card'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 
 export default function NotificationList() {
   const notifications = [

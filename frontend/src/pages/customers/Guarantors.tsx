@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/Card'
 import { Modal } from '@/components/ui/Modal'
 import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
-import Badge from '@/components/ui/Badge'
+import { Badge } from '@/components/ui/Badge'
 import GuarantorManager from '@/components/customers/GuarantorManager'
 
 export default function CustomerGuarantors() {
