@@ -2,7 +2,7 @@
 import React from 'react'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import clsx from 'clsx'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 
 interface ErrorProps {
   title?: string

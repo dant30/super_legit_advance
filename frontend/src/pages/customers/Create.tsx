@@ -6,7 +6,7 @@ import { useMutation } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 
 import { customerAPI } from '@/lib/api/customers'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import CustomerForm from '@/components/customers/CustomerForm'
 import Loading from '@/components/shared/Loading'

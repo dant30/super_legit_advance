@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { ArrowLeft, Upload, Download, Eye, Trash2 } from 'lucide-react'
 
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import Modal from '@/components/ui/Modal'
 import Loading from '@/components/shared/Loading'

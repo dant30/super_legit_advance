@@ -8,8 +8,8 @@ import toast from 'react-hot-toast'
 
 import { loansAPI } from '@/lib/api/loans'
 import { customerAPI } from '@/lib/api/customers'
-import Button from '@/components/ui/Button'
-import Input from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import Loading from '@/components/shared/Loading'
 
