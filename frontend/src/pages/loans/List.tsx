@@ -8,7 +8,7 @@ import { loansAPI } from '@/lib/api/loans'
 import { Button } from '@/components/ui/Button'
 import { Input  }from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
-import Table from '@/components/ui/Table'
+import {Table } from '@/components/ui/Table'
 import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
 
