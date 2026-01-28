@@ -354,14 +354,12 @@ export const fetchCollateralById = createAsyncThunk(
 // Async thunk for Statistics
 export const fetchLoanStats = createAsyncThunk(
   'loans/fetchLoanStats',
-  async (_, { rejectWithValue }) => {
+  async (params?: any, { rejectWithValue }) => {
     try {
       const response = await loansAPI.getLoanStats()
       return response
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data || 'Failed to fetch loan statistics'
-      )
+      return rejectWithValue(error.response?.data || 'Failed to fetch loan stats')
     }
   }
 )

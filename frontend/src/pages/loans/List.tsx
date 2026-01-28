@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/Card'
 import {Table } from '@/components/ui/Table'
 import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
+import { Pagination } from '@/components/ui/Pagination'
 
 interface LoanFilter {
   status?: string
@@ -22,6 +23,8 @@ export default function LoanList() {
   const navigate = useNavigate()
   const [filters, setFilters] = useState<LoanFilter>({})
   const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 10
 
   const { data: loansData, isLoading: loansLoading } = useQuery({
     queryKey: ['loans', filters],
@@ -46,6 +49,7 @@ export default function LoanList() {
 
   const loans = loansData?.results || []
   const stats = statsData || {}
+  const totalItems = loansData?.total || 0
 
   return (
     <>
@@ -166,6 +170,17 @@ export default function LoanList() {
               </Button>
             }
           />
+        )}
+
+        {/* Pagination */}
+        {loans.length > 0 && (
+          <div className="mt-4">
+            <Pagination
+              current={currentPage}
+              total={Math.ceil(totalItems / pageSize)}
+              onChange={(page: number) => setCurrentPage(page)}
+            />
+          </div>
         )}
       </div>
     </>

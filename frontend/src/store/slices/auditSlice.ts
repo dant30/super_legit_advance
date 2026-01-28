@@ -3,59 +3,17 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { auditAPI } from '@/lib/api/audit'
 import type { 
   AuditLog, 
-  AuditLogListResponse, 
+  AuditLogListResponse,  // Keep this
   AuditStats, 
   UserActivity,
   RootState 
 } from '@/types/audit'
+// AuditLogListResponse is used in return types
 
-interface AuditState {
-  logs: AuditLog[]
-  currentLog: AuditLog | null
-  stats: AuditStats | null
-  userActivity: UserActivity | null
-  securityEvents: AuditLog[]
-  complianceEvents: AuditLog[]
-  loading: boolean
-  error: string | null
-  pagination: {
-    count: number
-    next: string | null
-    previous: string | null
-  }
-  filters: {
-    action?: string
-    severity?: string
-    status?: string
-    model_name?: string
-    start_date?: string
-    end_date?: string
-    user_id?: number
-    search?: string
-  }
-}
-
-const initialState: AuditState = {
-  logs: [],
-  currentLog: null,
-  stats: null,
-  userActivity: null,
-  securityEvents: [],
-  complianceEvents: [],
-  loading: false,
-  error: null,
-  pagination: {
-    count: 0,
-    next: null,
-    previous: null
-  },
-  filters: {}
-}
-
-// Async Thunks
+// Fix FilterParams - use 'any' or define the type
 export const fetchAuditLogs = createAsyncThunk(
   'audit/fetchLogs',
-  async (filters: FilterParams | undefined, { rejectWithValue }) => {
+  async (filters?: any, { rejectWithValue }) => {  // Make optional
     try {
       const response = await auditAPI.getAuditLogs(filters)
       return response

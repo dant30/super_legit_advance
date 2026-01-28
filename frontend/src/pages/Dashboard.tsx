@@ -58,8 +58,6 @@ interface QuickStat {
 const Dashboard: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
   const { user } = useSelector((state: RootState) => state.auth)
-  const { loans } = useSelector((state: RootState) => state.loans)
-  const { dashboardStats } = useSelector((state: RootState) => state.repayments)
 
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ['dashboardStats'],
@@ -71,20 +69,20 @@ const Dashboard: React.FC = () => {
       ])
 
       return {
-        total_loans: loansRes.data.summary?.total_loans || 0,
-        active_loans: loansRes.data.summary?.total_active_loans || 0,
-        overdue_loans: loansRes.data.summary?.total_overdue_loans || 0,
-        total_portfolio: loansRes.data.summary?.total_amount_approved || 0,
-        total_customers: customersRes.data.total_customers || 0,
-        total_repayments: repaymentsRes.data.overall_statistics?.total_repayments || 0,
-        total_amount_paid: repaymentsRes.data.overall_statistics?.total_amount_paid || 0,
-        monthly_target: repaymentsRes.data.monthly_target || 100000,
-        monthly_collected: repaymentsRes.data.monthly_statistics?.amount || 0,
+        total_loans: loansRes.data.summary.total_loans,
+        active_loans: loansRes.data.summary.total_active_loans,
+        overdue_loans: loansRes.data.summary.total_overdue_loans,
+        total_portfolio: loansRes.data.summary.total_amount_approved,
+        total_customers: customersRes.data.total_customers,
+        total_repayments: repaymentsRes.data.overall_statistics.total_repayments,
+        total_amount_paid: repaymentsRes.data.overall_statistics.total_amount_paid,
+        monthly_target: repaymentsRes.data.monthly_target,
+        monthly_collected: repaymentsRes.data.monthly_statistics.amount,
         collection_rate:
-          ((repaymentsRes.data.monthly_statistics?.amount || 0) / (repaymentsRes.data.monthly_target || 100000)) * 100,
-        top_collectors: repaymentsRes.data.top_collectors || [],
-        pending_approvals: loansRes.data.pending_approvals || 0,
-        pending_documents: loansRes.data.pending_documents || 0,
+          (repaymentsRes.data.monthly_statistics.amount / repaymentsRes.data.monthly_target) * 100,
+        top_collectors: repaymentsRes.data.top_collectors,
+        pending_approvals: loansRes.data.pending_approvals,
+        pending_documents: loansRes.data.pending_documents,
       }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -92,8 +90,6 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     dispatch(fetchLoans() as any)
-    dispatch(fetchRepayments() as any)
-    dispatch(fetchDashboardStats() as any)
   }, [dispatch])
 
   if (isLoading) {

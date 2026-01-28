@@ -1,8 +1,7 @@
 // frontend/src/hooks/useLoans.ts
-// frontend/src/hooks/useLoans.ts
 import { useState, useCallback } from 'react'
-import { loansAPI, Loan, LoanApplication, Collateral, LoanStats, LoanCalculatorResponse } from '@/lib/api/loans'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { loansAPI, LoanApplication, Collateral, LoanStats, LoanCalculatorResponse } from '@/lib/api/loans'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'  // Fix import
 import { 
   fetchLoans as fetchLoansAction, 
   fetchLoanById as fetchLoanByIdAction,
@@ -11,15 +10,16 @@ import {
   approveLoan as approveLoanAction,
   rejectLoan as rejectLoanAction,
   disburseLoan as disburseLoanAction,
-  setFilters,
-  setPage,
-  clearSelectedLoan,
-  clearError
+  setLoanFilters,  // Add these exports
+  setLoanPage,
+  clearLoansError
 } from '@/store/slices/loanSlice'
 
 export const useLoans = () => {
   const dispatch = useAppDispatch()
-  const { loans, selectedLoan, isLoading, error, filters, pagination } = useAppSelector(state => state.loans)
+  const { loans, selectedLoan, loansLoading, loansError, loanFilters, pagination } = useAppSelector(
+    (state) => state.loans  // Remove type annotation, let TypeScript infer it
+  )
   
   const [loanStats, setLoanStats] = useState<LoanStats | null>(null)
   const [calculatorResult, setCalculatorResult] = useState<LoanCalculatorResponse | null>(null)
@@ -240,30 +240,26 @@ export const useLoans = () => {
 
   // Utility functions
   const updateFilters = useCallback((newFilters: any) => {
-    dispatch(setFilters(newFilters))
+    dispatch(setLoanFilters(newFilters))
   }, [dispatch])
 
   const updatePage = useCallback((page: number) => {
-    dispatch(setPage(page))
+    dispatch(setLoanPage(page))
   }, [dispatch])
 
   const clearSelected = useCallback(() => {
-    dispatch(clearSelectedLoan())
+    dispatch(clearLoansError())
     setSelectedApplication(null)
     setSelectedCollateral(null)
-  }, [dispatch])
-
-  const clearErrors = useCallback(() => {
-    dispatch(clearError())
   }, [dispatch])
 
   return {
     // State
     loans,
     selectedLoan,
-    isLoading,
-    error,
-    filters,
+    loansLoading,
+    loansError,
+    loanFilters,
     pagination,
     loanStats,
     calculatorResult,
@@ -305,6 +301,5 @@ export const useLoans = () => {
     updateFilters,
     updatePage,
     clearSelected,
-    clearErrors,
   }
 }

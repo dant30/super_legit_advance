@@ -6,7 +6,7 @@ import type {
   AuditLogListResponse, 
   AuditStats, 
   UserActivity,
-  SecurityEvent 
+  //SecurityEvent 
 } from '@/types/audit'
 
 export const useAudit = () => {

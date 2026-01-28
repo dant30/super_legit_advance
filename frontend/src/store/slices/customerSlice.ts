@@ -45,14 +45,12 @@ const initialState: CustomerState = {
 // Async thunks
 export const fetchCustomers = createAsyncThunk(
   'customers/fetchCustomers',
-  async (params?: CustomerListParams, { rejectWithValue }) => {
+  async (params?: any, { rejectWithValue }) => {  // optional params first
     try {
       const response = await customerAPI.getCustomers(params)
       return response
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.detail || error.message || 'Failed to fetch customers'
-      )
+      return rejectWithValue(error.response?.data || 'Failed to fetch customers')
     }
   }
 )

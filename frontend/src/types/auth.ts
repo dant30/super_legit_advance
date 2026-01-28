@@ -1,5 +1,4 @@
 // frontend/src/types/auth.ts - COMPREHENSIVE USER TYPES
-import type { StaffProfile } from './auth'
 
 export interface User {
   // Identifiers
