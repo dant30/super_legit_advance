@@ -5,23 +5,24 @@ import { ArrowLeft, Download, Edit2, CheckCircle2, XCircle, Clock } from 'lucide
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 
-import { loansAPI } from '@/lib/api/loans'
+import { loansAPI, Loan } from '@/lib/api/loans'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
 import Badge from '@/components/ui/Badge'
-import { Loan } from '@/lib/api/loans'
 
 export default function LoanDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
 
+  const loanId = id ? parseInt(id, 10) : 0
+
   const { data: loan, isLoading, error } = useQuery({
-    queryKey: ['loan', id],
-    queryFn: () => loansAPI.getLoan(parseInt(id || '0')),
-    enabled: !!id,
+    queryKey: ['loan', loanId],
+    queryFn: () => loansAPI.getLoan(loanId),
+    enabled: !!loanId,
   })
 
   if (isLoading) return <Loading />
@@ -169,24 +170,11 @@ export default function LoanDetail() {
               </div>
             </Card>
 
-            {/* Repayment Info */}
             <Card className="p-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                Repayment Information
+                Financial Summary
               </h2>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Repayment Frequency</p>
-                  <p className="text-lg font-medium text-gray-900 dark:text-white mt-1">
-                    {loan.repayment_frequency}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Installment Amount</p>
-                  <p className="text-lg font-medium text-gray-900 dark:text-white mt-1">
-                    KES {(loan.installment_amount || 0).toLocaleString()}
-                  </p>
-                </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Total Interest</p>
                   <p className="text-lg font-medium text-gray-900 dark:text-white mt-1">

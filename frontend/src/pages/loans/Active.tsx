@@ -28,7 +28,7 @@ export default function ActiveLoans() {
   })
 
   const handleSearch = (term: string) => {
-    setFilters({ ...filters, search: term })
+    setFilters(prev => ({ ...prev, search: term }))
   }
 
   if (isLoading) return <Loading />
@@ -38,12 +38,13 @@ export default function ActiveLoans() {
   const totalOutstanding = loans.reduce((sum, l) => sum + (l.outstanding_balance || 0), 0)
 
   const columns = [
-    { key: 'loan_number', label: 'Loan #' },
-    { key: 'customer_name', label: 'Customer' },
-    { key: 'amount_disbursed', label: 'Disbursed' },
-    { key: 'outstanding_balance', label: 'Outstanding' },
-    { key: 'next_payment_date', label: 'Next Payment' },
-    { key: 'repayment_progress', label: 'Progress' },
+    { accessorKey: 'loan_number', header: 'Loan #' },
+    { accessorKey: 'customer_name', header: 'Customer' },
+    { accessorKey: 'amount_disbursed', header: 'Disbursed' },
+    { accessorKey: 'outstanding_balance', header: 'Outstanding' },
+    { accessorKey: 'repayment_frequency', header: 'Frequency' },
+    { accessorKey: 'next_payment_date', header: 'Next Payment' },
+    { accessorKey: 'repayment_progress', header: 'Progress' },
   ]
 
   return (
@@ -93,27 +94,19 @@ export default function ActiveLoans() {
           </Card>
         </div>
 
-        {/* Filters */}
+        {/* Search & Filter */}
         <Card className="p-4">
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Search by loan number or customer..."
-                  value={filters.search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <Button variant="secondary" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                Filter
-              </Button>
-              <Button variant="secondary" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Input
+              placeholder="Search loans..."
+              value={filters.search || ''}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="flex-1"
+            />
+            <Button variant="secondary" size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
           </div>
         </Card>
 
