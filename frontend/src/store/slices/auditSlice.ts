@@ -13,7 +13,7 @@ import type {
 // Fix FilterParams - use 'any' or define the type
 export const fetchAuditLogs = createAsyncThunk(
   'audit/fetchLogs',
-  async (filters?: any, { rejectWithValue }) => {  // Make optional
+  async (filters?: any, { rejectWithValue } = {} as any) => {
     try {
       const response = await auditAPI.getAuditLogs(filters)
       return response
@@ -25,7 +25,7 @@ export const fetchAuditLogs = createAsyncThunk(
 
 export const fetchAuditLog = createAsyncThunk(
   'audit/fetchAuditLog',
-  async (id: string, { rejectWithValue }) => {
+  async (id: string, { rejectWithValue } = {} as any) => {
     try {
       const response = await auditAPI.getAuditLog(id)
       return response

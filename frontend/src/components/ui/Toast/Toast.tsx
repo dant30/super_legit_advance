@@ -6,7 +6,7 @@ export type ToastType = 'success' | 'error' | 'info' | 'warning'
 
 export interface ToastProps {
   id?: string
-  title: string
+  title?: string            // made optional for provider compatibility
   description?: string
   type?: ToastType
   duration?: number

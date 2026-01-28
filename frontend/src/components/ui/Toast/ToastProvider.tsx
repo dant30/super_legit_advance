@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import Toast from './Toast'
+import Toast, type { ToastProps } from './Toast'
 
 export interface ToastMessage extends Omit<ToastProps, 'onClose'> {
   id: string
@@ -33,14 +33,13 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
   const showToast = useCallback((props: Omit<ToastMessage, 'id'>) => {
     const id = `toast-${++toastId}`
     const newToast = { ...props, id }
-
     setToasts((prev) => [...prev, newToast])
 
     // Auto-remove after duration if set
-    if (props.duration !== 0) {
+    if ((props.duration ?? 5000) !== 0) {
       setTimeout(() => {
         hideToast(id)
-      }, props.duration || 5000)
+      }, props.duration ?? 5000)
     }
   }, [])
 
