@@ -239,6 +239,11 @@ export interface CustomerFilters {
 export type SearchType = 'basic' | 'name' | 'phone' | 'id' | 'customer_number'
 
 // Constants
+export const NATIONALITY_OPTIONS = [
+  { value: 'KENYAN', label: 'Kenyan' },
+  { value: 'OTHER', label: 'Other' },
+]
+
 export const GENDER_OPTIONS = [
   { value: 'M', label: 'Male' },
   { value: 'F', label: 'Female' },
@@ -249,7 +254,22 @@ export const ID_TYPE_OPTIONS = [
   { value: 'NATIONAL_ID', label: 'National ID' },
   { value: 'PASSPORT', label: 'Passport' },
   { value: 'DRIVING_LICENSE', label: 'Driving License' },
-  { value: 'ALIEN_CARD', label: 'Alien Card' },
+]
+
+export const GUARANTOR_TYPE_OPTIONS = [
+  { value: 'PERSONAL', label: 'Personal' },
+  { value: 'CORPORATE', label: 'Corporate' },
+  { value: 'INSTITUTIONAL', label: 'Institutional' },
+]
+
+export const RELATIONSHIP_OPTIONS = [
+  { value: 'SPOUSE', label: 'Spouse' },
+  { value: 'PARENT', label: 'Parent' },
+  { value: 'SIBLING', label: 'Sibling' },
+  { value: 'FRIEND', label: 'Friend' },
+  { value: 'COLLEAGUE', label: 'Colleague' },
+  { value: 'RELATIVE', label: 'Relative' },
+  { value: 'OTHER', label: 'Other' },
 ]
 
 export const MARITAL_STATUS_OPTIONS = [
@@ -271,36 +291,6 @@ export const RISK_LEVEL_OPTIONS = [
   { value: 'LOW', label: 'Low Risk' },
   { value: 'MEDIUM', label: 'Medium Risk' },
   { value: 'HIGH', label: 'High Risk' },
-]
-
-export const EMPLOYMENT_TYPE_OPTIONS = [
-  { value: 'EMPLOYED', label: 'Employed' },
-  { value: 'SELF_EMPLOYED', label: 'Self-Employed' },
-  { value: 'UNEMPLOYED', label: 'Unemployed' },
-  { value: 'STUDENT', label: 'Student' },
-  { value: 'RETIRED', label: 'Retired' },
-]
-
-export const GUARANTOR_TYPE_OPTIONS = [
-  { value: 'PERSONAL', label: 'Personal' },
-  { value: 'CORPORATE', label: 'Corporate' },
-  { value: 'INSTITUTIONAL', label: 'Institutional' },
-]
-
-export const RELATIONSHIP_OPTIONS = [
-  { value: 'SPOUSE', label: 'Spouse' },
-  { value: 'PARENT', label: 'Parent' },
-  { value: 'SIBLING', label: 'Sibling' },
-  { value: 'FRIEND', label: 'Friend' },
-  { value: 'COLLEAGUE', label: 'Colleague' },
-  { value: 'RELATIVE', label: 'Relative' },
-  { value: 'OTHER', label: 'Other' },
-]
-
-export const VERIFICATION_STATUS_OPTIONS = [
-  { value: 'PENDING', label: 'Pending' },
-  { value: 'VERIFIED', label: 'Verified' },
-  { value: 'REJECTED', label: 'Rejected' },
 ]
 
 // Helper Functions

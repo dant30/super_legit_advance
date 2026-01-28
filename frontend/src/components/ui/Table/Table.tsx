@@ -4,35 +4,15 @@ import { ChevronUp, ChevronDown } from 'lucide-react'
 import clsx from 'clsx'
 
 export interface Column<T> {
-  key: keyof T | string
-  title: string
-  render?: (value: any, row: T) => React.ReactNode
-  sortable?: boolean
-  align?: 'left' | 'center' | 'right'
-  width?: string
+  accessor: keyof T
+  header: string // Changed from 'label' to 'header'
+  cell?: (value: any) => React.ReactNode
 }
 
-interface TableProps<T> {
+export interface TableProps<T> {
   columns: Column<T>[]
   data: T[]
-  loading?: boolean
-  emptyMessage?: string
-
-  sortColumn?: string
-  sortDirection?: 'asc' | 'desc'
-  onSort?: (key: string, direction: 'asc' | 'desc') => void
-
-  rowKey?: keyof T | ((row: T) => string | number)
-  onRowClick?: (row: T) => void
-
-  selectable?: boolean
-  selectedRows?: (string | number)[]
-  onSelect?: (ids: (string | number)[]) => void
-
-  striped?: boolean
-  hoverable?: boolean
-  stickyHeader?: boolean
-  className?: string
+  onSelect?: (row: T) => void
 }
 
 const Table = <T extends Record<string, any>>({
@@ -91,13 +71,13 @@ const Table = <T extends Record<string, any>>({
               {selectable && <th className="w-10" />}
 
               {columns.map((col) => {
-                const isSorted = sortColumn === col.key
+                const isSorted = sortColumn === col.accessor
                 return (
                   <th
-                    key={String(col.key)}
+                    key={String(col.accessor)}
                     style={{ width: col.width }}
                     onClick={() =>
-                      col.sortable && toggleSort(String(col.key))
+                      col.sortable && toggleSort(String(col.accessor))
                     }
                     className={clsx(
                       col.sortable && 'cursor-pointer select-none',
@@ -106,7 +86,7 @@ const Table = <T extends Record<string, any>>({
                     )}
                   >
                     <div className="flex items-center gap-1">
-                      {col.title}
+                      {col.header}
                       {col.sortable && isSorted && (
                         sortDirection === 'asc' ? (
                           <ChevronUp size={14} />
@@ -151,15 +131,15 @@ const Table = <T extends Record<string, any>>({
 
                     {columns.map((col) => (
                       <td
-                        key={`${id}-${String(col.key)}`}
+                        key={`${id}-${String(col.accessor)}`}
                         className={clsx(
                           col.align === 'center' && 'text-center',
                           col.align === 'right' && 'text-right'
                         )}
                       >
                         {col.render
-                          ? col.render(row[col.key as string], row)
-                          : String(row[col.key as string] ?? '—')}
+                          ? col.render(row[col.accessor as string], row)
+                          : String(row[col.accessor as string] ?? '—')}
                       </td>
                     ))}
                   </tr>

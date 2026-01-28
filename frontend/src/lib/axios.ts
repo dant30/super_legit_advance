@@ -1,5 +1,5 @@
 // frontend/src/lib/axios.ts
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
+import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 
 // Normalize API URL (remove trailing slash)
 const API_URL =
@@ -7,10 +7,8 @@ const API_URL =
   'http://localhost:8000/api'
 const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 30000
 
-interface FailedRequest extends AxiosError {
-  config: AxiosRequestConfig & {
-    _retry?: boolean
-  }
+interface CustomConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean
 }
 
 const axiosInstance: AxiosInstance = axios.create({
@@ -40,8 +38,8 @@ axiosInstance.interceptors.request.use(
  */
 axiosInstance.interceptors.response.use(
   (response) => response,
-  async (error: FailedRequest) => {
-    const originalRequest = error.config
+  async (error: AxiosError) => {
+    const originalRequest = error.config as CustomConfig
 
     // Only refresh if 401 and not already retried
     if (
@@ -74,10 +72,7 @@ axiosInstance.interceptors.response.use(
         axiosInstance.defaults.headers.common.Authorization = `Bearer ${access}`
 
         // Retry original request with new token
-        originalRequest.headers = {
-          ...originalRequest.headers,
-          Authorization: `Bearer ${access}`,
-        }
+        originalRequest.headers.Authorization = `Bearer ${access}`
 
         return axiosInstance(originalRequest)
       } catch (refreshError) {

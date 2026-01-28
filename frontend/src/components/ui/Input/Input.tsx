@@ -3,50 +3,48 @@ import React, { forwardRef } from 'react'
 import clsx from 'clsx'
 import { LucideIcon } from 'lucide-react'
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string
   error?: string
-  help?: string
-  icon?: LucideIcon
-  iconPosition?: 'left' | 'right'
-  onIconClick?: () => void
-  prefix?: string
-  suffix?: string
-  fullWidth?: boolean
+  helpText?: string
   size?: 'sm' | 'md' | 'lg'
-}
-
-const sizeClasses = {
-  sm: 'px-2 py-1 text-sm',
-  md: 'px-3 py-2 text-sm',
-  lg: 'px-4 py-3 text-base',
+  variant?: 'default' | 'outline'
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
+      className,
+      size = 'md',
       label,
       error,
-      help,
+      helpText,
       icon: Icon,
       iconPosition = 'left',
       onIconClick,
       prefix,
       suffix,
       fullWidth = true,
-      size = 'md',
-      className,
-      disabled,
       ...props
     },
     ref
   ) => {
+    const sizeClasses = {
+      sm: 'px-2 py-1 text-sm',
+      md: 'px-3 py-2 text-base',
+      lg: 'px-4 py-3 text-lg',
+    }
+
     const hasLeft = !!prefix || (Icon && iconPosition === 'left')
     const hasRight = !!suffix || (Icon && iconPosition === 'right')
 
     return (
       <div className={clsx(fullWidth && 'w-full', 'space-y-1')}>
-        {label && <label className="form-label">{label}</label>}
+        {label && (
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {label}
+          </label>
+        )}
 
         <div className="relative">
           {/* Prefix */}
@@ -72,15 +70,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
           <input
             ref={ref}
-            disabled={disabled}
             {...props}
             className={clsx(
-              'form-input',
+              'w-full rounded-lg border',
               sizeClasses[size],
               hasLeft && 'pl-10',
               hasRight && 'pr-10',
-              error && 'border-danger-500 focus:ring-danger-200',
-              disabled && 'opacity-60 cursor-not-allowed',
+              error ? 'border-red-500' : 'border-gray-300',
               className
             )}
           />
@@ -107,8 +103,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
 
-        {error && <p className="form-error">{error}</p>}
-        {help && !error && <p className="form-help">{help}</p>}
+        {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+        {helpText && !error && <p className="text-sm text-gray-500 mt-1">{helpText}</p>}
       </div>
     )
   }

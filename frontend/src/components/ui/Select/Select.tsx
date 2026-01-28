@@ -11,14 +11,14 @@ export interface Option {
 }
 
 export interface SelectProps
-  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
+  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'value' | 'onChange'> {
   label?: string
   error?: string
   helperText?: string
-  options: Option[]
+  options?: Array<{ value: string | number; label: string }>
   placeholder?: string
   value?: string | number | (string | number)[]
-  onChange?: (value: string | number | (string | number)[]) => void
+  onChange?: (value: string | number) => void
   searchable?: boolean
   multiple?: boolean
   fullWidth?: boolean
@@ -33,7 +33,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
       label,
       error,
       helperText,
-      options,
+      options = [],
       placeholder = 'Select...',
       value,
       onChange,

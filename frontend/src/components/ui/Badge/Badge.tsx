@@ -35,13 +35,9 @@ const badgeVariants = cva(
   }
 )
 
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof badgeVariants> {
-  dot?: boolean
-  dotColor?: string
-  removable?: boolean
-  onRemove?: () => void
+export interface BadgeProps {
+  variant?: 'success' | 'info' | 'warning' | 'danger' | 'primary' | 'outline' | 'secondary'
+  children: React.ReactNode
 }
 
 const Badge: React.FC<BadgeProps> = ({

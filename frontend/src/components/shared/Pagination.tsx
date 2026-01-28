@@ -6,26 +6,12 @@ export interface PaginationProps {
   currentPage: number
   totalPages: number
   onPageChange: (page: number) => void
-  siblingCount?: number
-  boundaryCount?: number
-  showInfo?: boolean
-  showNavigation?: boolean
-  size?: 'sm' | 'md' | 'lg'
-  disabled?: boolean
-  className?: string
 }
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
   onPageChange,
-  siblingCount = 1,
-  boundaryCount = 1,
-  showInfo = true,
-  showNavigation = true,
-  size = 'md',
-  disabled = false,
-  className,
 }) => {
   if (totalPages <= 0) return null
 
@@ -35,27 +21,27 @@ const Pagination: React.FC<PaginationProps> = ({
   }
 
   const getPaginationItems = () => {
-    const totalNumbers = siblingCount * 2 + 3
+    const totalNumbers = 3
     const totalBlocks = totalNumbers + 2
 
     if (totalPages <= totalBlocks) {
       return range(1, totalPages)
     }
 
-    const leftSiblingIndex = Math.max(currentPage - siblingCount, 1)
-    const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages)
+    const leftSiblingIndex = Math.max(currentPage - 1, 1)
+    const rightSiblingIndex = Math.min(currentPage + 1, totalPages)
 
     const shouldShowLeftDots = leftSiblingIndex > 2
     const shouldShowRightDots = rightSiblingIndex < totalPages - 2
 
     if (!shouldShowLeftDots && shouldShowRightDots) {
-      const leftItemCount = 3 + 2 * siblingCount
+      const leftItemCount = 3
       const leftRange = range(1, leftItemCount)
       return [...leftRange, '...', totalPages]
     }
 
     if (shouldShowLeftDots && !shouldShowRightDots) {
-      const rightItemCount = 3 + 2 * siblingCount
+      const rightItemCount = 3
       const rightRange = range(totalPages - rightItemCount + 1, totalPages)
       return [1, '...', ...rightRange]
     }
@@ -77,91 +63,50 @@ const Pagination: React.FC<PaginationProps> = ({
   }
 
   const handlePageClick = (page: number) => {
-    if (disabled || page < 1 || page > totalPages) return
+    if (page < 1 || page > totalPages) return
     onPageChange(page)
   }
 
   return (
-    <div className={cn('flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4', className)}>
-      {showInfo && (
-        <div className="text-sm text-gray-600 dark:text-gray-400">
-          Showing page <span className="font-semibold">{currentPage}</span> of{' '}
-          <span className="font-semibold">{totalPages}</span>
-        </div>
-      )}
-
-      <nav className="flex items-center gap-1" aria-label="Pagination">
-        {showNavigation && (
-          <button
-            type="button"
-            onClick={() => handlePageClick(currentPage - 1)}
-            disabled={disabled || currentPage === 1}
-            className={cn(
-              'inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
-              sizeClasses[size]
-            )}
-            aria-label="Previous page"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-        )}
-
-        {items.map((item, index) => {
-          if (item === '...') {
-            return (
-              <span
-                key={`ellipsis-${index}`}
-                className={cn(
-                  'inline-flex items-center justify-center',
-                  sizeClasses[size],
-                  'text-gray-400'
-                )}
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </span>
-            )
-          }
-
-          const page = Number(item)
-          const isActive = page === currentPage
-
+    <div className="flex items-center justify-center gap-2">
+      {items.map((item, index) => {
+        if (item === '...') {
           return (
-            <button
-              key={`page-${page}`}
-              type="button"
-              onClick={() => handlePageClick(page)}
-              disabled={disabled}
+            <span
+              key={`ellipsis-${index}`}
               className={cn(
-                'inline-flex items-center justify-center rounded-lg border font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                sizeClasses[size],
-                isActive
-                  ? 'border-primary-500 bg-primary-50 text-primary-700 dark:border-primary-400 dark:bg-primary-900/20 dark:text-primary-300'
-                  : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700',
-                disabled && 'opacity-50 cursor-not-allowed'
+                'inline-flex items-center justify-center',
+                sizeClasses.md,
+                'text-gray-400'
               )}
-              aria-current={isActive ? 'page' : undefined}
-              aria-label={`Page ${page}`}
             >
-              {page}
-            </button>
+              <MoreHorizontal className="h-4 w-4" />
+            </span>
           )
-        })}
+        }
 
-        {showNavigation && (
+        const page = Number(item)
+        const isActive = page === currentPage
+
+        return (
           <button
+            key={`page-${page}`}
             type="button"
-            onClick={() => handlePageClick(currentPage + 1)}
-            disabled={disabled || currentPage === totalPages}
+            onClick={() => handlePageClick(page)}
             className={cn(
-              'inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
-              sizeClasses[size]
+              'inline-flex items-center justify-center rounded-lg border font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+              sizeClasses.md,
+              isActive
+                ? 'border-primary-500 bg-primary-50 text-primary-700 dark:border-primary-400 dark:bg-primary-900/20 dark:text-primary-300'
+                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
             )}
-            aria-label="Next page"
+            aria-current={isActive ? 'page' : undefined}
+            aria-label={`Page ${page}`}
           >
-            <ChevronRight className="h-4 w-4" />
+            {page}
           </button>
-        )}
-      </nav>
+        )
+      })}
     </div>
   )
 }

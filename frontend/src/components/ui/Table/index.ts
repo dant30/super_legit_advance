@@ -1,2 +1,1 @@
-export { default } from './Table'
-export type { Column, TableProps } from './Table'
+export { default as Table, type TableProps } from './Table'
