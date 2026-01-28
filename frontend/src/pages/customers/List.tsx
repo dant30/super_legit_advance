@@ -13,8 +13,8 @@ import { Card } from '@/components/ui/Card'
 import { Modal } from '@/components/ui/Modal'
 import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
-import { Pagination } from '@/components/shared/Pagination'
-import { Badge } from '@/components/ui/Badge'
+import  Pagination from '@/components/shared/Pagination'
+import Badge  from '@/components/ui/Badge'
 
 interface Filter {
   page?: number
