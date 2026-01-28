@@ -16,7 +16,7 @@ import {
 import axiosInstance from '@/lib/axios'
 import { RootState, AppDispatch } from '@/store/store'
 import { Card } from '@/components/ui/Card'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import Loading from '@/components/shared/Loading'
 import LoanOverview from '@/components/dashboard/LoanOverview'
 import CollectionTarget from '@/components/dashboard/CollectionTarget'

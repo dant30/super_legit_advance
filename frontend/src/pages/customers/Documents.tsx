@@ -5,7 +5,7 @@ import { ArrowLeft, Upload, Download, Eye, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import Modal from '@/components/ui/Modal'
+import { Modal } from '@/components/ui/Modal'
 import Loading from '@/components/shared/Loading'
 import CustomerDocuments from '@/components/customers/CustomerDocuments'
 

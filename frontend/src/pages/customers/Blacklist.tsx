@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 
 import { customerAPI } from '@/lib/api/customers'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import Modal from '@/components/ui/Modal'
 import Table from '@/components/ui/Table'

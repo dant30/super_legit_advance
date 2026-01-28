@@ -1,7 +1,7 @@
 import React from 'react'
 import { Card } from '@/components/ui/Card'
 import { Target, TrendingUp } from 'lucide-react'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 
 interface CollectionTargetProps {
   monthlyTarget: number
