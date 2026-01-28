@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { TrendingUp, Filter, Download } from 'lucide-react'
+import { Plus, Filter, TrendingUp } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { loansAPI } from '@/lib/api/loans'
@@ -11,20 +11,24 @@ import { Card } from '@/components/ui/Card'
 import { Table } from '@/components/ui/Table'
 import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
+import Badge from '@/components/ui/Badge'
+
+interface FilterState {
+  status: string
+  search?: string
+}
 
 export default function ActiveLoans() {
   const navigate = useNavigate()
-  const [filters, setFilters] = useState({ status: 'ACTIVE' })
-  const [searchTerm, setSearchTerm] = useState('')
+  const [filters, setFilters] = useState<FilterState>({ status: 'ACTIVE' })
 
   const { data: loansData, isLoading } = useQuery({
     queryKey: ['activeLoans', filters],
-    queryFn: () => loansAPI.getLoans({ ...filters, search: searchTerm }),
+    queryFn: () => loansAPI.getLoans(filters),
   })
 
   const handleSearch = (term: string) => {
-    setSearchTerm(term)
-    setFilters({ ...filters, search: term, page: 1 })
+    setFilters({ ...filters, search: term })
   }
 
   if (isLoading) return <Loading />
@@ -32,6 +36,15 @@ export default function ActiveLoans() {
   const loans = loansData?.results || []
   const totalActive = loans.length
   const totalOutstanding = loans.reduce((sum, l) => sum + (l.outstanding_balance || 0), 0)
+
+  const columns = [
+    { key: 'loan_number', label: 'Loan #' },
+    { key: 'customer_name', label: 'Customer' },
+    { key: 'amount_disbursed', label: 'Disbursed' },
+    { key: 'outstanding_balance', label: 'Outstanding' },
+    { key: 'next_payment_date', label: 'Next Payment' },
+    { key: 'repayment_progress', label: 'Progress' },
+  ]
 
   return (
     <>
@@ -87,7 +100,7 @@ export default function ActiveLoans() {
               <div className="flex-1">
                 <Input
                   placeholder="Search by loan number or customer..."
-                  value={searchTerm}
+                  value={filters.search}
                   onChange={(e) => handleSearch(e.target.value)}
                   className="w-full"
                 />
@@ -108,14 +121,7 @@ export default function ActiveLoans() {
         {loans.length > 0 ? (
           <Card>
             <Table
-              columns={[
-                { key: 'loan_number', label: 'Loan #' },
-                { key: 'customer_name', label: 'Customer' },
-                { key: 'amount_disbursed', label: 'Disbursed' },
-                { key: 'outstanding_balance', label: 'Outstanding' },
-                { key: 'next_payment_date', label: 'Next Payment' },
-                { key: 'repayment_progress', label: 'Progress' },
-              ]}
+              columns={columns}
               data={loans.map((loan: any) => ({
                 ...loan,
                 amount_disbursed: `KES ${(loan.amount_disbursed / 1000).toFixed(0)}K`,
