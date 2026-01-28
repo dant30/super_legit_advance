@@ -293,6 +293,14 @@ export const RISK_LEVEL_OPTIONS = [
   { value: 'HIGH', label: 'High Risk' },
 ]
 
+export const EMPLOYMENT_TYPE_OPTIONS = [
+  { value: 'EMPLOYED', label: 'Employed' },
+  { value: 'SELF_EMPLOYED', label: 'Self-Employed' },
+  { value: 'UNEMPLOYED', label: 'Unemployed' },
+  { value: 'STUDENT', label: 'Student' },
+  { value: 'RETIRED', label: 'Retired' },
+]
+
 // Helper Functions
 export const formatPhoneNumber = (phone: string): string => {
   if (!phone) return ''

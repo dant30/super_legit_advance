@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Upload, Download, Eye, Trash2, FileText } from 'lucide-react'
+import { Upload, FileText } from 'lucide-react'
 import Loading from '@/components/shared/Loading'
 
 interface CustomerDocumentsProps {
@@ -43,30 +43,6 @@ export default function CustomerDocuments({ customerId }: CustomerDocumentsProps
                       {doc.uploadedDate} • {doc.size}
                     </p>
                   </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="gap-1"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="gap-1"
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    className="gap-1"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
             ))}

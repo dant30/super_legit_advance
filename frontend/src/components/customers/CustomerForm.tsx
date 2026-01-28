@@ -6,7 +6,6 @@ import {
   GENDER_OPTIONS,
   ID_TYPE_OPTIONS,
   MARITAL_STATUS_OPTIONS,
-  NATIONALITY_OPTIONS,
   CustomerFormData,
 } from '@/types/customers'
 
@@ -22,38 +21,18 @@ export default function CustomerForm({ onSubmit, isLoading = false, initialData 
   })
   const [currentStep, setCurrentStep] = useState(1)
 
-  const gender = watch('gender')
-  const idType = watch('id_type')
-
   const steps = [
     { number: 1, title: 'Personal Info', fields: ['first_name', 'last_name', 'date_of_birth', 'gender'] },
     { number: 2, title: 'Identification', fields: ['id_type', 'id_number', 'id_expiry_date'] },
     { number: 3, title: 'Contact', fields: ['phone_number', 'email'] },
     { number: 4, title: 'Address', fields: ['physical_address', 'postal_address', 'county', 'sub_county'] },
     { number: 5, title: 'Banking', fields: ['bank_name', 'bank_account_number', 'bank_branch'] },
+    { number: 6, title: 'Review', fields: ['notes'] },
   ]
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Step Indicator */}
-      <div className="flex gap-2 mb-8">
-        {steps.map((step) => (
-          <button
-            key={step.number}
-            type="button"
-            onClick={() => setCurrentStep(step.number)}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition ${
-              currentStep === step.number
-                ? 'bg-primary-500 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-            }`}
-          >
-            {step.number}
-          </button>
-        ))}
-      </div>
-
-      {/* Step 1: Personal Info */}
+      {/* Step 1: Personal Information */}
       {currentStep === 1 && (
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Personal Information</h2>
@@ -83,16 +62,6 @@ export default function CustomerForm({ onSubmit, isLoading = false, initialData 
 
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">
-                Middle Name
-              </label>
-              <Input
-                {...register('middle_name')}
-                placeholder="Middle name (optional)"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">
                 Date of Birth *
               </label>
               <Input
@@ -104,10 +73,10 @@ export default function CustomerForm({ onSubmit, isLoading = false, initialData 
 
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">
-                Gender *
+                Gender
               </label>
               <select
-                {...register('gender', { required: 'Gender is required' })}
+                {...register('gender')}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select gender</option>
@@ -117,9 +86,6 @@ export default function CustomerForm({ onSubmit, isLoading = false, initialData 
                   </option>
                 ))}
               </select>
-              {errors.gender && (
-                <p className="text-sm text-red-600">{errors.gender.message}</p>
-              )}
             </div>
 
             <div>
@@ -214,7 +180,7 @@ export default function CustomerForm({ onSubmit, isLoading = false, initialData 
               </label>
               <Input
                 {...register('phone_number', { required: 'Phone number is required' })}
-                placeholder="+254..."
+                placeholder="Phone number"
                 error={errors.phone_number?.message}
               />
             </div>
@@ -226,7 +192,8 @@ export default function CustomerForm({ onSubmit, isLoading = false, initialData 
               <Input
                 {...register('email')}
                 type="email"
-                placeholder="email@example.com"
+                placeholder="Email"
+                error={errors.email?.message}
               />
             </div>
           </div>
@@ -302,7 +269,7 @@ export default function CustomerForm({ onSubmit, isLoading = false, initialData 
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Banking Information</h2>
           
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">
                 Bank Name
@@ -315,7 +282,7 @@ export default function CustomerForm({ onSubmit, isLoading = false, initialData 
 
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">
-                Bank Account Number
+                Account Number
               </label>
               <Input
                 {...register('bank_account_number')}
@@ -325,25 +292,32 @@ export default function CustomerForm({ onSubmit, isLoading = false, initialData 
 
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">
-                Bank Branch
+                Branch
               </label>
               <Input
                 {...register('bank_branch')}
-                placeholder="Branch"
+                placeholder="Bank branch"
               />
             </div>
+          </div>
+        </div>
+      )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">
-                Additional Notes
-              </label>
-              <textarea
-                {...register('notes')}
-                placeholder="Additional notes..."
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                rows={3}
-              />
-            </div>
+      {/* Step 6: Review */}
+      {currentStep === 6 && (
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Additional Information</h2>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">
+              Notes
+            </label>
+            <textarea
+              {...register('notes')}
+              placeholder="Additional notes..."
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              rows={3}
+            />
           </div>
         </div>
       )}
