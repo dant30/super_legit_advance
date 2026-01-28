@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { Calendar, ChevronDown, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Calendar, ChevronDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import React from 'react'
 
 import { repaymentsAPI } from '@/lib/api/repayments'
 import { Card } from '@/components/ui/Card'
-import { Table } from '@/components/ui/Table'
 import Badge from '@/components/ui/Badge'
 import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
@@ -39,7 +39,7 @@ export default function RepaymentSchedule() {
     totalPaid: scheduleList.reduce((sum, s) => sum + s.amount_paid, 0),
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): 'success' | 'warning' | 'danger' | 'primary' => {
     switch (status) {
       case 'PAID':
         return 'success'
@@ -48,9 +48,9 @@ export default function RepaymentSchedule() {
       case 'OVERDUE':
         return 'danger'
       case 'SKIPPED':
-        return 'neutral'
+        return 'primary'
       default:
-        return 'info'
+        return 'primary'
     }
   }
 
@@ -98,18 +98,18 @@ export default function RepaymentSchedule() {
         {scheduleList.length > 0 ? (
           <Card>
             <div className="overflow-x-auto">
-              <table className="table">
-                <thead>
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                   <tr>
                     <th className="w-12"></th>
-                    <th>Installment</th>
-                    <th>Due Date</th>
-                    <th>Principal</th>
-                    <th>Interest</th>
-                    <th>Total</th>
-                    <th>Paid</th>
-                    <th>Outstanding</th>
-                    <th>Status</th>
+                    <th className="px-4 py-3 text-left font-semibold">Installment</th>
+                    <th className="px-4 py-3 text-left font-semibold">Due Date</th>
+                    <th className="px-4 py-3 text-left font-semibold">Principal</th>
+                    <th className="px-4 py-3 text-left font-semibold">Interest</th>
+                    <th className="px-4 py-3 text-left font-semibold">Total</th>
+                    <th className="px-4 py-3 text-left font-semibold">Paid</th>
+                    <th className="px-4 py-3 text-left font-semibold">Outstanding</th>
+                    <th className="px-4 py-3 text-left font-semibold">Status</th>
                   </tr>
                 </thead>
 
@@ -117,34 +117,34 @@ export default function RepaymentSchedule() {
                   {scheduleList.map((item) => (
                     <React.Fragment key={item.id}>
                       <tr
-                        className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                        className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-200 dark:border-gray-700"
                         onClick={() =>
                           setExpandedSchedule(
                             expandedSchedule === item.id ? null : item.id
                           )
                         }
                       >
-                        <td>
+                        <td className="px-4 py-3">
                           <ChevronDown
                             className={`h-4 w-4 transition ${
                               expandedSchedule === item.id ? 'rotate-180' : ''
                             }`}
                           />
                         </td>
-                        <td className="font-semibold">#{item.installment_number}</td>
-                        <td>{new Date(item.due_date).toLocaleDateString()}</td>
-                        <td>KES {item.principal_amount.toLocaleString()}</td>
-                        <td>KES {item.interest_amount.toLocaleString()}</td>
-                        <td className="font-semibold">
+                        <td className="px-4 py-3 font-semibold">#{item.installment_number}</td>
+                        <td className="px-4 py-3">{new Date(item.due_date).toLocaleDateString()}</td>
+                        <td className="px-4 py-3">KES {item.principal_amount.toLocaleString()}</td>
+                        <td className="px-4 py-3">KES {item.interest_amount.toLocaleString()}</td>
+                        <td className="px-4 py-3 font-semibold">
                           KES {item.total_amount.toLocaleString()}
                         </td>
-                        <td className="text-success-600">
+                        <td className="px-4 py-3 text-success-600">
                           KES {item.amount_paid.toLocaleString()}
                         </td>
-                        <td className="text-warning-600">
+                        <td className="px-4 py-3 text-warning-600">
                           KES {item.amount_outstanding.toLocaleString()}
                         </td>
-                        <td>
+                        <td className="px-4 py-3">
                           <Badge variant={getStatusColor(item.status)}>
                             {item.status}
                           </Badge>
@@ -152,9 +152,25 @@ export default function RepaymentSchedule() {
                       </tr>
 
                       {expandedSchedule === item.id && (
-                        <tr className="bg-gray-50 dark:bg-gray-800">
+                        <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                           <td colSpan={9} className="p-4">
                             {/* expanded content */}
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 uppercase">Payment Date</p>
+                                <p className="font-medium">{item.payment_date ? new Date(item.payment_date).toLocaleDateString() : 'N/A'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 uppercase">Days Overdue</p>
+                                <p className="font-medium">{item.days_overdue}</p>
+                              </div>
+                              {item.adjustment_reason && (
+                                <div className="col-span-2">
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 uppercase">Adjustment Reason</p>
+                                  <p className="font-medium">{item.adjustment_reason}</p>
+                                </div>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       )}
@@ -164,9 +180,8 @@ export default function RepaymentSchedule() {
               </table>
             </div>
           </Card>
-
         ) : (
-          <EmptyState title="No schedule found" description="This loan does not have a repayment schedule yet" />
+          <EmptyState title="No schedule found" description="No repayment schedule available for this loan" />
         )}
       </div>
     </>

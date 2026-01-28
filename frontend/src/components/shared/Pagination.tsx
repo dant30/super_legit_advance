@@ -1,112 +1,81 @@
 import React from 'react'
-import { cn } from '@/lib/utils/cn'
-import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 
 export interface PaginationProps {
-  currentPage: number
-  totalPages: number
+  page: number
+  total: number
   onPageChange: (page: number) => void
+  pageSize?: number
 }
 
-const Pagination: React.FC<PaginationProps> = ({
-  currentPage,
-  totalPages,
-  onPageChange,
-}) => {
-  if (totalPages <= 0) return null
-
-  const range = (start: number, end: number) => {
-    const length = end - start + 1
-    return Array.from({ length }, (_, idx) => idx + start)
+const Pagination: React.FC<PaginationProps> = ({ page, total, onPageChange, pageSize = 1 }) => {
+  const handlePrevious = () => {
+    if (page > 1) onPageChange(page - 1)
   }
 
-  const getPaginationItems = () => {
-    const totalNumbers = 3
-    const totalBlocks = totalNumbers + 2
-
-    if (totalPages <= totalBlocks) {
-      return range(1, totalPages)
-    }
-
-    const leftSiblingIndex = Math.max(currentPage - 1, 1)
-    const rightSiblingIndex = Math.min(currentPage + 1, totalPages)
-
-    const shouldShowLeftDots = leftSiblingIndex > 2
-    const shouldShowRightDots = rightSiblingIndex < totalPages - 2
-
-    if (!shouldShowLeftDots && shouldShowRightDots) {
-      const leftItemCount = 3
-      const leftRange = range(1, leftItemCount)
-      return [...leftRange, '...', totalPages]
-    }
-
-    if (shouldShowLeftDots && !shouldShowRightDots) {
-      const rightItemCount = 3
-      const rightRange = range(totalPages - rightItemCount + 1, totalPages)
-      return [1, '...', ...rightRange]
-    }
-
-    if (shouldShowLeftDots && shouldShowRightDots) {
-      const middleRange = range(leftSiblingIndex, rightSiblingIndex)
-      return [1, '...', ...middleRange, '...', totalPages]
-    }
-
-    return range(1, totalPages)
+  const handleNext = () => {
+    if (page < total) onPageChange(page + 1)
   }
 
-  const items = getPaginationItems()
+  const renderPageButtons = () => {
+    const buttons = []
+    const maxButtons = 5
+    let startPage = Math.max(1, page - Math.floor(maxButtons / 2))
+    let endPage = Math.min(total, startPage + maxButtons - 1)
 
-  const sizeClasses = {
-    sm: 'h-8 min-w-8 text-sm',
-    md: 'h-10 min-w-10',
-    lg: 'h-12 min-w-12 text-lg',
+    if (endPage - startPage < maxButtons - 1) {
+      startPage = Math.max(1, endPage - maxButtons + 1)
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      buttons.push(
+        <button
+          key={i}
+          onClick={() => onPageChange(i)}
+          className={`px-3 py-2 rounded ${
+            page === i
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
+          }`}
+        >
+          {i}
+        </button>
+      )
+    }
+
+    return buttons
   }
 
-  const handlePageClick = (page: number) => {
-    if (page < 1 || page > totalPages) return
-    onPageChange(page)
-  }
+  if (total <= 1) return null
 
   return (
-    <div className="flex items-center justify-center gap-2">
-      {items.map((item, index) => {
-        if (item === '...') {
-          return (
-            <span
-              key={`ellipsis-${index}`}
-              className={cn(
-                'inline-flex items-center justify-center',
-                sizeClasses.md,
-                'text-gray-400'
-              )}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </span>
-          )
-        }
+    <div className="flex items-center justify-between">
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Page <span className="font-medium">{page}</span> of <span className="font-medium">{total}</span>
+      </p>
 
-        const page = Number(item)
-        const isActive = page === currentPage
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handlePrevious}
+          disabled={page === 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
 
-        return (
-          <button
-            key={`page-${page}`}
-            type="button"
-            onClick={() => handlePageClick(page)}
-            className={cn(
-              'inline-flex items-center justify-center rounded-lg border font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              sizeClasses.md,
-              isActive
-                ? 'border-primary-500 bg-primary-50 text-primary-700 dark:border-primary-400 dark:bg-primary-900/20 dark:text-primary-300'
-                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            )}
-            aria-current={isActive ? 'page' : undefined}
-            aria-label={`Page ${page}`}
-          >
-            {page}
-          </button>
-        )
-      })}
+        <div className="flex gap-1">{renderPageButtons()}</div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleNext}
+          disabled={page >= total}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   )
 }

@@ -6,19 +6,20 @@ import { useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 
 import { repaymentsAPI } from '@/lib/api/repayments'
+import type { RepaymentStatus, PaymentMethod } from '@/lib/api/repayments'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import { Table } from '@/components/ui/Table'
-import  Badge from '@/components/ui/Badge'
+import Badge from '@/components/ui/Badge'
 import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
 import Pagination from '@/components/shared/Pagination'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 
 interface RepaymentFilter {
-  status?: string
-  payment_method?: string
+  status?: RepaymentStatus
+  payment_method?: PaymentMethod
   start_date?: string
   end_date?: string
   search?: string
@@ -38,7 +39,7 @@ export default function RepaymentList() {
 
   const handleSearch = (value: string) => {
     setSearchTerm(value)
-    setFilters({ ...filters, search: value })
+    setFilters({ ...filters, search: value as any })
     setPage(1)
   }
 
@@ -57,7 +58,12 @@ export default function RepaymentList() {
 
   const handleExport = async (format: 'excel' | 'csv') => {
     try {
-      const blob = await repaymentsAPI.exportRepayments({ format, ...filters })
+      const blob = await repaymentsAPI.exportRepayments({ 
+        format, 
+        status: filters.status,
+        start_date: filters.start_date,
+        end_date: filters.end_date,
+      })
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -72,7 +78,7 @@ export default function RepaymentList() {
     }
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): 'success' | 'warning' | 'danger' | 'info' | 'primary' => {
     switch (status) {
       case 'COMPLETED':
         return 'success'
@@ -83,7 +89,7 @@ export default function RepaymentList() {
       case 'PARTIAL':
         return 'info'
       default:
-        return 'neutral'
+        return 'primary'
     }
   }
 
@@ -158,7 +164,7 @@ export default function RepaymentList() {
               <select
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
                 value={filters.status || ''}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                onChange={(e) => setFilters({ ...filters, status: e.target.value as RepaymentStatus })}
               >
                 <option value="">All Status</option>
                 <option value="PENDING">Pending</option>
@@ -169,7 +175,7 @@ export default function RepaymentList() {
               <select
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
                 value={filters.payment_method || ''}
-                onChange={(e) => setFilters({ ...filters, payment_method: e.target.value })}
+                onChange={(e) => setFilters({ ...filters, payment_method: e.target.value as PaymentMethod })}
               >
                 <option value="">All Methods</option>
                 <option value="MPESA">M-Pesa</option>
@@ -184,60 +190,62 @@ export default function RepaymentList() {
         {/* Table */}
         {repaymentList.length > 0 ? (
           <Card>
-            <Table>
-              <thead>
-                <tr>
-                  <th>Repayment #</th>
-                  <th>Loan #</th>
-                  <th>Customer</th>
-                  <th>Amount Due</th>
-                  <th>Amount Paid</th>
-                  <th>Status</th>
-                  <th>Due Date</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {repaymentList.map((repayment) => (
-                  <tr key={repayment.id}>
-                    <td className="font-mono text-sm">{repayment.repayment_number}</td>
-                    <td className="font-mono text-sm">{repayment.loan_number}</td>
-                    <td>{repayment.customer_name}</td>
-                    <td>KES {repayment.amount_due.toLocaleString()}</td>
-                    <td className="font-semibold text-success-600">KES {repayment.amount_paid.toLocaleString()}</td>
-                    <td>
-                      <Badge variant={getStatusColor(repayment.status)}>{repayment.status}</Badge>
-                    </td>
-                    <td>{new Date(repayment.due_date).toLocaleDateString()}</td>
-                    <td>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => navigate(`/repayments/${repayment.id}`)}
-                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => navigate(`/repayments/${repayment.id}/edit`)}
-                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteId(repayment.id)}
-                          className="p-1 hover:bg-danger-100 dark:hover:bg-danger-900/20 rounded text-danger-600"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Repayment #</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Loan #</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Customer</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Amount Due</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Amount Paid</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Status</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Due Date</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {repaymentList.map((repayment) => (
+                    <tr key={repayment.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                      <td className="px-4 py-3 font-mono text-sm">{repayment.repayment_number}</td>
+                      <td className="px-4 py-3 font-mono text-sm">{repayment.loan_number}</td>
+                      <td className="px-4 py-3">{repayment.customer_name}</td>
+                      <td className="px-4 py-3">KES {repayment.amount_due.toLocaleString()}</td>
+                      <td className="px-4 py-3 font-semibold text-success-600">KES {repayment.amount_paid.toLocaleString()}</td>
+                      <td className="px-4 py-3">
+                        <Badge variant={getStatusColor(repayment.status)}>{repayment.status}</Badge>
+                      </td>
+                      <td className="px-4 py-3">{new Date(repayment.due_date).toLocaleDateString()}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => navigate(`/repayments/${repayment.id}`)}
+                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => navigate(`/repayments/${repayment.id}/edit`)}
+                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteId(repayment.id)}
+                            className="p-1 hover:bg-danger-100 dark:hover:bg-danger-900/20 rounded text-danger-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
               <Pagination
-                current={page}
+                page={page}
                 total={Math.ceil((repayments?.count || 0) / 20)}
                 onPageChange={setPage}
               />
@@ -260,7 +268,7 @@ export default function RepaymentList() {
         title="Delete Repayment"
         message="Are you sure you want to delete this repayment record? This action cannot be undone."
         onConfirm={handleDelete}
-        onCancel={() => setDeleteId(null)}
+        onClose={() => setDeleteId(null)}
         isDangerous
       />
     </>
