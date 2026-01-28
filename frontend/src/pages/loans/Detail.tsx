@@ -4,7 +4,7 @@ import { ArrowLeft, CheckCircle, Clock, XCircle } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { loansAPI } from '@/lib/api/loans'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Table } from '@/components/ui/Table'
 import Loading from '@/components/shared/Loading'

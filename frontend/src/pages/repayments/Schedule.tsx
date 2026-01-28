@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { repaymentsAPI } from '@/lib/api/repayments'
 import { Card } from '@/components/ui/Card'
 import { Table } from '@/components/ui/Table'
-import { Badge } from '@/components/ui/Badge'
+import Badge from '@/components/ui/Badge'
 import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
 
