@@ -4,15 +4,40 @@ import { ChevronUp, ChevronDown } from 'lucide-react'
 import clsx from 'clsx'
 
 export interface Column<T> {
-  accessor: keyof T
-  header: string // Changed from 'label' to 'header'
-  cell?: (value: any) => React.ReactNode
+  accessor: keyof T | string
+  header: React.ReactNode
+  width?: string | number
+  sortable?: boolean
+  align?: 'left' | 'center' | 'right'
+  render?: (value: any, row?: T) => React.ReactNode
+  cell?: (value: any, row?: T) => React.ReactNode // alias
 }
 
 export interface TableProps<T> {
   columns: Column<T>[]
   data: T[]
+  loading?: boolean
+  emptyMessage?: React.ReactNode
+
+  // Sorting
+  sortColumn?: string | number
+  sortDirection?: 'asc' | 'desc'
+  onSort?: (key: string | number, direction: 'asc' | 'desc') => void
+
+  // Row keys & interactions
+  rowKey?: keyof T | ((row: T) => string | number)
+  onRowClick?: (row: T) => void
+
+  // Selection
+  selectable?: boolean
+  selectedRows?: Array<string | number>
   onSelect?: (row: T) => void
+
+  // Styling
+  striped?: boolean
+  hoverable?: boolean
+  stickyHeader?: boolean
+  className?: string
 }
 
 const Table = <T extends Record<string, any>>({
@@ -38,9 +63,9 @@ const Table = <T extends Record<string, any>>({
   className,
 }: TableProps<T>) => {
   const resolveRowKey = (row: T) =>
-    typeof rowKey === 'function' ? rowKey(row) : row[rowKey]
+    typeof rowKey === 'function' ? rowKey(row) : (row[rowKey as keyof T] as string | number)
 
-  const toggleSort = (key: string) => {
+  const toggleSort = (key: string | number) => {
     if (!onSort) return
     const direction =
       sortColumn === key && sortDirection === 'asc' ? 'desc' : 'asc'
@@ -71,7 +96,7 @@ const Table = <T extends Record<string, any>>({
               {selectable && <th className="w-10" />}
 
               {columns.map((col) => {
-                const isSorted = sortColumn === col.accessor
+                const isSorted = sortColumn === String(col.accessor)
                 return (
                   <th
                     key={String(col.accessor)}
@@ -118,7 +143,7 @@ const Table = <T extends Record<string, any>>({
 
                 return (
                   <tr
-                    key={id}
+                    key={String(id)}
                     onClick={() => onRowClick?.(row)}
                     className={clsx(
                       striped && index % 2 === 0 && 'bg-neutral-50',
@@ -131,14 +156,14 @@ const Table = <T extends Record<string, any>>({
 
                     {columns.map((col) => (
                       <td
-                        key={`${id}-${String(col.accessor)}`}
+                        key={`${String(id)}-${String(col.accessor)}`}
                         className={clsx(
                           col.align === 'center' && 'text-center',
                           col.align === 'right' && 'text-right'
                         )}
                       >
-                        {col.render
-                          ? col.render(row[col.accessor as string], row)
+                        {col.render || col.cell
+                          ? (col.render || col.cell)(row[col.accessor as string], row)
                           : String(row[col.accessor as string] ?? '—')}
                       </td>
                     ))}

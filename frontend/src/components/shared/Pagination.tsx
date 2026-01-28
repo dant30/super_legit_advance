@@ -1,28 +1,42 @@
+// frontend/src/components/shared/Pagination.tsx
 import React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 export interface PaginationProps {
-  page: number
-  total: number
+  // Support both shapes: `page` (pages) or `currentPage` and `totalItems` + pageSize
+  page?: number
+  currentPage?: number
+  total?: number // total pages
+  totalItems?: number // total items (legacy callers)
   onPageChange: (page: number) => void
   pageSize?: number
 }
 
-const Pagination: React.FC<PaginationProps> = ({ page, total, onPageChange, pageSize = 1 }) => {
+const Pagination: React.FC<PaginationProps> = ({
+  page,
+  currentPage,
+  total,
+  totalItems,
+  onPageChange,
+  pageSize = 1,
+}) => {
+  const current = page ?? currentPage ?? 1
+  const totalPages = total ?? (totalItems ? Math.max(1, Math.ceil(totalItems / pageSize)) : 1)
+
   const handlePrevious = () => {
-    if (page > 1) onPageChange(page - 1)
+    if (current > 1) onPageChange(current - 1)
   }
 
   const handleNext = () => {
-    if (page < total) onPageChange(page + 1)
+    if (current < totalPages) onPageChange(current + 1)
   }
 
   const renderPageButtons = () => {
     const buttons = []
     const maxButtons = 5
-    let startPage = Math.max(1, page - Math.floor(maxButtons / 2))
-    let endPage = Math.min(total, startPage + maxButtons - 1)
+    let startPage = Math.max(1, current - Math.floor(maxButtons / 2))
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1)
 
     if (endPage - startPage < maxButtons - 1) {
       startPage = Math.max(1, endPage - maxButtons + 1)
@@ -34,7 +48,7 @@ const Pagination: React.FC<PaginationProps> = ({ page, total, onPageChange, page
           key={i}
           onClick={() => onPageChange(i)}
           className={`px-3 py-2 rounded ${
-            page === i
+            current === i
               ? 'bg-primary-600 text-white'
               : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
           }`}
@@ -47,12 +61,12 @@ const Pagination: React.FC<PaginationProps> = ({ page, total, onPageChange, page
     return buttons
   }
 
-  if (total <= 1) return null
+  if (totalPages <= 1) return null
 
   return (
     <div className="flex items-center justify-between">
       <p className="text-sm text-gray-600 dark:text-gray-400">
-        Page <span className="font-medium">{page}</span> of <span className="font-medium">{total}</span>
+        Page <span className="font-medium">{current}</span> of <span className="font-medium">{totalPages}</span>
       </p>
 
       <div className="flex gap-2">
@@ -60,7 +74,7 @@ const Pagination: React.FC<PaginationProps> = ({ page, total, onPageChange, page
           variant="outline"
           size="sm"
           onClick={handlePrevious}
-          disabled={page === 1}
+          disabled={current === 1}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -71,7 +85,7 @@ const Pagination: React.FC<PaginationProps> = ({ page, total, onPageChange, page
           variant="outline"
           size="sm"
           onClick={handleNext}
-          disabled={page >= total}
+          disabled={current >= totalPages}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
