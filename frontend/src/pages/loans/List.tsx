@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { Plus, Filter, TrendingUp, AlertCircle } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { loansAPI } from '@/lib/api/loans'
@@ -9,82 +9,34 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import { Table } from '@/components/ui/Table'
-import Pagination from '@/components/shared/Pagination'
 import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
-import Badge from '@/components/ui/Badge'
-
-interface LoanStats {
-  active_loans: number
-  total_amount: number
-  overdue_loans: number
-  approval_rate: number
-}
 
 export default function LoanList() {
   const navigate = useNavigate()
-  const [filters, setFilters] = useState({ status: 'ACTIVE' })
-  const [currentPage, setCurrentPage] = useState(1)
+  const [filters, setFilters] = useState<{ status?: string }>({})
+  const [searchTerm, setSearchTerm] = useState('')
 
   const { data: loansData, isLoading } = useQuery({
-    queryKey: ['loans', filters, currentPage],
-    queryFn: () => loansAPI.getLoans({ ...filters, page: currentPage }),
+    queryKey: ['loans', filters, searchTerm],
+    queryFn: () => loansAPI.getLoans({ ...filters, search: searchTerm }),
   })
-
-  const { data: statsData } = useQuery({
-    queryKey: ['loanStats'],
-    queryFn: () => loansAPI.getLoanStats(),
-  })
-
-  const loans = loansData?.results || []
-  const stats: LoanStats = statsData?.summary || {
-    active_loans: 0,
-    total_amount: 0,
-    overdue_loans: 0,
-    approval_rate: 0,
-  }
-  const totalItems = loansData?.count || 0
 
   const columns = [
-    { 
-      accessorKey: 'loan_number', 
-      header: 'Loan #' 
-    },
-    { 
-      accessorKey: 'customer_name', 
-      header: 'Customer' 
-    },
-    { 
-      accessorKey: 'amount_approved', 
-      header: 'Amount',
-      cell: (info: any) => `KES ${(info.getValue() || 0).toLocaleString()}`
-    },
-    { 
-      accessorKey: 'status', 
-      header: 'Status',
-      cell: (info: any) => {
-        const status = info.getValue()
-        const variant = status === 'ACTIVE' ? 'success' : status === 'OVERDUE' ? 'danger' : 'warning'
-        return <Badge variant={variant}>{status}</Badge>
-      }
-    },
-    { 
-      accessorKey: 'outstanding_balance', 
-      header: 'Outstanding',
-      cell: (info: any) => `KES ${(info.getValue() || 0).toLocaleString()}`
-    },
-    { 
-      accessorKey: 'repayment_frequency', 
-      header: 'Frequency' 
-    },
+    { accessor: 'loan_number', header: 'Loan #' },
+    { accessor: 'customer_name', header: 'Customer' },
+    { accessor: 'loan_type', header: 'Type' },
+    { accessor: 'amount_disbursed', header: 'Disbursed' },
+    { accessor: 'outstanding_balance', header: 'Outstanding' },
+    { accessor: 'status', header: 'Status' },
     {
-      id: 'actions',
+      accessor: 'id',
       header: 'Actions',
       cell: (info: any) => (
         <Button
           size="sm"
           variant="secondary"
-          onClick={() => navigate(`/loans/${info.row.original.id}`)}
+          onClick={() => navigate(`/loans/${info.getValue()}`)}
         >
           View
         </Button>
@@ -93,6 +45,9 @@ export default function LoanList() {
   ]
 
   if (isLoading) return <Loading />
+
+  const loans = loansData?.results || []
+  const stats = loansData?.summary || {}
 
   return (
     <>
@@ -119,24 +74,23 @@ export default function LoanList() {
 
         {/* Stats */}
         {stats && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">Active Loans</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Loans</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                {stats.active_loans}
+                {stats.total_loans || 0}
               </p>
-              <TrendingUp className="h-5 w-5 text-success-600 mt-2" />
             </Card>
             <Card className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Portfolio</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
+              <p className="text-2xl font-bold text-success-600 mt-2">
                 KES {((stats.total_amount || 0) / 1000000).toFixed(1)}M
               </p>
             </Card>
             <Card className="p-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">Overdue Loans</p>
               <p className="text-2xl font-bold text-danger-600 mt-2">
-                {stats.overdue_loans}
+                {stats.overdue_loans || 0}
               </p>
             </Card>
             <Card className="p-4">
@@ -153,31 +107,20 @@ export default function LoanList() {
           <div className="flex flex-col sm:flex-row gap-4">
             <Input
               placeholder="Search loans..."
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1"
             />
-            <Button variant="secondary" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
           </div>
         </Card>
 
         {/* Table */}
         {loans.length > 0 ? (
-          <>
-            <Card className="p-6">
-              <Table columns={columns} data={loans} />
-            </Card>
-            <Pagination
-              currentPage={currentPage}
-              totalItems={totalItems}
-              pageSize={20}
-              onPageChange={setCurrentPage}
-            />
-          </>
+          <Card className="p-6">
+            <Table data={loans} columns={columns} />
+          </Card>
         ) : (
-          <EmptyState title="No loans found" description="Create a new loan to get started" />
+          <EmptyState title="No loans found" />
         )}
       </div>
     </>

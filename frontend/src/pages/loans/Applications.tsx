@@ -11,25 +11,27 @@ import { Card } from '@/components/ui/Card'
 import { Table } from '@/components/ui/Table'
 import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
-import Badge from '@/components/ui/Badge'
 
 export default function LoanApplications() {
   const navigate = useNavigate()
-  const [filters, setFilters] = useState({})
+  const [filters, setFilters] = useState<{ status?: string; search?: string }>({
+    status: undefined,
+    search: '',
+  })
   const [searchTerm, setSearchTerm] = useState('')
 
   const { data: applicationsData, isLoading } = useQuery({
     queryKey: ['loanApplications', filters],
-    queryFn: () => loansAPI.getLoanApplications({ ...filters, search: searchTerm }),
+    queryFn: () => loansAPI.getLoanApplications(filters),
   })
 
   const handleSearch = (term: string) => {
     setSearchTerm(term)
-    setFilters({ ...filters, search: term, page: 1 })
+    setFilters({ ...filters, search: term })
   }
 
   const handleStatusFilter = (status: string) => {
-    setFilters({ ...filters, status: status || undefined, page: 1 })
+    setFilters({ ...filters, status: status || undefined })
   }
 
   const getStatusIcon = (status: string) => {
@@ -45,20 +47,14 @@ export default function LoanApplications() {
     }
   }
 
-  const getStatusBadge = (status: string) => {
-    const badges: Record<string, string> = {
-      DRAFT: 'bg-gray-100 text-gray-800',
-      SUBMITTED: 'bg-blue-100 text-blue-800',
-      UNDER_REVIEW: 'bg-warning-100 text-warning-800',
-      DOCUMENTS_REQUESTED: 'bg-info-100 text-info-800',
-      DOCUMENTS_RECEIVED: 'bg-info-100 text-info-800',
-      CREDIT_CHECK: 'bg-info-100 text-info-800',
-      APPROVED: 'bg-success-100 text-success-800',
-      REJECTED: 'bg-danger-100 text-danger-800',
-      CANCELLED: 'bg-gray-100 text-gray-800',
-    }
-    return badges[status] || 'bg-gray-100 text-gray-800'
-  }
+  const columns = [
+    { accessor: 'customer_name', header: 'Customer' },
+    { accessor: 'loan_type', header: 'Loan Type' },
+    { accessor: 'amount_requested', header: 'Amount' },
+    { accessor: 'term_months', header: 'Term' },
+    { accessor: 'status', header: 'Status' },
+    { accessor: 'application_date', header: 'Date' },
+  ]
 
   if (isLoading) return <Loading />
 
@@ -89,66 +85,27 @@ export default function LoanApplications() {
 
         {/* Filters */}
         <Card className="p-4">
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Search applications..."
-                  value={searchTerm}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <select
-                value={filters.status || ''}
-                onChange={(e) => handleStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-              >
-                <option value="">All Status</option>
-                <option value="DRAFT">Draft</option>
-                <option value="SUBMITTED">Submitted</option>
-                <option value="UNDER_REVIEW">Under Review</option>
-                <option value="APPROVED">Approved</option>
-                <option value="REJECTED">Rejected</option>
-              </select>
-              <Button variant="secondary" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                More Filters
-              </Button>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Input
+              placeholder="Search applications..."
+              value={searchTerm}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="flex-1"
+            />
+            <Button variant="secondary" size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
           </div>
         </Card>
 
-        {/* Applications Table */}
+        {/* Table */}
         {applications.length > 0 ? (
-          <Card>
-            <Table
-              columns={[
-                { key: 'id', label: 'App ID' },
-                { key: 'customer_name', label: 'Customer' },
-                { key: 'loan_type', label: 'Type' },
-                { key: 'amount_requested', label: 'Amount' },
-                { key: 'status', label: 'Status' },
-                { key: 'application_date', label: 'Date' },
-              ]}
-              data={applications.map((app: any) => ({
-                ...app,
-                amount_requested: `KES ${(app.amount_requested / 1000).toFixed(0)}K`,
-              }))}
-              onRowClick={(row) => navigate(`/loans/applications/${row.id}`)}
-            />
+          <Card className="p-6">
+            <Table data={applications} columns={columns} />
           </Card>
         ) : (
-          <EmptyState
-            title="No applications found"
-            description="Create your first loan application to get started"
-            action={
-              <Button onClick={() => navigate('/loans/create')}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Application
-              </Button>
-            }
-          />
+          <EmptyState title="No applications found" />
         )}
       </div>
     </>

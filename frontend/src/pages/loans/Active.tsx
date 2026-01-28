@@ -13,39 +13,31 @@ import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
 import Badge from '@/components/ui/Badge'
 
-interface FilterState {
-  status: string
-  search?: string
-}
-
 export default function ActiveLoans() {
   const navigate = useNavigate()
-  const [filters, setFilters] = useState<FilterState>({ status: 'ACTIVE' })
+  const [filters, setFilters] = useState({})
 
   const { data: loansData, isLoading } = useQuery({
     queryKey: ['activeLoans', filters],
-    queryFn: () => loansAPI.getLoans(filters),
+    queryFn: () => loansAPI.getLoans({ ...filters, status: 'ACTIVE' }),
   })
 
-  const handleSearch = (term: string) => {
-    setFilters(prev => ({ ...prev, search: term }))
-  }
+  const columns = [
+    { accessor: 'loan_number', header: 'Loan #' },
+    { accessor: 'customer_name', header: 'Customer' },
+    { accessor: 'amount_approved', header: 'Amount' },
+    { accessor: 'interest_rate', header: 'Interest Rate' },
+    { accessor: 'repayment_frequency', header: 'Frequency' },
+    { accessor: 'next_payment_date', header: 'Next Payment' },
+    { accessor: 'repayment_progress', header: 'Progress' },
+  ]
 
   if (isLoading) return <Loading />
 
   const loans = loansData?.results || []
   const totalActive = loans.length
-  const totalOutstanding = loans.reduce((sum, l) => sum + (l.outstanding_balance || 0), 0)
-
-  const columns = [
-    { accessorKey: 'loan_number', header: 'Loan #' },
-    { accessorKey: 'customer_name', header: 'Customer' },
-    { accessorKey: 'amount_disbursed', header: 'Disbursed' },
-    { accessorKey: 'outstanding_balance', header: 'Outstanding' },
-    { accessorKey: 'repayment_frequency', header: 'Frequency' },
-    { accessorKey: 'next_payment_date', header: 'Next Payment' },
-    { accessorKey: 'repayment_progress', header: 'Progress' },
-  ]
+  const totalAmount = loans.reduce((sum, l) => sum + (l.amount_approved || 0), 0)
+  const avgInterest = (loans.reduce((sum, l) => sum + (l.interest_rate || 0), 0) / (loans.length || 1)).toFixed(1)
 
   return (
     <>
@@ -70,26 +62,22 @@ export default function ActiveLoans() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="p-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">Total Active</p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
               {totalActive}
             </p>
-            <p className="text-xs text-success-600 mt-1">
-              <TrendingUp className="h-3 w-3 inline mr-1" />
-              Current portfolio
+          </Card>
+
+          <Card className="p-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
+            <p className="text-2xl font-bold text-success-600 mt-2">
+              KES {((totalAmount) / 1000000).toFixed(1)}M
             </p>
           </Card>
 
           <Card className="p-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Outstanding</p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-              KES {(totalOutstanding / 1000000).toFixed(1)}M
-            </p>
-          </Card>
-
-          <Card className="p-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Avg Outstanding</p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-              KES {totalActive > 0 ? ((totalOutstanding / totalActive) / 1000).toFixed(0) : 0}K
+            <p className="text-sm text-gray-600 dark:text-gray-400">Average Interest</p>
+            <p className="text-2xl font-bold text-primary-600 mt-2">
+              {avgInterest}%
             </p>
           </Card>
         </div>
@@ -112,15 +100,10 @@ export default function ActiveLoans() {
 
         {/* Loans Table */}
         {loans.length > 0 ? (
-          <Card>
+          <Card className="p-6">
             <Table
               columns={columns}
-              data={loans.map((loan: any) => ({
-                ...loan,
-                amount_disbursed: `KES ${(loan.amount_disbursed / 1000).toFixed(0)}K`,
-                outstanding_balance: `KES ${(loan.outstanding_balance / 1000).toFixed(0)}K`,
-                repayment_progress: `${loan.repayment_progress || 0}%`,
-              }))}
+              data={loans}
               onRowClick={(row) => navigate(`/loans/${row.id}`)}
             />
           </Card>
