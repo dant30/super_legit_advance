@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Card } from '@/components/ui/Card'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import { Upload, Download, Eye, Trash2, FileText } from 'lucide-react'
 import Loading from '@/components/shared/Loading'
 

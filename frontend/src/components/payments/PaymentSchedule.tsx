@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Calendar, ChevronDown, AlertCircle } from 'lucide-react'
 
 import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
+import Badge from '@/components/ui/Badge'
 import { Table } from '@/components/ui/Table'
 import { RepaymentSchedule } from '@/lib/api/repayments'
 

@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import { CheckCircle2, Clock, XCircle } from 'lucide-react'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 
 interface KYCVerificationProps {
   kyc_completed: boolean

@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import { AlertCircle } from 'lucide-react'
 
 import { customerAPI } from '@/lib/api/customers'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 
 interface BlacklistFormProps {
   customerId: string

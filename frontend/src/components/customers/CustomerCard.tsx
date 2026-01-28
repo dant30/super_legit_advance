@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Card } from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import { getStatusColor, getRiskLevelColor, formatPhoneNumber } from '@/types/customers'
 
 interface CustomerCardProps {

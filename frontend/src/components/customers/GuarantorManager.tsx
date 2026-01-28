@@ -3,8 +3,8 @@ import { useMutation } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 
 import { customerAPI } from '@/lib/api/customers'
-import Button from '@/components/ui/Button'
-import Input from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import {
   GUARANTOR_TYPE_OPTIONS,
   RELATIONSHIP_OPTIONS,
