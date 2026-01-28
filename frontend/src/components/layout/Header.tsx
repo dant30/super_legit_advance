@@ -21,16 +21,28 @@ import {
   HelpCircle,
   X,
 } from 'lucide-react'
-import { notificationsAPI } from '@/lib/api/notifications'
+import { Notification as ApiNotification, notificationsAPI } from '@/lib/api/notifications'
 import clsx from 'clsx'
 
-interface Notification {
-  id: number
+interface HeaderNotification {
+  id: string | number
   title: string
   message: string
-  created_at: string
-  read: boolean
   type: 'info' | 'success' | 'warning' | 'error'
+  read: boolean
+  created_at?: string
+}
+
+// Convert API notification to display format
+const transformNotifications = (notifications: ApiNotification[]): HeaderNotification[] => {
+  return notifications.map((notif: any) => ({
+    id: notif.id,
+    title: notif.title || 'Notification',
+    message: notif.message,
+    type: notif.notification_type === 'error' ? 'error' : 'info',
+    read: notif.is_read || false,
+    created_at: notif.created_at,
+  }))
 }
 
 const Header: React.FC = () => {
@@ -42,6 +54,7 @@ const Header: React.FC = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [notifications, setNotifications] = useState<HeaderNotification[]>([])
 
   const profileRef = useRef<HTMLDivElement>(null)
   const notificationsRef = useRef<HTMLDivElement>(null)
@@ -54,8 +67,10 @@ const Header: React.FC = () => {
     staleTime: 1000 * 60,
   })
 
-  const notifications: Notification[] = useMemo(() => {
-    return notificationsData?.results?.slice(0, 5) || []
+  useEffect(() => {
+    if (notificationsData?.results) {
+      setNotifications(transformNotifications(notificationsData.results))
+    }
   }, [notificationsData])
 
   const unreadCount = useMemo(() => {

@@ -103,76 +103,29 @@ const initialState: LoanState = {
 // Async thunks for Loans
 export const fetchLoans = createAsyncThunk(
   'loans/fetchLoans',
-  async (
-    params?: {
-      page?: number
-      page_size?: number
-      search?: string
-      status?: string
-      loan_type?: string
-      risk_level?: string
-      repayment_frequency?: string
-      customer_id?: number
-      start_date?: string
-      end_date?: string
-      min_amount?: number
-      max_amount?: number
-      active?: boolean
-      overdue?: boolean
-      ordering?: string
-    },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await loansAPI.getLoans(params)
-      return response
-    } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.detail || error.response?.data || 'Failed to fetch loans'
-      )
-    }
+  async (params: any = {}) => {
+    return loansAPI.getLoans(params)
   }
 )
 
 export const fetchLoanById = createAsyncThunk(
   'loans/fetchLoanById',
-  async (id: number, { rejectWithValue }) => {
-    try {
-      const response = await loansAPI.getLoan(id)
-      return response
-    } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.detail || error.response?.data || 'Failed to fetch loan'
-      )
-    }
+  async (id: string | number) => {
+    return loansAPI.getLoan(typeof id === 'string' ? parseInt(id, 10) : id)
   }
 )
 
 export const createLoan = createAsyncThunk(
   'loans/createLoan',
-  async (data: any, { rejectWithValue }) => {
-    try {
-      const response = await loansAPI.createLoan(data)
-      return response
-    } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data || 'Failed to create loan'
-      )
-    }
+  async (data: any) => {
+    return loansAPI.createLoan(data)
   }
 )
 
 export const updateLoan = createAsyncThunk(
   'loans/updateLoan',
-  async ({ id, data }: { id: number; data: any }, { rejectWithValue }) => {
-    try {
-      const response = await loansAPI.updateLoan(id, data)
-      return response
-    } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data || 'Failed to update loan'
-      )
-    }
+  async ({ id, data }: { id: number; data: any }) => {
+    return loansAPI.updateLoan(id, data)
   }
 )
 

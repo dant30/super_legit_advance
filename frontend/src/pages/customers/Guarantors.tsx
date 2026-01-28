@@ -14,6 +14,12 @@ import EmptyState from '@/components/shared/EmptyState'
 import Badge from '@/components/ui/Badge'
 import GuarantorManager from '@/components/customers/GuarantorManager'
 
+interface BadgeVariant {
+  success: 'success'
+  error: 'danger' // ✓ CHANGED: 'error' -> 'danger'
+  warning: 'warning'
+}
+
 export default function CustomerGuarantors() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -101,7 +107,7 @@ export default function CustomerGuarantors() {
                           guarantor.verification_status === 'VERIFIED'
                             ? 'success'
                             : guarantor.verification_status === 'REJECTED'
-                              ? 'error'
+                              ? 'danger' // ✓ FIXED
                               : 'warning'
                         }
                       >

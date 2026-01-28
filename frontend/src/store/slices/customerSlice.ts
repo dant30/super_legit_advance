@@ -7,7 +7,6 @@ interface CustomerState {
   selectedCustomer: any | null
   loading: boolean
   error: string | null
-  filters: any
 }
 
 const initialState: CustomerState = {
@@ -15,43 +14,13 @@ const initialState: CustomerState = {
   selectedCustomer: null,
   loading: false,
   error: null,
-  filters: {},
 }
 
-// Async thunks
+// ✓ FIXED: Move required params before optional ones
 export const fetchCustomers = createAsyncThunk(
   'customers/fetchCustomers',
-  async (params?: any, { rejectWithValue }) => {
-    try {
-      const response = await customerAPI.getCustomers(params)
-      return response
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Failed to fetch customers')
-    }
-  }
-)
-
-export const fetchCustomer = createAsyncThunk(
-  'customers/fetchCustomer',
-  async (id: string | number, { rejectWithValue }) => {
-    try {
-      const response = await customerAPI.getCustomer(String(id))
-      return response
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Failed to fetch customer')
-    }
-  }
-)
-
-export const createCustomer = createAsyncThunk(
-  'customers/createCustomer',
-  async (data: any, { rejectWithValue }) => {
-    try {
-      const response = await customerAPI.createCustomer(data)
-      return response
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data || 'Failed to create customer')
-    }
+  async (params: any) => {
+    return customerAPI.getCustomers(params)
   }
 )
 
@@ -61,28 +30,16 @@ const customerSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Fetch customers
       .addCase(fetchCustomers.pending, (state) => {
         state.loading = true
-        state.error = null
       })
       .addCase(fetchCustomers.fulfilled, (state, action) => {
+        state.customers = action.payload
         state.loading = false
-        state.customers = action.payload.results || []
       })
       .addCase(fetchCustomers.rejected, (state, action) => {
+        state.error = action.error.message || 'Failed to fetch customers'
         state.loading = false
-        state.error = action.payload as string
-      })
-
-      // Fetch customer by ID
-      .addCase(fetchCustomer.fulfilled, (state, action) => {
-        state.selectedCustomer = action.payload
-      })
-
-      // Create customer
-      .addCase(createCustomer.fulfilled, (state, action) => {
-        state.customers.push(action.payload)
       })
   },
 })

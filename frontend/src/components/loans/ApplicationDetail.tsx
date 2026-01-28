@@ -1,14 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { ArrowLeft, Download, Share2, MoreVertical } from 'lucide-react'
+import { ArrowLeft, Download, Share2 } from 'lucide-react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 
 import { loansAPI } from '@/lib/api/loans'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import { Tabs } from '@/components/ui/Tabs'
 import Loading from '@/components/shared/Loading'
 import EmptyState from '@/components/shared/EmptyState'
 
@@ -41,13 +40,6 @@ export default function ApplicationDetail() {
 
   if (isLoading) return <Loading />
   if (!application) return <EmptyState title="Application not found" />
-
-  const tabs = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'documents', label: 'Documents' },
-    { id: 'affordability', label: 'Affordability' },
-    { id: 'history', label: 'History' },
-  ]
 
   return (
     <>
@@ -99,124 +91,153 @@ export default function ApplicationDetail() {
         </Card>
 
         {/* Tabs */}
-        <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab}>
-          {activeTab === 'overview' && (
-            <Card className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
-                    Application Details
-                  </h4>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Loan Type</p>
-                      <p className="text-sm font-medium">{application.loan_type}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Amount Requested</p>
-                      <p className="text-sm font-medium">
-                        KES {(application.amount_requested / 1000).toFixed(0)}K
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Term</p>
-                      <p className="text-sm font-medium">{application.term_months} months</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Purpose</p>
-                      <p className="text-sm font-medium">{application.purpose}</p>
-                    </div>
-                  </div>
-                </div>
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <div className="flex gap-4">
+            {['overview', 'documents', 'affordability', 'history'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 font-medium capitalize transition ${
+                  activeTab === tab
+                    ? 'border-b-2 border-primary-600 text-primary-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
 
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
-                    Risk Assessment
-                  </h4>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Risk Level</p>
-                      <p className={`text-sm font-medium ${
-                        application.risk_level === 'HIGH' ? 'text-danger-600' :
-                        application.risk_level === 'MEDIUM' ? 'text-warning-600' :
-                        'text-success-600'
-                      }`}>
-                        {application.risk_level}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Risk Score</p>
-                      <p className="text-sm font-medium">{application.risk_score}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Credit Score</p>
-                      <p className="text-sm font-medium">{application.credit_score || 'N/A'}</p>
-                    </div>
+        {/* Tab content */}
+        {activeTab === 'overview' && (
+          <Card className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
+                  Application Details
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Loan Type</p>
+                    <p className="text-sm font-medium">{application.loan_type}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Amount Requested</p>
+                    <p className="text-sm font-medium">
+                      KES {(application.amount_requested / 1000).toFixed(0)}K
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Term</p>
+                    <p className="text-sm font-medium">{application.term_months} months</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Purpose</p>
+                    <p className="text-sm font-medium">{application.purpose}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              {application.status === 'UNDER_REVIEW' && (
-                <div className="flex gap-4 pt-4 border-t">
-                  <Button
-                    variant="success"
-                    onClick={() => approveMutation.mutate({ approved_amount: application.amount_requested })}
-                    loading={approveMutation.isPending}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => rejectMutation.mutate('Risk assessment failed')}
-                    loading={rejectMutation.isPending}
-                  >
-                    Reject
-                  </Button>
+              <div>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
+                  Risk Assessment
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Risk Level</p>
+                    <p className={`text-sm font-medium ${
+                      application.risk_level === 'HIGH' ? 'text-danger-600' :
+                      application.risk_level === 'MEDIUM' ? 'text-warning-600' :
+                      'text-success-600'
+                    }`}>
+                      {application.risk_level}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Risk Score</p>
+                    <p className="text-sm font-medium">{application.risk_score}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Credit Score</p>
+                    <p className="text-sm font-medium">{application.credit_score || 'N/A'}</p>
+                  </div>
                 </div>
-              )}
-            </Card>
-          )}
+              </div>
+            </div>
 
-          {activeTab === 'affordability' && (
-            <Card className="p-6">
-              {application.affordability_analysis ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Monthly Income</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                        KES {(application.total_monthly_income / 1000).toFixed(0)}K
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Disposable Income</p>
-                      <p className="text-2xl font-bold text-success-600">
-                        KES {(application.disposable_income / 1000).toFixed(0)}K
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Debt to Income Ratio</p>
-                      <p className="text-2xl font-bold">{(application.debt_to_income_ratio * 100).toFixed(1)}%</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Proposed Installment</p>
-                      <p className="text-2xl font-bold">
-                        KES {(application.affordability_analysis.proposed_installment / 1000).toFixed(0)}K
-                      </p>
-                    </div>
+            {/* Action Buttons */}
+            {application.status === 'UNDER_REVIEW' && (
+              <div className="flex gap-4 pt-4 border-t">
+                <Button
+                  variant="success"
+                  onClick={() => approveMutation.mutate({ approved_amount: application.amount_requested })}
+                  loading={approveMutation.isPending}
+                >
+                  Approve
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={() => rejectMutation.mutate('Risk assessment failed')}
+                  loading={rejectMutation.isPending}
+                >
+                  Reject
+                </Button>
+              </div>
+            )}
+          </Card>
+        )}
+
+        {activeTab === 'documents' && (
+          <Card className="p-6">
+            <p className="text-gray-600 dark:text-gray-400">No documents uploaded</p>
+          </Card>
+        )}
+
+        {activeTab === 'affordability' && (
+          <Card className="p-6">
+            {application.affordability_analysis ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Monthly Income</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      KES {(application.total_monthly_income / 1000).toFixed(0)}K
+                    </p>
                   </div>
-                  <div className="p-4 bg-info-50 dark:bg-info-900/20 rounded-lg">
-                    <p className="text-sm font-medium">Recommendation</p>
-                    <p className="text-sm mt-2">{application.affordability_analysis.recommendation}</p>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Disposable Income</p>
+                    <p className="text-2xl font-bold text-success-600">
+                      KES {(application.disposable_income / 1000).toFixed(0)}K
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Debt to Income Ratio</p>
+                    <p className="text-2xl font-bold">{(application.debt_to_income_ratio * 100).toFixed(1)}%</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Proposed Installment</p>
+                    <p className="text-2xl font-bold">
+                      KES {(application.affordability_analysis.proposed_installment / 1000).toFixed(0)}K
+                    </p>
                   </div>
                 </div>
-              ) : (
-                <p className="text-gray-600 dark:text-gray-400">No affordability analysis available</p>
-              )}
-            </Card>
-          )}
-        </Tabs>
+                <div className="p-4 bg-info-50 dark:bg-info-900/20 rounded-lg">
+                  <p className="text-sm font-medium">Recommendation</p>
+                  <p className="text-sm mt-2">{application.affordability_analysis.recommendation}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-600 dark:text-gray-400">No affordability analysis available</p>
+            )}
+          </Card>
+        )}
+
+        {activeTab === 'history' && (
+          <Card className="p-6">
+            <p className="text-gray-600 dark:text-gray-400">No history available</p>
+          </Card>
+        )}
       </div>
     </>
   )

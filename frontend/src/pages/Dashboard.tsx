@@ -1,19 +1,16 @@
 import React, { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { Helmet } from 'react-helmet-async'
 import {
   TrendingUp,
-  TrendingDown,
   Users,
   DollarSign,
   CreditCard,
   AlertCircle,
-  Clock,
-  ArrowRight,
 } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
-import { RootState, AppDispatch } from '@/store/store'
+import { RootState } from '@/store/store'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import Loading from '@/components/shared/Loading'
@@ -23,8 +20,6 @@ import CustomerStats from '@/components/dashboard/CustomerStats'
 import RecentActivities from '@/components/dashboard/RecentActivities'
 import PendingTasks from '@/components/dashboard/PendingTasks'
 import PerformanceMetrics from '@/components/dashboard/PerformanceMetrics'
-import { fetchLoans } from '@/store/slices/loanSlice'
-import { fetchRepayments, fetchDashboardStats } from '@/store/slices/repaymentSlice'
 
 interface DashboardStats {
   total_loans: number
@@ -56,7 +51,6 @@ interface QuickStat {
 }
 
 const Dashboard: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>()
   const { user } = useSelector((state: RootState) => state.auth)
 
   const { data: stats, isLoading, error } = useQuery({
@@ -89,8 +83,8 @@ const Dashboard: React.FC = () => {
   })
 
   useEffect(() => {
-    dispatch(fetchLoans() as any)
-  }, [dispatch])
+    // dispatch(fetchLoans() as any)
+  }, [])
 
   if (isLoading) {
     return (

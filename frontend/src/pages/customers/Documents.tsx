@@ -7,6 +7,13 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import CustomerDocuments from '@/components/customers/CustomerDocuments'
 
+interface ModalProps {
+  isOpen: boolean
+  onClose: () => void
+  title?: string
+  children: React.ReactNode
+}
+
 export default function CustomerDocumentsPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -44,9 +51,12 @@ export default function CustomerDocumentsPage() {
         <CustomerDocuments />
 
         {/* Upload Modal */}
-        <Modal open={showUpload} onClose={() => setShowUpload(false)}>
+        <Modal
+          isOpen={showUpload}
+          onClose={() => setShowUpload(false)}
+          title="Upload Document"
+        >
           <div className="p-6">
-            <h2 className="text-xl font-bold mb-4">Upload Document</h2>
             {/* Add upload form here */}
           </div>
         </Modal>
