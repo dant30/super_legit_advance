@@ -10,7 +10,6 @@ import {
   CreditCard,
   AlertCircle,
   Clock,
-  CheckCircle2,
   ArrowRight,
 } from 'lucide-react'
 import axiosInstance from '@/lib/axios'

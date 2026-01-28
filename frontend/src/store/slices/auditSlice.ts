@@ -7,7 +7,7 @@ import type {
   AuditStats, 
   UserActivity,
   RootState 
-} from '@/types'
+} from '@/types/audit'
 
 interface AuditState {
   logs: AuditLog[]
@@ -54,10 +54,10 @@ const initialState: AuditState = {
 
 // Async Thunks
 export const fetchAuditLogs = createAsyncThunk(
-  'audit/fetchAuditLogs',
-  async (params?: any, { rejectWithValue }) => {
+  'audit/fetchLogs',
+  async (filters: FilterParams | undefined, { rejectWithValue }) => {
     try {
-      const response = await auditAPI.getAuditLogs(params)
+      const response = await auditAPI.getAuditLogs(filters)
       return response
     } catch (error: any) {
       return rejectWithValue(error.response?.data || error.message)
