@@ -45,7 +45,7 @@ const initialState: CustomerState = {
 // Async thunks
 export const fetchCustomers = createAsyncThunk(
   'customers/fetchCustomers',
-  async (params?: any, { rejectWithValue }) => {  // optional params first
+  async (params?: { page?: number; search?: string }, { rejectWithValue }) => {
     try {
       const response = await customerAPI.getCustomers(params)
       return response
@@ -85,14 +85,15 @@ export const createCustomer = createAsyncThunk(
 
 export const updateCustomer = createAsyncThunk(
   'customers/updateCustomer',
-  async ({ id, data }: { id: string; data: CustomerUpdateData }, { rejectWithValue }) => {
+  async (
+    { id, data }: { id: string; data: any },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await customerAPI.updateCustomer(id, data)
       return response
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.detail || error.message || 'Failed to update customer'
-      )
+      return rejectWithValue(error.response?.data || 'Failed to update customer')
     }
   }
 )

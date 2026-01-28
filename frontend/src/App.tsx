@@ -52,13 +52,15 @@ function App() {
       import.meta.env.VITE_GOOGLE_ANALYTICS_ID
     ) {
       import('react-ga4').then((ReactGA) => {
-        ReactGA.initialize(import.meta.env.VITE_GOOGLE_ANALYTICS_ID);
-        ReactGA.send("pageview", {
+        // Properly type the module
+        const ga = ReactGA as any
+        ga.initialize(import.meta.env.VITE_GOOGLE_ANALYTICS_ID)
+        ga.send('pageview', {
           page_path: location.pathname + location.search,
-        });
-      });
+        })
+      })
     }
-  }, [location]);
+  }, [location])
 
   if (loading) {
     return (

@@ -92,6 +92,33 @@ export default function CustomerList() {
     return statusMap[status] || 'default'
   }
 
+  const columns = [
+    {
+      accessor: 'customer_number',
+      header: 'Customer #',
+    },
+    {
+      accessor: 'full_name',
+      header: 'Full Name',
+    },
+    {
+      accessor: 'phone_number',
+      header: 'Phone',
+    },
+    {
+      accessor: 'email',
+      header: 'Email',
+    },
+    {
+      accessor: 'status',
+      header: 'Status',
+    },
+    {
+      accessor: 'credit_score',
+      header: 'Credit Score',
+    },
+  ]
+
   return (
     <>
       <Helmet>
@@ -172,15 +199,7 @@ export default function CustomerList() {
           <>
             <Card>
               <Table
-                columns={[
-                  { key: 'customer_number', label: 'ID' },
-                  { key: 'full_name', label: 'Name' },
-                  { key: 'phone_number', label: 'Phone' },
-                  { key: 'email', label: 'Email' },
-                  { key: 'status', label: 'Status' },
-                  { key: 'credit_score', label: 'Credit Score' },
-                  { key: 'actions', label: '' },
-                ]}
+                columns={columns}
                 data={customers.map((customer: any) => ({
                   customer_number: customer.customer_number,
                   full_name: customer.full_name,

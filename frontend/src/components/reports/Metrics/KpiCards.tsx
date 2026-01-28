@@ -2,11 +2,13 @@ import React from 'react'
 import { Card } from '@/components/ui/Card'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 
-interface KPI {
+// Create proper KPI interface
+
+export interface KPI {
   label: string
   value: string | number
-  change?: number
   trend?: 'up' | 'down'
+  change?: number
   icon?: React.ReactNode
 }
 
@@ -14,7 +16,7 @@ interface KpiCardsProps {
   kpis: KPI[]
 }
 
-const KpiCards: React.FC<KpiCardsProps> = ({ kpis }) => {
+export const KpiCards: React.FC<KpiCardsProps> = ({ kpis }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {kpis.map((kpi, idx) => (
@@ -49,5 +51,3 @@ const KpiCards: React.FC<KpiCardsProps> = ({ kpis }) => {
     </div>
   )
 }
-
-export default KpiCards

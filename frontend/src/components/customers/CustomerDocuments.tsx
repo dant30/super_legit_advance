@@ -1,14 +1,13 @@
 import { useState } from 'react'
-import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
 import { Upload, FileText } from 'lucide-react'
-import Loading from '@/components/shared/Loading'
+// Remove: import Loading from '@/components/shared/Loading'
+// Remove: customerId prop usage if not needed
 
 interface CustomerDocumentsProps {
-  customerId: string
+  // Remove: customerId?: string
 }
 
-export default function CustomerDocuments({ customerId }: CustomerDocumentsProps) {
+export default function CustomerDocuments() {
   const [documents] = useState([
     { id: 1, name: 'ID Document', type: 'pdf', uploadedDate: '2024-01-15', size: '2.5 MB' },
     { id: 2, name: 'Passport Photo', type: 'jpg', uploadedDate: '2024-01-15', size: '1.8 MB' },
