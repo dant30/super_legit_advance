@@ -2,9 +2,7 @@ import React from 'react'
 import { Card } from '@/components/ui/Card'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 
-// Create proper KPI interface
-
-export interface KPI {
+interface KpiCardItem {
   label: string
   value: string | number
   trend?: 'up' | 'down'
@@ -13,7 +11,7 @@ export interface KPI {
 }
 
 interface KpiCardsProps {
-  kpis: KPI[]
+  kpis: KpiCardItem[]
 }
 
 export const KpiCards: React.FC<KpiCardsProps> = ({ kpis }) => {
@@ -22,32 +20,32 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ kpis }) => {
       {kpis.map((kpi, idx) => (
         <Card key={idx} className="p-6">
           <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{kpi.label}</p>
+            <div className="flex-1">
+              <p className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                {kpi.label}
+              </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
                 {kpi.value}
               </p>
               {kpi.change !== undefined && (
-                <div className="flex items-center gap-1 mt-2">
+                <div className={`flex items-center gap-1 mt-2 text-sm font-semibold ${
+                  kpi.trend === 'up' ? 'text-success-600' : 'text-danger-600'
+                }`}>
                   {kpi.trend === 'up' ? (
-                    <TrendingUp className="h-4 w-4 text-success-600" />
+                    <TrendingUp className="h-4 w-4" />
                   ) : (
-                    <TrendingDown className="h-4 w-4 text-danger-600" />
+                    <TrendingDown className="h-4 w-4" />
                   )}
-                  <span
-                    className={`text-sm font-medium ${
-                      kpi.trend === 'up' ? 'text-success-600' : 'text-danger-600'
-                    }`}
-                  >
-                    {Math.abs(kpi.change)}%
-                  </span>
+                  {kpi.change}%
                 </div>
               )}
             </div>
-            {kpi.icon && <div className="text-4xl opacity-20">{kpi.icon}</div>}
+            {kpi.icon && <div className="ml-4">{kpi.icon}</div>}
           </div>
         </Card>
       ))}
     </div>
   )
 }
+
+export default KpiCards

@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { ArrowLeft, Upload, Download, Eye, Trash2 } from 'lucide-react'
+import { ArrowLeft, Upload } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
 import { Modal } from '@/components/ui/Modal'
-import Loading from '@/components/shared/Loading'
 import CustomerDocuments from '@/components/customers/CustomerDocuments'
 
 export default function CustomerDocumentsPage() {
@@ -43,18 +41,13 @@ export default function CustomerDocumentsPage() {
         </div>
 
         {/* Documents */}
-        <CustomerDocuments customerId={id!} />
+        <CustomerDocuments />
 
         {/* Upload Modal */}
-        <Modal
-          isOpen={showUpload}
-          onClose={() => setShowUpload(false)}
-          title="Upload Document"
-          size="lg"
-        >
-          {/* Document upload form will go here */}
-          <div className="text-center py-8">
-            <p className="text-gray-600 dark:text-gray-400">Document upload component</p>
+        <Modal open={showUpload} onClose={() => setShowUpload(false)}>
+          <div className="p-6">
+            <h2 className="text-xl font-bold mb-4">Upload Document</h2>
+            {/* Add upload form here */}
           </div>
         </Modal>
       </div>
