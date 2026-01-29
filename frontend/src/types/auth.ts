@@ -1,4 +1,12 @@
-// frontend/src/types/auth.ts - COMPREHENSIVE USER TYPES
+// frontend/src/types/auth.ts - COMPREHENSIVE AUTH TYPES
+import type { StaffProfile } from './auth'
+
+export type UserRole = 'admin' | 'staff' | 'officer' | 'customer'
+export type UserStatus = 'active' | 'inactive' | 'pending' | 'suspended'
+export type Gender = 'M' | 'F' | 'O'
+export type MaritalStatus = 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED' | 'SEPARATED'
+export type Language = 'en' | 'sw'
+export type TwoFactorMethod = 'sms' | 'email' | 'app'
 
 export interface User {
   // Identifiers
@@ -12,12 +20,12 @@ export interface User {
   full_name: string
   id_number?: string
   date_of_birth?: string
-  gender?: 'M' | 'F' | 'O'
-  marital_status?: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED'
+  gender?: Gender
+  marital_status?: MaritalStatus
 
   // Role & Status
-  role: 'admin' | 'staff' | 'officer' | 'customer'
-  status: 'active' | 'inactive' | 'pending' | 'suspended'
+  role: UserRole
+  status: UserStatus
 
   // Verification Flags
   is_verified: boolean
@@ -38,14 +46,14 @@ export interface User {
 
   // 2FA
   two_factor_enabled?: boolean
-  two_factor_method?: 'sms' | 'email' | 'app'
+  two_factor_method?: TwoFactorMethod
 
   // Profile
   profile_picture?: string
   bio?: string
 
   // Preferences
-  language?: 'en' | 'sw'
+  language?: Language
   notifications_enabled?: boolean
   marketing_emails?: boolean
 
@@ -75,11 +83,35 @@ export interface TokenRefreshResponse {
   access: string
 }
 
+export interface PasswordResetRequest {
+  email: string
+}
+
+export interface PasswordResetConfirm {
+  uid: string
+  token: string
+  password: string
+  confirm_password: string
+}
+
+export interface PasswordChange {
+  current_password: string
+  new_password: string
+  confirm_new_password: string
+}
+
+export interface EmailVerification {
+  uid: string
+  token: string
+}
+
 export interface AuthState {
   user: User | null
   isAuthenticated: boolean
-  loading: boolean
+  isLoading: boolean
+  isRefreshing: boolean
   error: string | null
+  successMessage: string | null
 }
 
 export interface StaffProfile {
@@ -101,6 +133,9 @@ export interface StaffProfile {
   is_available: boolean
   work_phone?: string
   work_email?: string
+  performance_rating?: number
+  performance_level?: string
+  is_on_leave?: boolean
   created_at: string
   updated_at: string
 }
