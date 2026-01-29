@@ -220,6 +220,22 @@ export interface CreatePenaltyRequest {
   notes?: string
 }
 
+export interface AdjustScheduleRequest {
+  new_due_date?: string
+  new_amount?: number
+  reason: string
+}
+
+export interface BulkRepaymentRequest {
+  repayments: CreateRepaymentRequest[]
+}
+
+export interface SendRemindersRequest {
+  type: 'upcoming' | 'overdue'
+  customer_id?: number
+  loan_id?: number
+}
+
 /* =====================================================
  * Response Interfaces
  * ===================================================== */
@@ -236,7 +252,9 @@ export interface DashboardStats {
   status_breakdown: Array<{
     status: string
     count: number
-    amount: number
+    amount_due?: number
+    amount_paid?: number
+    amount_outstanding?: number
   }>
   method_breakdown: Array<{
     payment_method: string
@@ -266,6 +284,58 @@ export interface DashboardStats {
   }>
 }
 
+export interface RepaymentStats {
+  counts: {
+    total: number
+    completed: number
+    pending: number
+    overdue: number
+  }
+  amounts: {
+    total_due: number
+    total_paid: number
+    total_outstanding: number
+    collection_rate: number
+  }
+  monthly: {
+    count: number
+    amount: number
+  }
+  today: {
+    count: number
+    amount: number
+  }
+  payment_methods: Array<{
+    payment_method: string
+    count: number
+    amount: number
+  }>
+  status_distribution: Array<{
+    status: string
+    count: number
+    amount_due: number
+    amount_paid: number
+    amount_outstanding: number
+  }>
+  averages: {
+    avg_payment: number
+    avg_days_overdue: number
+  }
+}
+
+export interface BulkRepaymentResponse {
+  message: string
+  created_count: number
+  error_count: number
+  errors?: string[]
+}
+
+export interface SendRemindersResponse {
+  message: string
+  sent_count: number
+  failed_count: number
+}
+
 /* =====================================================
  * API Class
  * ===================================================== */
@@ -273,9 +343,7 @@ export interface DashboardStats {
 class RepaymentsAPI {
   private baseURL = '/repayments'
 
-  /* -----------------------------
-   * Repayments
-   * ----------------------------- */
+  /* ---- REPAYMENTS ---- */
 
   async getRepayments(params?: {
     page?: number
@@ -312,8 +380,7 @@ class RepaymentsAPI {
 
   async createRepayment(data: CreateRepaymentRequest): Promise<Repayment> {
     const formData = new FormData()
-    
-    // Append all fields to form data
+
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         if (key === 'receipt_file' && value instanceof File) {
@@ -321,7 +388,7 @@ class RepaymentsAPI {
         } else if (typeof value === 'object') {
           formData.append(key, JSON.stringify(value))
         } else {
-          formData.append(key, value.toString())
+          formData.append(key, String(value))
         }
       }
     })
@@ -374,9 +441,7 @@ class RepaymentsAPI {
     return response.data
   }
 
-  /* -----------------------------
-   * Customer Repayments
-   * ----------------------------- */
+  /* ---- CUSTOMER REPAYMENTS ---- */
 
   async getCustomerRepayments(
     customerId: number,
@@ -395,9 +460,7 @@ class RepaymentsAPI {
     return response.data
   }
 
-  /* -----------------------------
-   * Loan Repayments
-   * ----------------------------- */
+  /* ---- LOAN REPAYMENTS ---- */
 
   async getLoanRepayments(
     loanId: number,
@@ -414,9 +477,7 @@ class RepaymentsAPI {
     return response.data
   }
 
-  /* -----------------------------
-   * Repayment Schedules
-   * ----------------------------- */
+  /* ---- REPAYMENT SCHEDULES ---- */
 
   async getSchedules(
     loanId: number,
@@ -444,11 +505,7 @@ class RepaymentsAPI {
 
   async adjustSchedule(
     scheduleId: number,
-    data: {
-      new_due_date?: string
-      new_amount?: number
-      reason: string
-    }
+    data: AdjustScheduleRequest
   ): Promise<RepaymentSchedule> {
     const response = await axiosInstance.post<RepaymentSchedule>(
       `${this.baseURL}/schedule/${scheduleId}/adjust/`,
@@ -457,9 +514,7 @@ class RepaymentsAPI {
     return response.data
   }
 
-  /* -----------------------------
-   * Penalties
-   * ----------------------------- */
+  /* ---- PENALTIES ---- */
 
   async getPenalties(params?: {
     page?: number
@@ -511,9 +566,7 @@ class RepaymentsAPI {
     return response.data
   }
 
-  /* -----------------------------
-   * Special Views
-   * ----------------------------- */
+  /* ---- SPECIAL VIEWS ---- */
 
   async getOverdueRepayments(params?: {
     page?: number
@@ -542,56 +595,41 @@ class RepaymentsAPI {
     return response.data
   }
 
-  /* -----------------------------
-   * Dashboard & Statistics
-   * ----------------------------- */
+  /* ---- STATISTICS & DASHBOARD ---- */
 
-  async getStats(): Promise<any> {
-    const response = await axiosInstance.get(`${this.baseURL}/stats/`)
+  async getStats(): Promise<RepaymentStats> {
+    const response = await axiosInstance.get<RepaymentStats>(
+      `${this.baseURL}/stats/`
+    )
     return response.data
   }
 
   async getDashboard(): Promise<DashboardStats> {
-    const response = await axiosInstance.get(`${this.baseURL}/dashboard/`)
+    const response = await axiosInstance.get<DashboardStats>(
+      `${this.baseURL}/dashboard/`
+    )
     return response.data
   }
 
-  /* -----------------------------
-   * Bulk Operations
-   * ----------------------------- */
+  /* ---- BULK OPERATIONS ---- */
 
-  async bulkCreateRepayments(data: { repayments: CreateRepaymentRequest[] }): Promise<{
-    message: string
-    created_count: number
-    error_count: number
-    errors?: string[]
-  }> {
-    const response = await axiosInstance.post(
+  async bulkCreateRepayments(data: BulkRepaymentRequest): Promise<BulkRepaymentResponse> {
+    const response = await axiosInstance.post<BulkRepaymentResponse>(
       `${this.baseURL}/bulk-create/`,
       data
     )
     return response.data
   }
 
-  async sendReminders(data: {
-    type: 'upcoming' | 'overdue'
-    customer_id?: number
-    loan_id?: number
-  }): Promise<{
-    message: string
-    sent_count: number
-    failed_count: number
-  }> {
-    const response = await axiosInstance.post(
+  async sendReminders(data: SendRemindersRequest): Promise<SendRemindersResponse> {
+    const response = await axiosInstance.post<SendRemindersResponse>(
       `${this.baseURL}/reminders/`,
       data
     )
     return response.data
   }
 
-  /* -----------------------------
-   * Export
-   * ----------------------------- */
+  /* ---- EXPORT & SEARCH ---- */
 
   async exportRepayments(params?: {
     format?: 'excel' | 'csv'
@@ -608,10 +646,6 @@ class RepaymentsAPI {
     )
     return response.data
   }
-
-  /* -----------------------------
-   * Search
-   * ----------------------------- */
 
   async searchRepayments(params: {
     q: string

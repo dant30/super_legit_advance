@@ -1,12 +1,12 @@
 // frontend/src/store/slices/repaymentSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { repaymentsAPI } from '@/lib/api/repayments'
-import type { 
-  Repayment, 
-  RepaymentSchedule, 
+import type {
+  Repayment,
+  RepaymentSchedule,
   Penalty,
   DashboardStats,
-  PaginatedResponse
+  PaginatedResponse,
 } from '@/lib/api/repayments'
 
 export interface RepaymentState {
@@ -43,6 +43,8 @@ const initialState: RepaymentState = {
   },
 }
 
+/* ---- ASYNC THUNKS ---- */
+
 export const fetchRepayments = createAsyncThunk(
   'repayments/fetchRepayments',
   async (params?: any, { rejectWithValue }) => {
@@ -50,7 +52,11 @@ export const fetchRepayments = createAsyncThunk(
       const response = await repaymentsAPI.getRepayments(params)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Failed to fetch repayments')
+      return rejectWithValue(
+        error.response?.data?.detail ||
+          error.response?.data?.error ||
+          'Failed to fetch repayments'
+      )
     }
   }
 )
@@ -62,19 +68,27 @@ export const fetchRepayment = createAsyncThunk(
       const response = await repaymentsAPI.getRepayment(id)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Failed to fetch repayment')
+      return rejectWithValue(
+        error.response?.data?.detail ||
+          error.response?.data?.error ||
+          'Failed to fetch repayment'
+      )
     }
   }
 )
 
 export const fetchSchedules = createAsyncThunk(
   'repayments/fetchSchedules',
-  async (loanId: number, { rejectWithValue }) => {
+  async ({ loanId, params }: { loanId: number; params?: any }, { rejectWithValue }) => {
     try {
-      const response = await repaymentsAPI.getSchedules(loanId)
+      const response = await repaymentsAPI.getSchedules(loanId, params)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Failed to fetch schedules')
+      return rejectWithValue(
+        error.response?.data?.detail ||
+          error.response?.data?.error ||
+          'Failed to fetch schedules'
+      )
     }
   }
 )
@@ -86,7 +100,11 @@ export const fetchPenalties = createAsyncThunk(
       const response = await repaymentsAPI.getPenalties(params)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Failed to fetch penalties')
+      return rejectWithValue(
+        error.response?.data?.detail ||
+          error.response?.data?.error ||
+          'Failed to fetch penalties'
+      )
     }
   }
 )
@@ -98,7 +116,11 @@ export const fetchDashboardStats = createAsyncThunk(
       const response = await repaymentsAPI.getDashboard()
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Failed to fetch dashboard stats')
+      return rejectWithValue(
+        error.response?.data?.detail ||
+          error.response?.data?.error ||
+          'Failed to fetch dashboard stats'
+      )
     }
   }
 )
@@ -110,7 +132,11 @@ export const fetchOverdueRepayments = createAsyncThunk(
       const response = await repaymentsAPI.getOverdueRepayments(params)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Failed to fetch overdue repayments')
+      return rejectWithValue(
+        error.response?.data?.detail ||
+          error.response?.data?.error ||
+          'Failed to fetch overdue repayments'
+      )
     }
   }
 )
@@ -122,10 +148,16 @@ export const fetchUpcomingRepayments = createAsyncThunk(
       const response = await repaymentsAPI.getUpcomingRepayments(params)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Failed to fetch upcoming repayments')
+      return rejectWithValue(
+        error.response?.data?.detail ||
+          error.response?.data?.error ||
+          'Failed to fetch upcoming repayments'
+      )
     }
   }
 )
+
+/* ---- SLICE ---- */
 
 const repaymentSlice = createSlice({
   name: 'repayments',
@@ -142,6 +174,15 @@ const repaymentSlice = createSlice({
     },
     setPageSize: (state, action: PayloadAction<number>) => {
       state.pagination.pageSize = action.payload
+    },
+    resetPagination: (state) => {
+      state.pagination = {
+        count: 0,
+        next: null,
+        previous: null,
+        page: 1,
+        pageSize: 20,
+      }
     },
   },
   extraReducers: (builder) => {
@@ -224,20 +265,49 @@ const repaymentSlice = createSlice({
       })
 
       // Fetch overdue repayments
+      .addCase(fetchOverdueRepayments.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
       .addCase(fetchOverdueRepayments.fulfilled, (state, action) => {
-        // You might want to store these separately or replace the main list
-        // For now, just update the repayments list
+        state.loading = false
         state.repayments = action.payload.results
+        state.pagination = {
+          count: action.payload.count,
+          next: action.payload.next,
+          previous: action.payload.previous,
+          page: state.pagination.page,
+          pageSize: state.pagination.pageSize,
+        }
+      })
+      .addCase(fetchOverdueRepayments.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
       })
 
       // Fetch upcoming repayments
+      .addCase(fetchUpcomingRepayments.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
       .addCase(fetchUpcomingRepayments.fulfilled, (state, action) => {
-        // You might want to store these separately or replace the main list
-        // For now, just update the repayments list
+        state.loading = false
         state.repayments = action.payload.results
+        state.pagination = {
+          count: action.payload.count,
+          next: action.payload.next,
+          previous: action.payload.previous,
+          page: state.pagination.page,
+          pageSize: state.pagination.pageSize,
+        }
+      })
+      .addCase(fetchUpcomingRepayments.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
       })
   },
 })
 
-export const { clearError, clearSelectedRepayment, setPage, setPageSize } = repaymentSlice.actions
+export const { clearError, clearSelectedRepayment, setPage, setPageSize, resetPagination } =
+  repaymentSlice.actions
 export default repaymentSlice.reducer

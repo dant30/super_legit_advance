@@ -1,5 +1,5 @@
 // frontend/src/types/repayments.ts
-export type RepaymentStatus = 
+export type RepaymentStatus =
   | 'PENDING'
   | 'PROCESSING'
   | 'COMPLETED'
@@ -178,9 +178,9 @@ export interface DashboardStats {
   status_breakdown: Array<{
     status: string
     count: number
-    amount_due: number
-    amount_paid: number
-    amount_outstanding: number
+    amount_due?: number
+    amount_paid?: number
+    amount_outstanding?: number
   }>
   method_breakdown: Array<{
     payment_method: string
