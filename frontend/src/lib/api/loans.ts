@@ -1,6 +1,10 @@
 // frontend/src/lib/api/loans.ts
 import axiosInstance from '@/lib/axios'
 
+/* =====================================================
+ * Core Types
+ * ===================================================== */
+
 export interface Loan {
   id: number
   loan_number: string
@@ -8,48 +12,50 @@ export interface Loan {
   customer_name: string
   customer_number: string
   customer_phone: string
-  loan_type: string
+  loan_type: 'PERSONAL' | 'BUSINESS' | 'SALARY' | 'EMERGENCY' | 'ASSET_FINANCING' | 'EDUCATION' | 'AGRICULTURE'
   purpose: string
   purpose_description: string
   amount_requested: number
-  amount_approved: number
-  amount_disbursed: number
+  amount_approved?: number
+  amount_disbursed?: number
   term_months: number
   interest_rate: number
-  interest_type: string
-  repayment_frequency: string
+  interest_type: 'FIXED' | 'REDUCING_BALANCE' | 'FLAT_RATE'
+  repayment_frequency: 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'BIANNUAL' | 'ANNUAL' | 'BULLET'
   status: 'DRAFT' | 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'COMPLETED' | 'DEFAULTED' | 'OVERDUE' | 'WRITTEN_OFF' | 'CANCELLED'
   application_date: string
   approval_date?: string
   disbursement_date?: string
   start_date?: string
   maturity_date?: string
+  completion_date?: string
   total_interest: number
   total_amount_due: number
   amount_paid: number
   outstanding_balance: number
-  installment_amount: number
+  installment_amount?: number
   processing_fee: number
   processing_fee_percentage: number
   late_payment_penalty_rate: number
   total_penalties: number
-  credit_score_at_application: number
+  credit_score_at_application?: number
   risk_level: 'LOW' | 'MEDIUM' | 'HIGH'
-  approved_by?: number
-  approved_by_name?: string
-  disbursed_by?: number
-  disbursed_by_name?: string
   is_active: boolean
   is_overdue: boolean
   is_completed: boolean
   days_overdue: number
+  loan_age_days: number
   repayment_progress: number
+  payment_performance: number
   next_payment_date?: string
+  approved_by?: number
+  approved_by_name?: string
+  disbursed_by?: number
+  disbursed_by_name?: string
+  rejection_reason?: string
+  notes?: string
   created_at: string
   updated_at: string
-  rejection_reason?: string
-  loan_agreement?: string
-  notes?: string
 }
 
 export interface LoanApplication {
@@ -58,14 +64,16 @@ export interface LoanApplication {
   customer_name: string
   customer_number: string
   customer_phone: string
-  loan_type: string
+  loan_type: 'PERSONAL' | 'BUSINESS' | 'SALARY' | 'EMERGENCY' | 'ASSET_FINANCING'
   amount_requested: number
   term_months: number
   purpose: string
   purpose_description: string
   monthly_income: number
   other_income: number
+  total_monthly_income: number
   total_monthly_expenses: number
+  disposable_income: number
   existing_loans: boolean
   existing_loan_amount: number
   existing_loan_monthly: number
@@ -100,17 +108,22 @@ export interface LoanApplication {
   is_approved: boolean
   is_rejected: boolean
   is_pending: boolean
-  total_monthly_income: number
-  disposable_income: number
-  debt_to_income_ratio: number
   application_age_days: number
   affordability_analysis?: {
     proposed_installment: number
     installment_to_income_ratio: number
     obligations_to_income_ratio: number
     affordability_score: number
-    affordability_level: string
-    recommendation: string
+    affordability_level: 'GOOD' | 'MODERATE' | 'POOR'
+    recommendation: 'Approve' | 'Review' | 'Reject'
+    recommendation_details: string
+    factors_considered: {
+      income_ratio: boolean
+      existing_debts: boolean
+      collateral: boolean
+      guarantors: boolean
+      credit_score: boolean
+    }
   }
   created_at: string
   updated_at: string
@@ -125,7 +138,7 @@ export interface Collateral {
   description: string
   owner_name: string
   owner_id_number: string
-  ownership_type: string
+  ownership_type: 'SOLE' | 'JOINT' | 'COMPANY' | 'FAMILY' | 'OTHER'
   estimated_value: number
   insured_value?: number
   insurance_company?: string
@@ -144,6 +157,7 @@ export interface Collateral {
   is_released: boolean
   is_insured: boolean
   insurance_status: string
+  notes?: string
   created_at: string
   updated_at: string
 }
@@ -235,18 +249,22 @@ export interface LoanStats {
     total_active_loans: number
     total_overdue_loans: number
     total_completed_loans: number
+    total_pending_loans: number
     total_amount_approved: number
     total_amount_disbursed: number
     total_outstanding_balance: number
     total_amount_repaid: number
+    total_interest_earned: number
     average_loan_size: number
+    average_interest_rate: number
     repayment_rate: number
     overdue_rate: number
+    portfolio_at_risk_rate: number
   }
   distributions: {
-    status: Array<{ status: string; count: number; total_amount: number }>
-    loan_type: Array<{ loan_type: string; count: number; total_amount: number }>
-    risk_level: Array<{ risk_level: string; count: number; total_amount: number }>
+    status: Array<{ status: string; count: number; total_amount: number; avg_amount: number }>
+    loan_type: Array<{ loan_type: string; count: number; total_amount: number; avg_amount: number }>
+    risk_level: Array<{ risk_level: string; count: number; total_amount: number; avg_amount: number }>
   }
   trends: {
     monthly_applications: Array<{
@@ -254,6 +272,7 @@ export interface LoanStats {
       applications: number
       approved: number
       disbursed: number
+      total_amount: number
     }>
   }
   top_customers: Array<{
@@ -264,16 +283,17 @@ export interface LoanStats {
     loan_count: number
     total_borrowed: number
     total_outstanding: number
+    total_repaid: number
   }>
 }
 
 export interface LoanApplicationCreatePayload {
-  customer: number
+  customer?: number
   loan_type: string
   amount_requested: number
   term_months: number
   purpose: string
-  purpose_description?: string
+  purpose_description: string
   monthly_income: number
   other_income?: number
   total_monthly_expenses: number
@@ -293,7 +313,7 @@ export interface CollateralCreatePayload {
   description: string
   owner_name: string
   owner_id_number: string
-  ownership_type: string
+  ownership_type: 'SOLE' | 'JOINT' | 'COMPANY' | 'FAMILY' | 'OTHER'
   estimated_value: number
   insured_value?: number
   insurance_company?: string
@@ -306,10 +326,15 @@ export interface CollateralCreatePayload {
   notes?: string
 }
 
+/* =====================================================
+ * Loans API Class
+ * ===================================================== */
+
 class LoansAPI {
   private baseURL = '/loans'
 
-  // Loan endpoints
+  /* ---- LOAN ENDPOINTS ---- */
+
   async getLoans(params?: {
     page?: number
     page_size?: number
@@ -377,10 +402,7 @@ class LoansAPI {
     data: { approved_amount?: number; notes?: string }
   ): Promise<Loan> {
     try {
-      const response = await axiosInstance.post<Loan>(
-        `${this.baseURL}/${id}/approve/`,
-        data
-      )
+      const response = await axiosInstance.post<Loan>(`${this.baseURL}/${id}/approve/`, data)
       return response.data
     } catch (error) {
       throw error
@@ -389,10 +411,7 @@ class LoansAPI {
 
   async rejectLoan(id: number, data: { rejection_reason: string }): Promise<Loan> {
     try {
-      const response = await axiosInstance.post<Loan>(
-        `${this.baseURL}/${id}/reject/`,
-        data
-      )
+      const response = await axiosInstance.post<Loan>(`${this.baseURL}/${id}/reject/`, data)
       return response.data
     } catch (error) {
       throw error
@@ -404,10 +423,7 @@ class LoansAPI {
     data: { disbursement_amount?: number; disbursement_date?: string }
   ): Promise<Loan> {
     try {
-      const response = await axiosInstance.post<Loan>(
-        `${this.baseURL}/${id}/disburse/`,
-        data
-      )
+      const response = await axiosInstance.post<Loan>(`${this.baseURL}/${id}/disburse/`, data)
       return response.data
     } catch (error) {
       throw error
@@ -437,13 +453,13 @@ class LoansAPI {
 
   async searchLoans(query: string, searchType?: string): Promise<Loan[]> {
     try {
-      const response = await axiosInstance.get<Loan[]>(
-        `${this.baseURL}/search/`,
-        {
-          params: { q: query, type: searchType },
-        }
-      )
-      return response.data
+      const response = await axiosInstance.get<{ results: Loan[] }>(`${this.baseURL}/search/`, {
+        params: {
+          q: query,
+          type: searchType,
+        },
+      })
+      return response.data.results
     } catch (error) {
       throw error
     }
@@ -452,7 +468,10 @@ class LoansAPI {
   async exportLoans(format: 'excel' | 'csv', filters?: any): Promise<Blob> {
     try {
       const response = await axiosInstance.get(`${this.baseURL}/export/`, {
-        params: { format, ...filters },
+        params: {
+          format,
+          ...filters,
+        },
         responseType: 'blob',
       })
       return response.data
@@ -461,7 +480,8 @@ class LoansAPI {
     }
   }
 
-  // Loan Application endpoints
+  /* ---- LOAN APPLICATION ENDPOINTS ---- */
+
   async getLoanApplications(params?: {
     page?: number
     page_size?: number
@@ -510,7 +530,10 @@ class LoansAPI {
     }
   }
 
-  async updateLoanApplication(id: number, data: Partial<LoanApplicationCreatePayload>): Promise<LoanApplication> {
+  async updateLoanApplication(
+    id: number,
+    data: Partial<LoanApplicationCreatePayload>
+  ): Promise<LoanApplication> {
     try {
       const response = await axiosInstance.patch<LoanApplication>(
         `${this.baseURL}/applications/${id}/`,
@@ -586,15 +609,19 @@ class LoansAPI {
     }
   }
 
-  // Collateral endpoints
-  async getCollaterals(loanId: number, params?: {
-    page?: number
-    page_size?: number
-    search?: string
-    collateral_type?: string
-    status?: string
-    ownership_type?: string
-  }): Promise<CollateralListResponse> {
+  /* ---- COLLATERAL ENDPOINTS ---- */
+
+  async getCollaterals(
+    loanId: number,
+    params?: {
+      page?: number
+      page_size?: number
+      search?: string
+      collateral_type?: string
+      status?: string
+      ownership_type?: string
+    }
+  ): Promise<CollateralListResponse> {
     try {
       const response = await axiosInstance.get<CollateralListResponse>(
         `${this.baseURL}/${loanId}/collateral/`,
@@ -608,16 +635,17 @@ class LoansAPI {
 
   async getCollateral(id: number): Promise<Collateral> {
     try {
-      const response = await axiosInstance.get<Collateral>(
-        `${this.baseURL}/collateral/${id}/`
-      )
+      const response = await axiosInstance.get<Collateral>(`${this.baseURL}/collateral/${id}/`)
       return response.data
     } catch (error) {
       throw error
     }
   }
 
-  async createCollateral(loanId: number, data: CollateralCreatePayload): Promise<Collateral> {
+  async createCollateral(
+    loanId: number,
+    data: CollateralCreatePayload
+  ): Promise<Collateral> {
     try {
       const response = await axiosInstance.post<Collateral>(
         `${this.baseURL}/${loanId}/collateral/create/`,
@@ -649,7 +677,7 @@ class LoansAPI {
     }
   }
 
-  async releaseCollateral(id: number, data: { release_date?: string }): Promise<Collateral> {
+  async releaseCollateral(id: number, data?: { release_date?: string }): Promise<Collateral> {
     try {
       const response = await axiosInstance.post<Collateral>(
         `${this.baseURL}/collateral/${id}/release/`,

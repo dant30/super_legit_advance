@@ -1,305 +1,396 @@
 // frontend/src/hooks/useLoans.ts
-import { useState, useCallback } from 'react'
-import { loansAPI, LoanApplication, Collateral, LoanStats, LoanCalculatorResponse } from '@/lib/api/loans'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'  // Fix import
-import { 
-  fetchLoans as fetchLoansAction, 
-  fetchLoanById as fetchLoanByIdAction,
-  createLoan as createLoanAction,
-  updateLoan as updateLoanAction,
-  approveLoan as approveLoanAction,
-  rejectLoan as rejectLoanAction,
-  disburseLoan as disburseLoanAction,
-  setLoanFilters,  // Add these exports
+import { useCallback } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState, AppDispatch } from '@/store/store'
+import {
+  fetchLoans,
+  fetchLoanById,
+  createLoan,
+  updateLoan,
+  approveLoan,
+  rejectLoan,
+  disburseLoan,
+  calculateLoan,
+  fetchLoanStats,
+  fetchLoanApplications,
+  fetchLoanApplicationById,
+  createLoanApplication,
+  updateLoanApplication,
+  submitLoanApplication,
+  reviewLoanApplication,
+  approveLoanApplication,
+  rejectLoanApplication,
+  fetchCollaterals,
+  fetchCollateralById,
+  createCollateral,
+  updateCollateral,
+  releaseCollateral,
+  clearLoansError,
+  clearApplicationsError,
+  clearCollateralsError,
+  clearStatsError,
+  clearSelectedLoan,
+  clearSelectedApplication,
+  clearSelectedCollateral,
+  setLoanFilters,
+  setApplicationFilters,
   setLoanPage,
-  clearLoansError
+  setApplicationPage,
 } from '@/store/slices/loanSlice'
+import { loansAPI } from '@/lib/api/loans'
 
 export const useLoans = () => {
-  const dispatch = useAppDispatch()
-  const { loans, selectedLoan, loansLoading, loansError, loanFilters, pagination } = useAppSelector(
-    (state) => state.loans  // Remove type annotation, let TypeScript infer it
-  )
-  
-  const [loanStats, setLoanStats] = useState<LoanStats | null>(null)
-  const [calculatorResult, setCalculatorResult] = useState<LoanCalculatorResponse | null>(null)
-  const [applications, setApplications] = useState<LoanApplication[]>([])
-  const [selectedApplication, setSelectedApplication] = useState<LoanApplication | null>(null)
-  const [collaterals, setCollaterals] = useState<Collateral[]>([])
-  const [selectedCollateral, setSelectedCollateral] = useState<Collateral | null>(null)
+  const dispatch = useDispatch<AppDispatch>()
 
-  // Loan management
-  const getLoans = useCallback(async (params?: any) => {
-    return dispatch(fetchLoansAction(params))
-  }, [dispatch])
-
-  const getLoan = useCallback(async (id: number) => {
-    return dispatch(fetchLoanByIdAction(id.toString()))
-  }, [dispatch])
-
-  const createNewLoan = useCallback(async (data: any) => {
-    return dispatch(createLoanAction(data))
-  }, [dispatch])
-
-  const updateExistingLoan = useCallback(async (id: number, data: any) => {
-    return dispatch(updateLoanAction({ id: id.toString(), data }))
-  }, [dispatch])
-
-  const approveExistingLoan = useCallback(async (id: number, data?: any) => {
-    return dispatch(approveLoanAction({ id: id.toString(), data }))
-  }, [dispatch])
-
-  const rejectExistingLoan = useCallback(async (id: number, reason: string) => {
-    return dispatch(rejectLoanAction({ id: id.toString(), reason }))
-  }, [dispatch])
-
-  const disburseExistingLoan = useCallback(async (id: number, data?: any) => {
-    return dispatch(disburseLoanAction({ id: id.toString(), data }))
-  }, [dispatch])
-
-  const calculateLoan = useCallback(async (data: any) => {
-    try {
-      const result = await loansAPI.calculateLoan(data)
-      setCalculatorResult(result)
-      return result
-    } catch (error) {
-      throw error
-    }
-  }, [])
-
-  const getStatistics = useCallback(async () => {
-    try {
-      const stats = await loansAPI.getLoanStats()
-      setLoanStats(stats)
-      return stats
-    } catch (error) {
-      throw error
-    }
-  }, [])
-
-  const exportLoans = useCallback(async (format: 'excel' | 'csv', filters?: any) => {
-    try {
-      const blob = await loansAPI.exportLoans(format, filters)
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `loans_export.${format === 'excel' ? 'xlsx' : 'csv'}`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-      return true
-    } catch (error) {
-      throw error
-    }
-  }, [])
-
-  // Loan Application management
-  const getLoanApplications = useCallback(async (params?: any) => {
-    try {
-      const response = await loansAPI.getLoanApplications(params)
-      setApplications(response.results)
-      return response
-    } catch (error) {
-      throw error
-    }
-  }, [])
-
-  const getLoanApplication = useCallback(async (id: number) => {
-    try {
-      const application = await loansAPI.getLoanApplication(id)
-      setSelectedApplication(application)
-      return application
-    } catch (error) {
-      throw error
-    }
-  }, [])
-
-  const createLoanApplication = useCallback(async (data: any) => {
-    try {
-      const application = await loansAPI.createLoanApplication(data)
-      return application
-    } catch (error) {
-      throw error
-    }
-  }, [])
-
-  const updateLoanApplication = useCallback(async (id: number, data: any) => {
-    try {
-      const application = await loansAPI.updateLoanApplication(id, data)
-      if (selectedApplication?.id === id) {
-        setSelectedApplication(application)
-      }
-      return application
-    } catch (error) {
-      throw error
-    }
-  }, [selectedApplication])
-
-  const submitLoanApplication = useCallback(async (id: number) => {
-    try {
-      const application = await loansAPI.submitLoanApplication(id)
-      if (selectedApplication?.id === id) {
-        setSelectedApplication(application)
-      }
-      return application
-    } catch (error) {
-      throw error
-    }
-  }, [selectedApplication])
-
-  const reviewLoanApplication = useCallback(async (id: number, data: any) => {
-    try {
-      const application = await loansAPI.reviewLoanApplication(id, data)
-      if (selectedApplication?.id === id) {
-        setSelectedApplication(application)
-      }
-      return application
-    } catch (error) {
-      throw error
-    }
-  }, [selectedApplication])
-
-  const approveLoanApplication = useCallback(async (id: number, data?: any) => {
-    try {
-      const application = await loansAPI.approveLoanApplication(id, data)
-      if (selectedApplication?.id === id) {
-        setSelectedApplication(application)
-      }
-      return application
-    } catch (error) {
-      throw error
-    }
-  }, [selectedApplication])
-
-  const rejectLoanApplication = useCallback(async (id: number, reason: string) => {
-    try {
-      const application = await loansAPI.rejectLoanApplication(id, { rejection_reason: reason })
-      if (selectedApplication?.id === id) {
-        setSelectedApplication(application)
-      }
-      return application
-    } catch (error) {
-      throw error
-    }
-  }, [selectedApplication])
-
-  // Collateral management
-  const getCollaterals = useCallback(async (loanId: number, params?: any) => {
-    try {
-      const response = await loansAPI.getCollaterals(loanId, params)
-      setCollaterals(response.results)
-      return response
-    } catch (error) {
-      throw error
-    }
-  }, [])
-
-  const getCollateral = useCallback(async (id: number) => {
-    try {
-      const collateral = await loansAPI.getCollateral(id)
-      setSelectedCollateral(collateral)
-      return collateral
-    } catch (error) {
-      throw error
-    }
-  }, [])
-
-  const createCollateral = useCallback(async (loanId: number, data: any) => {
-    try {
-      const collateral = await loansAPI.createCollateral(loanId, data)
-      return collateral
-    } catch (error) {
-      throw error
-    }
-  }, [])
-
-  const updateCollateral = useCallback(async (id: number, data: any) => {
-    try {
-      const collateral = await loansAPI.updateCollateral(id, data)
-      if (selectedCollateral?.id === id) {
-        setSelectedCollateral(collateral)
-      }
-      return collateral
-    } catch (error) {
-      throw error
-    }
-  }, [selectedCollateral])
-
-  const releaseCollateral = useCallback(async (id: number, data?: any) => {
-    try {
-      const collateral = await loansAPI.releaseCollateral(id, data)
-      if (selectedCollateral?.id === id) {
-        setSelectedCollateral(collateral)
-      }
-      return collateral
-    } catch (error) {
-      throw error
-    }
-  }, [selectedCollateral])
-
-  // Utility functions
-  const updateFilters = useCallback((newFilters: any) => {
-    dispatch(setLoanFilters(newFilters))
-  }, [dispatch])
-
-  const updatePage = useCallback((page: number) => {
-    dispatch(setLoanPage(page))
-  }, [dispatch])
-
-  const clearSelected = useCallback(() => {
-    dispatch(clearLoansError())
-    setSelectedApplication(null)
-    setSelectedCollateral(null)
-  }, [dispatch])
-
-  return {
-    // State
+  const {
     loans,
     selectedLoan,
     loansLoading,
     loansError,
     loanFilters,
-    pagination,
-    loanStats,
-    calculatorResult,
+    loanPagination,
     applications,
     selectedApplication,
+    applicationsLoading,
+    applicationsError,
+    applicationFilters,
+    applicationPagination,
     collaterals,
     selectedCollateral,
+    collateralsLoading,
+    collateralsError,
+    stats,
+    statsLoading,
+    statsError,
+  } = useSelector((state: RootState) => state.loans)
+
+  /* ========== LOAN MANAGEMENT ========== */
+
+  const getLoans = useCallback(
+    (params?: any) => {
+      return dispatch(
+        fetchLoans({
+          ...loanFilters,
+          ...params,
+          page: loanPagination.page,
+          page_size: loanPagination.page_size,
+        })
+      )
+    },
+    [dispatch, loanFilters, loanPagination]
+  )
+
+  const getLoan = useCallback(
+    (id: number | string) => {
+      return dispatch(fetchLoanById(id))
+    },
+    [dispatch]
+  )
+
+  const createNewLoan = useCallback(
+    (data: any) => {
+      return dispatch(createLoan(data))
+    },
+    [dispatch]
+  )
+
+  const updateExistingLoan = useCallback(
+    (id: number, data: any) => {
+      return dispatch(updateLoan({ id, data }))
+    },
+    [dispatch]
+  )
+
+  const approveExistingLoan = useCallback(
+    (id: number, data?: any) => {
+      return dispatch(approveLoan({ id, data }))
+    },
+    [dispatch]
+  )
+
+  const rejectExistingLoan = useCallback(
+    (id: number, reason: string) => {
+      return dispatch(rejectLoan({ id, reason }))
+    },
+    [dispatch]
+  )
+
+  const disburseExistingLoan = useCallback(
+    (id: number, data?: any) => {
+      return dispatch(disburseLoan({ id, data }))
+    },
+    [dispatch]
+  )
+
+  const calculateLoanTerms = useCallback(
+    async (data: any) => {
+      try {
+        return await loansAPI.calculateLoan(data)
+      } catch (error) {
+        throw error
+      }
+    },
+    []
+  )
+
+  const getStatistics = useCallback(() => {
+    return dispatch(fetchLoanStats())
+  }, [dispatch])
+
+  const exportLoans = useCallback(
+    async (format: 'excel' | 'csv', filters?: any) => {
+      try {
+        const blob = await loansAPI.exportLoans(format, filters)
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `loans_export.${format === 'excel' ? 'xlsx' : 'csv'}`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+        return true
+      } catch (error) {
+        throw error
+      }
+    },
+    []
+  )
+
+  /* ========== LOAN APPLICATION MANAGEMENT ========== */
+
+  const getLoanApplications = useCallback(
+    (params?: any) => {
+      return dispatch(
+        fetchLoanApplications({
+          ...applicationFilters,
+          ...params,
+          page: applicationPagination.page,
+          page_size: applicationPagination.page_size,
+        })
+      )
+    },
+    [dispatch, applicationFilters, applicationPagination]
+  )
+
+  const getLoanApplication = useCallback(
+    (id: number) => {
+      return dispatch(fetchLoanApplicationById(id))
+    },
+    [dispatch]
+  )
+
+  const createNewLoanApplication = useCallback(
+    (data: any) => {
+      return dispatch(createLoanApplication(data))
+    },
+    [dispatch]
+  )
+
+  const updateExistingLoanApplication = useCallback(
+    (id: number, data: any) => {
+      return dispatch(updateLoanApplication({ id, data }))
+    },
+    [dispatch]
+  )
+
+  const submitExistingLoanApplication = useCallback(
+    (id: number) => {
+      return dispatch(submitLoanApplication(id))
+    },
+    [dispatch]
+  )
+
+  const reviewExistingLoanApplication = useCallback(
+    (id: number, data: any) => {
+      return dispatch(reviewLoanApplication({ id, data }))
+    },
+    [dispatch]
+  )
+
+  const approveExistingLoanApplication = useCallback(
+    (id: number, data?: any) => {
+      return dispatch(approveLoanApplication({ id, data }))
+    },
+    [dispatch]
+  )
+
+  const rejectExistingLoanApplication = useCallback(
+    (id: number, reason: string) => {
+      return dispatch(rejectLoanApplication({ id, reason }))
+    },
+    [dispatch]
+  )
+
+  /* ========== COLLATERAL MANAGEMENT ========== */
+
+  const getCollaterals = useCallback(
+    (loanId: number, params?: any) => {
+      return dispatch(fetchCollaterals({ loanId, params }))
+    },
+    [dispatch]
+  )
+
+  const getCollateral = useCallback(
+    (id: number) => {
+      return dispatch(fetchCollateralById(id))
+    },
+    [dispatch]
+  )
+
+  const createNewCollateral = useCallback(
+    (loanId: number, data: any) => {
+      return dispatch(createCollateral({ loanId, data }))
+    },
+    [dispatch]
+  )
+
+  const updateExistingCollateral = useCallback(
+    (id: number, data: any) => {
+      return dispatch(updateCollateral({ id, data }))
+    },
+    [dispatch]
+  )
+
+  const releaseExistingCollateral = useCallback(
+    (id: number, data?: any) => {
+      return dispatch(releaseCollateral({ id, data }))
+    },
+    [dispatch]
+  )
+
+  /* ========== FILTER & PAGINATION ========== */
+
+  const updateLoanFilters = useCallback(
+    (filters: any) => {
+      dispatch(setLoanFilters(filters))
+    },
+    [dispatch]
+  )
+
+  const updateApplicationFilters = useCallback(
+    (filters: any) => {
+      dispatch(setApplicationFilters(filters))
+    },
+    [dispatch]
+  )
+
+  const changeLoanPage = useCallback(
+    (page: number) => {
+      dispatch(setLoanPage(page))
+    },
+    [dispatch]
+  )
+
+  const changeApplicationPage = useCallback(
+    (page: number) => {
+      dispatch(setApplicationPage(page))
+    },
+    [dispatch]
+  )
+
+  /* ========== ERROR CLEARING ========== */
+
+  const clearLoanError = useCallback(() => {
+    dispatch(clearLoansError())
+  }, [dispatch])
+
+  const clearApplicationError = useCallback(() => {
+    dispatch(clearApplicationsError())
+  }, [dispatch])
+
+  const clearCollateralError = useCallback(() => {
+    dispatch(clearCollateralsError())
+  }, [dispatch])
+
+  const clearStatError = useCallback(() => {
+    dispatch(clearStatsError())
+  }, [dispatch])
+
+  const clearLoanSelection = useCallback(() => {
+    dispatch(clearSelectedLoan())
+  }, [dispatch])
+
+  const clearApplicationSelection = useCallback(() => {
+    dispatch(clearSelectedApplication())
+  }, [dispatch])
+
+  const clearCollateralSelection = useCallback(() => {
+    dispatch(clearSelectedCollateral())
+  }, [dispatch])
+
+  return {
+    // Loan state
+    loans,
+    selectedLoan,
+    loansLoading,
+    loansError,
+    loanFilters,
+    loanPagination,
 
     // Loan actions
     getLoans,
     getLoan,
-    createLoan: createNewLoan,
-    updateLoan: updateExistingLoan,
-    approveLoan: approveExistingLoan,
-    rejectLoan: rejectExistingLoan,
-    disburseLoan: disburseExistingLoan,
-    calculateLoan,
+    createNewLoan,
+    updateExistingLoan,
+    approveExistingLoan,
+    rejectExistingLoan,
+    disburseExistingLoan,
+    calculateLoanTerms,
     getStatistics,
     exportLoans,
 
-    // Loan Application actions
+    // Application state
+    applications,
+    selectedApplication,
+    applicationsLoading,
+    applicationsError,
+    applicationFilters,
+    applicationPagination,
+
+    // Application actions
     getLoanApplications,
     getLoanApplication,
-    createLoanApplication,
-    updateLoanApplication,
-    submitLoanApplication,
-    reviewLoanApplication,
-    approveLoanApplication,
-    rejectLoanApplication,
+    createNewLoanApplication,
+    updateExistingLoanApplication,
+    submitExistingLoanApplication,
+    reviewExistingLoanApplication,
+    approveExistingLoanApplication,
+    rejectExistingLoanApplication,
+
+    // Collateral state
+    collaterals,
+    selectedCollateral,
+    collateralsLoading,
+    collateralsError,
 
     // Collateral actions
     getCollaterals,
     getCollateral,
-    createCollateral,
-    updateCollateral,
-    releaseCollateral,
+    createNewCollateral,
+    updateExistingCollateral,
+    releaseExistingCollateral,
 
-    // Utility actions
-    updateFilters,
-    updatePage,
-    clearSelected,
+    // Statistics state
+    stats,
+    statsLoading,
+    statsError,
+
+    // Filter & pagination
+    updateLoanFilters,
+    updateApplicationFilters,
+    changeLoanPage,
+    changeApplicationPage,
+
+    // Error clearing
+    clearLoanError,
+    clearApplicationError,
+    clearCollateralError,
+    clearStatError,
+
+    // Selection clearing
+    clearLoanSelection,
+    clearApplicationSelection,
+    clearCollateralSelection,
   }
 }
