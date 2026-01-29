@@ -126,11 +126,11 @@ handler500 = "apps.core.views.error_500"
 # ------------------------------------------------------------------------------
 # Frontend catch-all (React / SPA)
 # ------------------------------------------------------------------------------
-#if not settings.DEBUG:
-#    urlpatterns += [
-#        re_path(
-#            r"^(?!admin|api|media|static).*",
-#            TemplateView.as_view(template_name="index.html"),
-#            name="frontend-catchall",
-#        ),
-#    ]
+if not settings.DEBUG:
+    urlpatterns += [
+        re_path(
+            r"^(?!admin|api|media|static).*",
+            TemplateView.as_view(template_name="index.html"),
+            name="frontend-catchall",
+        ),
+    ]
