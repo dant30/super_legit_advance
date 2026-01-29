@@ -1,5 +1,8 @@
 // frontend/src/types/mpesa.ts
 
+/**
+ * STK Push Request - Initiate payment
+ */
 export interface STKPushRequest {
   phone_number: string
   amount: number
@@ -11,6 +14,9 @@ export interface STKPushRequest {
   payment_type?: 'LOAN_REPAYMENT' | 'LOAN_APPLICATION_FEE' | 'PENALTY_PAYMENT' | 'OTHER'
 }
 
+/**
+ * M-Pesa Payment
+ */
 export interface MpesaPayment {
   id: number
   payment_reference: string
@@ -30,8 +36,8 @@ export interface MpesaPayment {
   phone_number: string
   amount: number
   description: string
-  payment_type: string
-  transaction_type: string
+  payment_type: 'LOAN_REPAYMENT' | 'LOAN_APPLICATION_FEE' | 'PENALTY_PAYMENT' | 'OTHER'
+  transaction_type: 'CUSTOMER_PAY_BILL_ONLINE' | 'CUSTOMER_BUY_GOODS_ONLINE'
   status: 'PENDING' | 'PROCESSING' | 'SUCCESSFUL' | 'FAILED' | 'CANCELLED' | 'TIMEOUT'
   result_code?: number
   result_description?: string
@@ -49,7 +55,7 @@ export interface MpesaPayment {
   user_agent?: string
   created_at: string
   updated_at: string
-  
+
   // Computed fields
   formatted_amount: string
   is_successful: boolean
@@ -57,6 +63,9 @@ export interface MpesaPayment {
   is_failed: boolean
 }
 
+/**
+ * M-Pesa Transaction
+ */
 export interface MpesaTransaction {
   id: number
   transaction_id: string
@@ -81,7 +90,7 @@ export interface MpesaTransaction {
   raw_response: Record<string, any>
   created_at: string
   updated_at: string
-  
+
   // Computed fields
   formatted_amount: string
   formatted_balance: string
@@ -89,6 +98,9 @@ export interface MpesaTransaction {
   is_reversed: boolean
 }
 
+/**
+ * Payment Summary - Statistics and analytics
+ */
 export interface PaymentSummary {
   summary: {
     period_days: number
@@ -130,6 +142,9 @@ export interface PaymentSummary {
   recent_transactions: MpesaTransaction[]
 }
 
+/**
+ * Paginated Response
+ */
 export interface PaginatedResponse<T> {
   count: number
   next: string | null
@@ -137,6 +152,9 @@ export interface PaginatedResponse<T> {
   results: T[]
 }
 
+/**
+ * Payment History Query Parameters
+ */
 export interface PaymentHistoryParams {
   customer_id?: number
   loan_id?: number
@@ -150,6 +168,9 @@ export interface PaymentHistoryParams {
   page_size?: number
 }
 
+/**
+ * Transaction List Query Parameters
+ */
 export interface TransactionListParams {
   start_date?: string
   end_date?: string
@@ -161,10 +182,16 @@ export interface TransactionListParams {
   page_size?: number
 }
 
+/**
+ * Payment Retry Request
+ */
 export interface PaymentRetryRequest {
   phone_number?: string
 }
 
+/**
+ * Payment Reversal Request
+ */
 export interface PaymentReversalRequest {
   reason: string
 }

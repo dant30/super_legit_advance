@@ -7,9 +7,13 @@ import {
   PaymentSummary,
   PaginatedResponse,
   PaymentHistoryParams,
-  TransactionListParams
+  TransactionListParams,
+  STKPushRequest
 } from '@/types/mpesa'
 
+/**
+ * Mpesa Redux State Interface
+ */
 interface MpesaState {
   payments: {
     data: PaginatedResponse<MpesaPayment> | null
@@ -41,9 +45,14 @@ interface MpesaState {
     error: string | null
     success: boolean
     checkoutRequestId: string | null
+    paymentReference: string | null
+    paymentId: number | null
   }
 }
 
+/**
+ * Initial State
+ */
 const initialState: MpesaState = {
   payments: {
     data: null,
@@ -74,23 +83,36 @@ const initialState: MpesaState = {
     loading: false,
     error: null,
     success: false,
-    checkoutRequestId: null
+    checkoutRequestId: null,
+    paymentReference: null,
+    paymentId: null
   }
 }
 
-// Async Thunks
+/**
+ * Async Thunks
+ */
+
+/**
+ * Initiate STK Push payment
+ */
 export const initiateSTKPush = createAsyncThunk(
   'mpesa/initiateSTKPush',
-  async (data: any, { rejectWithValue }) => {
+  async (data: STKPushRequest, { rejectWithValue }) => {
     try {
       const response = await mpesaAPI.initiateSTKPush(data)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || error.message)
+      return rejectWithValue(
+        error.response?.data?.error || error.message || 'Failed to initiate payment'
+      )
     }
   }
 )
 
+/**
+ * Fetch payment history
+ */
 export const fetchPaymentHistory = createAsyncThunk(
   'mpesa/fetchPaymentHistory',
   async (params?: PaymentHistoryParams, { rejectWithValue }) => {
@@ -98,11 +120,16 @@ export const fetchPaymentHistory = createAsyncThunk(
       const response = await mpesaAPI.getPaymentHistory(params)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || error.message)
+      return rejectWithValue(
+        error.response?.data?.error || error.message || 'Failed to fetch payment history'
+      )
     }
   }
 )
 
+/**
+ * Fetch transactions
+ */
 export const fetchTransactions = createAsyncThunk(
   'mpesa/fetchTransactions',
   async (params?: TransactionListParams, { rejectWithValue }) => {
@@ -110,11 +137,16 @@ export const fetchTransactions = createAsyncThunk(
       const response = await mpesaAPI.getTransactions(params)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || error.message)
+      return rejectWithValue(
+        error.response?.data?.error || error.message || 'Failed to fetch transactions'
+      )
     }
   }
 )
 
+/**
+ * Fetch payment summary
+ */
 export const fetchPaymentSummary = createAsyncThunk(
   'mpesa/fetchPaymentSummary',
   async (days?: number, { rejectWithValue }) => {
@@ -122,23 +154,39 @@ export const fetchPaymentSummary = createAsyncThunk(
       const response = await mpesaAPI.getPaymentSummary(days)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || error.message)
+      return rejectWithValue(
+        error.response?.data?.error || error.message || 'Failed to fetch payment summary'
+      )
     }
   }
 )
 
+/**
+ * Fetch payment status
+ */
 export const fetchPaymentStatus = createAsyncThunk(
   'mpesa/fetchPaymentStatus',
-  async ({ paymentReference, checkoutRequestId }: { paymentReference?: string; checkoutRequestId?: string }, { rejectWithValue }) => {
+  async (
+    {
+      paymentReference,
+      checkoutRequestId
+    }: { paymentReference?: string; checkoutRequestId?: string },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await mpesaAPI.getPaymentStatus(paymentReference, checkoutRequestId)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || error.message)
+      return rejectWithValue(
+        error.response?.data?.error || error.message || 'Failed to fetch payment status'
+      )
     }
   }
 )
 
+/**
+ * Fetch single transaction
+ */
 export const fetchTransaction = createAsyncThunk(
   'mpesa/fetchTransaction',
   async (receiptNumber: string, { rejectWithValue }) => {
@@ -146,36 +194,70 @@ export const fetchTransaction = createAsyncThunk(
       const response = await mpesaAPI.getTransaction(receiptNumber)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || error.message)
+      return rejectWithValue(
+        error.response?.data?.error || error.message || 'Failed to fetch transaction'
+      )
     }
   }
 )
 
+/**
+ * Mpesa Slice
+ */
 const mpesaSlice = createSlice({
   name: 'mpesa',
   initialState,
   reducers: {
+    /**
+     * Clear STK push state
+     */
     clearSTKPushState: (state) => {
       state.stkPush = initialState.stkPush
     },
+
+    /**
+     * Clear payment error
+     */
     clearPaymentError: (state) => {
       state.payments.error = null
     },
+
+    /**
+     * Clear transaction error
+     */
     clearTransactionError: (state) => {
       state.transactions.error = null
     },
+
+    /**
+     * Clear current payment
+     */
     clearCurrentPayment: (state) => {
       state.currentPayment = initialState.currentPayment
     },
+
+    /**
+     * Clear current transaction
+     */
     clearCurrentTransaction: (state) => {
       state.currentTransaction = initialState.currentTransaction
     },
+
+    /**
+     * Clear summary
+     */
     clearSummary: (state) => {
       state.summary = initialState.summary
-    }
+    },
+
+    /**
+     * Reset all state
+     */
+    resetMpesaState: () => initialState
   },
+
   extraReducers: (builder) => {
-    // Initiate STK Push
+    // ========== Initiate STK Push ==========
     builder
       .addCase(initiateSTKPush.pending, (state) => {
         state.stkPush.loading = true
@@ -186,13 +268,16 @@ const mpesaSlice = createSlice({
         state.stkPush.loading = false
         state.stkPush.success = true
         state.stkPush.checkoutRequestId = action.payload.checkout_request_id
+        state.stkPush.paymentReference = action.payload.payment_reference
+        state.stkPush.paymentId = action.payload.payment_id
       })
       .addCase(initiateSTKPush.rejected, (state, action) => {
         state.stkPush.loading = false
         state.stkPush.error = action.payload as string
+        state.stkPush.success = false
       })
 
-    // Fetch Payment History
+    // ========== Fetch Payment History ==========
     builder
       .addCase(fetchPaymentHistory.pending, (state) => {
         state.payments.loading = true
@@ -207,7 +292,7 @@ const mpesaSlice = createSlice({
         state.payments.error = action.payload as string
       })
 
-    // Fetch Transactions
+    // ========== Fetch Transactions ==========
     builder
       .addCase(fetchTransactions.pending, (state) => {
         state.transactions.loading = true
@@ -222,7 +307,7 @@ const mpesaSlice = createSlice({
         state.transactions.error = action.payload as string
       })
 
-    // Fetch Payment Summary
+    // ========== Fetch Payment Summary ==========
     builder
       .addCase(fetchPaymentSummary.pending, (state) => {
         state.summary.loading = true
@@ -237,7 +322,7 @@ const mpesaSlice = createSlice({
         state.summary.error = action.payload as string
       })
 
-    // Fetch Payment Status
+    // ========== Fetch Payment Status ==========
     builder
       .addCase(fetchPaymentStatus.pending, (state) => {
         state.currentPayment.loading = true
@@ -252,7 +337,7 @@ const mpesaSlice = createSlice({
         state.currentPayment.error = action.payload as string
       })
 
-    // Fetch Transaction
+    // ========== Fetch Single Transaction ==========
     builder
       .addCase(fetchTransaction.pending, (state) => {
         state.currentTransaction.loading = true
@@ -275,7 +360,8 @@ export const {
   clearTransactionError,
   clearCurrentPayment,
   clearCurrentTransaction,
-  clearSummary
+  clearSummary,
+  resetMpesaState
 } = mpesaSlice.actions
 
 export default mpesaSlice.reducer
