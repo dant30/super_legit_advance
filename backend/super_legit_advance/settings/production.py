@@ -7,6 +7,9 @@ from .base import *
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 import dj_database_url
+import logging
+
+logger = logging.getLogger(__name__)
 
 # ============================================================================
 # PRODUCTION OVERRIDES

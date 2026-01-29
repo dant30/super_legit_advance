@@ -39,6 +39,16 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
+    // 🔴 DEBUG: Log all errors
+    console.error('[Axios Error]', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      method: error.config?.method,
+      data: error.response?.data,
+      message: error.message,
+    })
+
     const originalRequest = error.config as CustomConfig
 
     // Only refresh if 401 and not already retried
