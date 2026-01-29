@@ -18,7 +18,14 @@ from datetime import timedelta
 from celery.schedules import crontab
 
 # Initialize environment variables
-env = environ.Env()
+env = environ.Env(
+    DEBUG=(bool, False),
+    ALLOWED_HOSTS=(list, ['localhost', '127.0.0.1']),
+    CORS_ALLOW_ALL_ORIGINS=(bool, False),
+    SECURE_SSL_REDIRECT=(bool, False),
+    SESSION_COOKIE_SECURE=(bool, False),
+    CSRF_COOKIE_SECURE=(bool, False),
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -26,13 +33,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # Load environment variables from .env file
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+# ============================================================================
+# CORE SETTINGS
+# ============================================================================
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-default-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=False)
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 
 # Application definition
 INSTALLED_APPS = [
@@ -302,28 +312,37 @@ SIMPLE_JWT = {
 }
 
 # CORS Settings
-CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-])
+CORS_ALLOW_ALL_ORIGINS = env('CORS_ALLOW_ALL_ORIGINS')
+
+if not CORS_ALLOW_ALL_ORIGINS:
+    CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+    ])
+    
+    # Support regex patterns for flexible port matching
+    CORS_ALLOWED_ORIGIN_REGEXES = env.list('CORS_ALLOWED_ORIGIN_REGEXES', default=[])
+else:
+    CORS_ALLOWED_ORIGINS = []
+    CORS_ALLOWED_ORIGIN_REGEXES = []
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Security Settings
-SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
-SECURE_HSTS_SECONDS = 31536000  # 1 year
+# ============================================================================
+# SECURITY SETTINGS
+# ============================================================================
+SECURE_SSL_REDIRECT = env('SECURE_SSL_REDIRECT')
+SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
-# Session Settings
-SESSION_COOKIE_SECURE = env.bool('SESSION_COOKIE_SECURE', default=False)
+SESSION_COOKIE_SECURE = env('SESSION_COOKIE_SECURE')
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
 
-# CSRF Settings
-CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=False)
+CSRF_COOKIE_SECURE = env('CSRF_COOKIE_SECURE')
 CSRF_COOKIE_HTTPONLY = True
 
 # Email Configuration
