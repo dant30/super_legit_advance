@@ -3,6 +3,29 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import svgr from 'vite-plugin-svgr'
 import { visualizer } from 'rollup-plugin-visualizer'
+import { exec } from 'child_process'
+
+// -------------------------------
+// Custom Vite plugin to log TS errors without failing build
+// -------------------------------
+function typeCheckPlugin() {
+  return {
+    name: 'vite:type-check',
+    buildStart() {
+      exec('tsc --noEmit', (err, stdout, stderr) => {
+        if (stdout) {
+          console.log('\n\x1b[33mTypeScript Check Output:\x1b[0m\n', stdout)
+        }
+        if (stderr) {
+          console.error('\n\x1b[31mTypeScript Errors:\x1b[0m\n', stderr)
+        }
+        if (err) {
+          console.log('\x1b[36mTS check completed with errors (build continues)\x1b[0m')
+        }
+      })
+    },
+  }
+}
 
 export default defineConfig(({ mode }) => {
   const isProd = mode === 'production'
@@ -16,6 +39,7 @@ export default defineConfig(({ mode }) => {
           icon: true,
         },
       }),
+      typeCheckPlugin(), // << Inject our TS type-check plugin here
       isAnalyze &&
         visualizer({
           open: true,
@@ -70,7 +94,6 @@ export default defineConfig(({ mode }) => {
           drop_debugger: isProd,
         },
       },
-
       rollupOptions: {
         output: {
           manualChunks: {
@@ -81,10 +104,8 @@ export default defineConfig(({ mode }) => {
             charts: ['recharts'],
             utils: ['axios', 'date-fns'],
           },
-
           chunkFileNames: 'assets/js/[name]-[hash].js',
           entryFileNames: 'assets/js/[name]-[hash].js',
-
           assetFileNames: ({ name }) => {
             if (/\.(png|jpe?g|svg|gif|webp)$/i.test(name ?? '')) {
               return 'assets/images/[name]-[hash][extname]'
@@ -96,7 +117,6 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
-
       chunkSizeWarningLimit: 900,
     },
 

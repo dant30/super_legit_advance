@@ -7,14 +7,12 @@ import {
   logout as logoutAction,
   checkAuth as checkAuthAction,
   clearError,
-  selectAuth,
 } from '@/store/slices/authSlice'
 
 export const useAuth = () => {
   const dispatch = useDispatch<AppDispatch>()
   const authState = useSelector((state: RootState) => state.auth)
-  const auth = useSelector(selectAuth)
-  const isLoading = auth.status === 'loading'
+  const isLoading = authState.loading
 
   const login = useCallback(
     async (credentials: { email: string; password: string }) => {
@@ -38,7 +36,6 @@ export const useAuth = () => {
   const hasRole = useCallback(
     (role: string | string[]) => {
       if (!authState.user) return false
-
       if (Array.isArray(role)) {
         return role.includes(authState.user.role)
       }
@@ -47,13 +44,8 @@ export const useAuth = () => {
     [authState.user]
   )
 
-  const isAdmin = useCallback(() => {
-    return hasRole('admin')
-  }, [hasRole])
-
-  const isStaff = useCallback(() => {
-    return hasRole(['admin', 'staff', 'officer'])
-  }, [hasRole])
+  const isAdmin = useCallback(() => hasRole('admin'), [hasRole])
+  const isStaff = useCallback(() => hasRole(['admin', 'staff', 'officer']), [hasRole])
 
   return {
     user: authState.user,
