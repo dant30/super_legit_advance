@@ -36,7 +36,7 @@ const renderRoutes = (routes: AppRoute[]): JSX.Element[] =>
 function App() {
   const dispatch = useDispatch()
   const location = useLocation()
-  const { loading, isAuthenticated } = useSelector(
+  const { isloading, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   )
 

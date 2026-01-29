@@ -1,58 +1,46 @@
 // frontend/src/lib/api/reports.ts
+
 import axiosInstance from '@/lib/axios'
-import { ReportType, ReportFormat } from '@/types/reports'
-
-export interface Report {
-  id: number
-  name: string
-  description: string
-  type: ReportType
-  format: ReportFormat
-  generated_by: number
-  generated_by_name: string
-  generated_at: string
-  file_path?: string
-  file_size?: number
-  download_url?: string
-}
-
-export interface ReportListResponse {
-  count: number
-  next: string | null
-  previous: string | null
-  results: Report[]
-}
-
-export interface ReportGeneratePayload {
-  report_type: string
-  format: 'pdf' | 'excel' | 'json'
-  parameters?: {
-    start_date?: string
-    end_date?: string
-    loan_status?: string
-    loan_officer?: number
-    [key: string]: any
-  }
-}
+import {
+  Report,
+  ReportGenerationRequest,
+  ReportGenerationResponse,
+  ReportDetail,
+  ReportHistory,
+  ReportSchedule,
+  ReportExportRequest,
+} from '@/types/reports'
 
 class ReportsAPI {
   private baseURL = '/reports'
 
-  async getReports(params?: any): Promise<ReportListResponse> {
+  // ==================== LIST & RETRIEVE ====================
+
+  async getReportTypes(): Promise<Report[]> {
     try {
-      const response = await axiosInstance.get<ReportListResponse>(
-        `${this.baseURL}/`,
-        { params }
-      )
+      const response = await axiosInstance.get<Report[]>(`${this.baseURL}/`)
       return response.data
     } catch (error) {
       throw error
     }
   }
 
-  async generateReport(data: ReportGeneratePayload): Promise<Report> {
+  async getReports(params?: any): Promise<{ results: Report[]; count: number }> {
     try {
-      const response = await axiosInstance.post<Report>(
+      const response = await axiosInstance.get(`${this.baseURL}/`, { params })
+      return response.data
+    } catch (error) {
+      throw error
+    }
+  }
+
+  // ==================== REPORT GENERATION ====================
+
+  async generateReport(
+    data: ReportGenerationRequest
+  ): Promise<ReportGenerationResponse> {
+    try {
+      const response = await axiosInstance.post<ReportGenerationResponse>(
         `${this.baseURL}/generate/`,
         data
       )
@@ -62,9 +50,11 @@ class ReportsAPI {
     }
   }
 
-  async getLoansReport(params?: any): Promise<any> {
+  // ==================== SPECIALIZED REPORTS ====================
+
+  async getLoansReport(params?: any): Promise<ReportDetail> {
     try {
-      const response = await axiosInstance.get(
+      const response = await axiosInstance.get<ReportDetail>(
         `${this.baseURL}/loans/`,
         { params }
       )
@@ -74,9 +64,9 @@ class ReportsAPI {
     }
   }
 
-  async getPaymentsReport(params?: any): Promise<any> {
+  async getPaymentsReport(params?: any): Promise<ReportDetail> {
     try {
-      const response = await axiosInstance.get(
+      const response = await axiosInstance.get<ReportDetail>(
         `${this.baseURL}/payments/`,
         { params }
       )
@@ -86,9 +76,9 @@ class ReportsAPI {
     }
   }
 
-  async getCustomersReport(params?: any): Promise<any> {
+  async getCustomersReport(params?: any): Promise<ReportDetail> {
     try {
-      const response = await axiosInstance.get(
+      const response = await axiosInstance.get<ReportDetail>(
         `${this.baseURL}/customers/`,
         { params }
       )
@@ -98,9 +88,9 @@ class ReportsAPI {
     }
   }
 
-  async getPerformanceReport(params?: any): Promise<any> {
+  async getPerformanceReport(params?: any): Promise<ReportDetail> {
     try {
-      const response = await axiosInstance.get(
+      const response = await axiosInstance.get<ReportDetail>(
         `${this.baseURL}/performance/`,
         { params }
       )
@@ -110,9 +100,9 @@ class ReportsAPI {
     }
   }
 
-  async getDailySummary(params?: any): Promise<any> {
+  async getDailySummary(params?: any): Promise<ReportDetail> {
     try {
-      const response = await axiosInstance.get(
+      const response = await axiosInstance.get<ReportDetail>(
         `${this.baseURL}/daily-summary/`,
         { params }
       )
@@ -122,9 +112,9 @@ class ReportsAPI {
     }
   }
 
-  async getMonthlySummary(params?: any): Promise<any> {
+  async getMonthlySummary(params?: any): Promise<ReportDetail> {
     try {
-      const response = await axiosInstance.get(
+      const response = await axiosInstance.get<ReportDetail>(
         `${this.baseURL}/monthly-summary/`,
         { params }
       )
@@ -134,9 +124,9 @@ class ReportsAPI {
     }
   }
 
-  async getAuditReport(params?: any): Promise<any> {
+  async getAuditReport(params?: any): Promise<ReportDetail> {
     try {
-      const response = await axiosInstance.get(
+      const response = await axiosInstance.get<ReportDetail>(
         `${this.baseURL}/audit/`,
         { params }
       )
@@ -146,9 +136,9 @@ class ReportsAPI {
     }
   }
 
-  async getCollectionReport(params?: any): Promise<any> {
+  async getCollectionReport(params?: any): Promise<ReportDetail> {
     try {
-      const response = await axiosInstance.get(
+      const response = await axiosInstance.get<ReportDetail>(
         `${this.baseURL}/collection/`,
         { params }
       )
@@ -158,9 +148,9 @@ class ReportsAPI {
     }
   }
 
-  async getRiskAssessment(params?: any): Promise<any> {
+  async getRiskAssessment(params?: any): Promise<ReportDetail> {
     try {
-      const response = await axiosInstance.get(
+      const response = await axiosInstance.get<ReportDetail>(
         `${this.baseURL}/risk-assessment/`,
         { params }
       )
@@ -170,7 +160,9 @@ class ReportsAPI {
     }
   }
 
-  async exportToPDF(data: any): Promise<Blob> {
+  // ==================== EXPORTS ====================
+
+  async exportToPDF(data: ReportExportRequest): Promise<Blob> {
     try {
       const response = await axiosInstance.post(
         `${this.baseURL}/export/pdf/`,
@@ -183,7 +175,7 @@ class ReportsAPI {
     }
   }
 
-  async exportToExcel(data: any): Promise<Blob> {
+  async exportToExcel(data: ReportExportRequest): Promise<Blob> {
     try {
       const response = await axiosInstance.post(
         `${this.baseURL}/export/excel/`,
@@ -196,9 +188,11 @@ class ReportsAPI {
     }
   }
 
-  async getReportHistory(params?: any): Promise<any> {
+  // ==================== HISTORY & MANAGEMENT ====================
+
+  async getReportHistory(params?: any): Promise<ReportHistory[]> {
     try {
-      const response = await axiosInstance.get(
+      const response = await axiosInstance.get<ReportHistory[]>(
         `${this.baseURL}/history/`,
         { params }
       )
@@ -208,9 +202,15 @@ class ReportsAPI {
     }
   }
 
-  async scheduleReport(data: any): Promise<any> {
+  async scheduleReport(data: {
+    report_type: string
+    schedule: 'daily' | 'weekly' | 'monthly'
+    recipients: string[]
+    format: 'pdf' | 'excel' | 'json'
+    parameters?: any
+  }): Promise<ReportSchedule> {
     try {
-      const response = await axiosInstance.post(
+      const response = await axiosInstance.post<ReportSchedule>(
         `${this.baseURL}/schedule/`,
         data
       )
@@ -218,6 +218,43 @@ class ReportsAPI {
     } catch (error) {
       throw error
     }
+  }
+
+  async downloadReport(reportId: number): Promise<Blob> {
+    try {
+      const response = await axiosInstance.get(
+        `${this.baseURL}/download/${reportId}/`,
+        { responseType: 'blob' }
+      )
+      return response.data
+    } catch (error) {
+      throw error
+    }
+  }
+
+  // ==================== UTILITY METHODS ====================
+
+  /**
+   * Download file with automatic naming
+   */
+  downloadFile(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', filename)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  }
+
+  /**
+   * Generate filename with timestamp
+   */
+  generateFilename(reportName: string, format: 'pdf' | 'excel'): string {
+    const timestamp = new Date().toISOString().split('T')[0]
+    const extension = format === 'excel' ? 'xlsx' : 'pdf'
+    return `${reportName}_${timestamp}.${extension}`
   }
 }
 
