@@ -2,7 +2,10 @@
 import axiosInstance from '@/lib/axios'
 import type { AxiosResponse } from 'axios'
 
-// Customer Types
+/* =====================================================
+ * Core Types
+ * ===================================================== */
+
 export interface Customer {
   id: string
   customer_number: string
@@ -49,7 +52,6 @@ export interface Customer {
   updated_by?: string
 }
 
-// Employment Types
 export interface Employment {
   id: string
   customer: string
@@ -87,7 +89,6 @@ export interface Employment {
   updated_at: string
 }
 
-// Guarantor Types
 export interface Guarantor {
   id: string
   customer: string
@@ -110,6 +111,7 @@ export interface Guarantor {
   passport_photo?: string
   is_active: boolean
   verification_status: 'PENDING' | 'VERIFIED' | 'REJECTED'
+  is_verified?: boolean
   verification_date?: string
   verification_notes?: string
   notes?: string
@@ -117,7 +119,10 @@ export interface Guarantor {
   updated_at: string
 }
 
-// API Response Types
+/* =====================================================
+ * API Response Types
+ * ===================================================== */
+
 export interface CustomerListResponse {
   results: Customer[]
   count: number
@@ -153,7 +158,10 @@ export interface CustomerStatsResponse {
   }
 }
 
-// API Parameters
+/* =====================================================
+ * API Parameters
+ * ===================================================== */
+
 export interface CustomerListParams {
   page?: number
   page_size?: number
@@ -183,7 +191,9 @@ export interface CustomerCreateData {
   id_expiry_date?: string
   nationality?: string
   phone_number: string
+  confirm_phone_number?: string
   email?: string
+  confirm_email?: string
   postal_address?: string
   physical_address: string
   county: string
@@ -209,7 +219,6 @@ export interface CustomerUpdateData {
   gender?: 'M' | 'F' | 'O'
   marital_status?: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED' | 'SEPARATED'
   id_type?: 'NATIONAL_ID' | 'PASSPORT' | 'DRIVING_LICENSE' | 'ALIEN_CARD'
-  id_number?: string
   id_expiry_date?: string
   nationality?: string
   phone_number?: string
@@ -233,8 +242,37 @@ export interface CustomerUpdateData {
   current_password?: string
 }
 
+export interface EmploymentCreateData extends Partial<Employment> {}
+
+export interface GuarantorCreateData {
+  first_name: string
+  middle_name?: string
+  last_name: string
+  phone_number: string
+  confirm_phone_number?: string
+  email?: string
+  physical_address: string
+  county: string
+  id_type: 'NATIONAL_ID' | 'PASSPORT' | 'DRIVING_LICENSE'
+  id_number: string
+  guarantor_type: 'PERSONAL' | 'CORPORATE' | 'INSTITUTIONAL'
+  relationship: 'SPOUSE' | 'PARENT' | 'SIBLING' | 'FRIEND' | 'COLLEAGUE' | 'RELATIVE' | 'OTHER'
+  occupation: string
+  employer?: string
+  monthly_income: number
+  id_document?: File
+  passport_photo?: File
+  notes?: string
+}
+
+/* =====================================================
+ * API Class
+ * ===================================================== */
+
 class CustomerAPI {
   private baseURL = '/customers'
+
+  /* ===== CUSTOMER ENDPOINTS ===== */
 
   async getCustomers(params?: CustomerListParams): Promise<CustomerListResponse> {
     try {
@@ -261,29 +299,21 @@ class CustomerAPI {
   async createCustomer(data: CustomerCreateData): Promise<Customer> {
     try {
       const formData = new FormData()
-      
-      // Append all data to formData
+
+      // Append all fields to formData
       Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (value instanceof File) {
-            formData.append(key, value)
-          } else if (typeof value === 'object') {
-            formData.append(key, JSON.stringify(value))
-          } else {
-            formData.append(key, value.toString())
-          }
+        if (value instanceof File) {
+          formData.append(key, value)
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, String(value))
         }
       })
 
-      const response = await axiosInstance.post<Customer>(
-        `${this.baseURL}/create/`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      )
+      const response = await axiosInstance.post<Customer>(`${this.baseURL}/create/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
       return response.data
     } catch (error) {
       console.error('Error creating customer:', error)
@@ -294,29 +324,21 @@ class CustomerAPI {
   async updateCustomer(id: string, data: CustomerUpdateData): Promise<Customer> {
     try {
       const formData = new FormData()
-      
-      // Append all data to formData
+
+      // Append all fields to formData
       Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (value instanceof File) {
-            formData.append(key, value)
-          } else if (typeof value === 'object') {
-            formData.append(key, JSON.stringify(value))
-          } else {
-            formData.append(key, value.toString())
-          }
+        if (value instanceof File) {
+          formData.append(key, value)
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, String(value))
         }
       })
 
-      const response = await axiosInstance.put<Customer>(
-        `${this.baseURL}/${id}/`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      )
+      const response = await axiosInstance.put<Customer>(`${this.baseURL}/${id}/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
       return response.data
     } catch (error) {
       console.error('Error updating customer:', error)
@@ -338,10 +360,13 @@ class CustomerAPI {
       const response = await axiosInstance.get<{ results: Customer[] }>(
         `${this.baseURL}/search/`,
         {
-          params: { q: query, type: searchType },
+          params: {
+            q: query,
+            type: searchType || 'basic',
+          },
         }
       )
-      return response.data.results || response.data
+      return response.data.results
     } catch (error) {
       console.error('Error searching customers:', error)
       throw error
@@ -373,9 +398,7 @@ class CustomerAPI {
 
   async activateCustomer(id: string): Promise<Customer> {
     try {
-      const response = await axiosInstance.post<Customer>(
-        `${this.baseURL}/${id}/activate/`
-      )
+      const response = await axiosInstance.post<Customer>(`${this.baseURL}/${id}/activate/`)
       return response.data
     } catch (error) {
       console.error('Error activating customer:', error)
@@ -386,7 +409,10 @@ class CustomerAPI {
   async exportCustomers(format: 'excel' | 'csv', filters?: any): Promise<Blob> {
     try {
       const response = await axiosInstance.get(`${this.baseURL}/export/`, {
-        params: { format, ...filters },
+        params: {
+          format,
+          ...filters,
+        },
         responseType: 'blob',
       })
       return response.data
@@ -400,13 +426,12 @@ class CustomerAPI {
     try {
       const formData = new FormData()
       formData.append('file', file)
-      const response = await axiosInstance.post(
-        `${this.baseURL}/import/`,
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        }
-      )
+
+      const response = await axiosInstance.post(`${this.baseURL}/import/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
       return response.data
     } catch (error) {
       console.error('Error importing customers:', error)
@@ -414,7 +439,8 @@ class CustomerAPI {
     }
   }
 
-  // Employment APIs
+  /* ===== EMPLOYMENT ENDPOINTS ===== */
+
   async getEmployment(customerId: string): Promise<Employment> {
     try {
       const response = await axiosInstance.get<Employment>(
@@ -427,19 +453,15 @@ class CustomerAPI {
     }
   }
 
-  async updateEmployment(customerId: string, data: Partial<Employment>): Promise<Employment> {
+  async updateEmployment(customerId: string, data: EmploymentCreateData): Promise<Employment> {
     try {
       const formData = new FormData()
-      
+
       Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (value instanceof File) {
-            formData.append(key, value)
-          } else if (typeof value === 'object') {
-            formData.append(key, JSON.stringify(value))
-          } else {
-            formData.append(key, value.toString())
-          }
+        if (value instanceof File) {
+          formData.append(key, value)
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, String(value))
         }
       })
 
@@ -459,32 +481,29 @@ class CustomerAPI {
     }
   }
 
-  // Guarantor APIs
+  /* ===== GUARANTOR ENDPOINTS ===== */
+
   async getGuarantors(customerId: string): Promise<Guarantor[]> {
     try {
-      const response = await axiosInstance.get<Guarantor[]>(
+      const response = await axiosInstance.get<{ results: Guarantor[] }>(
         `${this.baseURL}/${customerId}/guarantors/`
       )
-      return response.data
+      return response.data.results
     } catch (error) {
       console.error('Error fetching guarantors:', error)
       throw error
     }
   }
 
-  async createGuarantor(customerId: string, data: Partial<Guarantor>): Promise<Guarantor> {
+  async createGuarantor(customerId: string, data: GuarantorCreateData): Promise<Guarantor> {
     try {
       const formData = new FormData()
-      
+
       Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (value instanceof File) {
-            formData.append(key, value)
-          } else if (typeof value === 'object') {
-            formData.append(key, JSON.stringify(value))
-          } else {
-            formData.append(key, value.toString())
-          }
+        if (value instanceof File) {
+          formData.append(key, value)
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, String(value))
         }
       })
 
@@ -506,9 +525,7 @@ class CustomerAPI {
 
   async getGuarantor(id: string): Promise<Guarantor> {
     try {
-      const response = await axiosInstance.get<Guarantor>(
-        `${this.baseURL}/guarantors/${id}/`
-      )
+      const response = await axiosInstance.get<Guarantor>(`${this.baseURL}/guarantors/${id}/`)
       return response.data
     } catch (error) {
       console.error('Error fetching guarantor:', error)
@@ -516,19 +533,15 @@ class CustomerAPI {
     }
   }
 
-  async updateGuarantor(id: string, data: Partial<Guarantor>): Promise<Guarantor> {
+  async updateGuarantor(id: string, data: Partial<GuarantorCreateData>): Promise<Guarantor> {
     try {
       const formData = new FormData()
-      
+
       Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (value instanceof File) {
-            formData.append(key, value)
-          } else if (typeof value === 'object') {
-            formData.append(key, JSON.stringify(value))
-          } else {
-            formData.append(key, value.toString())
-          }
+        if (value instanceof File) {
+          formData.append(key, value)
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, String(value))
         }
       })
 
@@ -557,11 +570,18 @@ class CustomerAPI {
     }
   }
 
-  async verifyGuarantor(id: string, action: 'verify' | 'reject', notes: string): Promise<Guarantor> {
+  async verifyGuarantor(
+    id: string,
+    action: 'verify' | 'reject',
+    notes: string
+  ): Promise<Guarantor> {
     try {
       const response = await axiosInstance.post<Guarantor>(
         `${this.baseURL}/guarantors/${id}/verify/`,
-        { action, notes }
+        {
+          action,
+          notes,
+        }
       )
       return response.data
     } catch (error) {

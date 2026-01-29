@@ -1,5 +1,5 @@
 // frontend/src/types/customers.ts
-// Customer Types
+// ===== CUSTOMER TYPES =====
 export interface Customer {
   id: string
   customer_number: string
@@ -46,7 +46,7 @@ export interface Customer {
   updated_by?: string
 }
 
-// Employment Types
+// ===== EMPLOYMENT TYPES =====
 export interface Employment {
   id: string
   customer: string
@@ -84,7 +84,7 @@ export interface Employment {
   updated_at: string
 }
 
-// Guarantor Types
+// ===== GUARANTOR TYPES =====
 export interface Guarantor {
   id: string
   customer: string
@@ -107,6 +107,7 @@ export interface Guarantor {
   passport_photo?: string
   is_active: boolean
   verification_status: 'PENDING' | 'VERIFIED' | 'REJECTED'
+  is_verified?: boolean
   verification_date?: string
   verification_notes?: string
   notes?: string
@@ -114,7 +115,7 @@ export interface Guarantor {
   updated_at: string
 }
 
-// API Response Types
+// ===== API RESPONSE TYPES =====
 export interface CustomerListResponse {
   results: Customer[]
   count: number
@@ -150,7 +151,7 @@ export interface CustomerStatsResponse {
   }
 }
 
-// Form Data Types
+// ===== FORM DATA TYPES =====
 export interface CustomerFormData {
   first_name: string
   last_name: string
@@ -220,7 +221,7 @@ export interface GuarantorFormData {
   notes?: string
 }
 
-// Filter Types
+// ===== FILTER TYPES =====
 export interface CustomerFilters {
   search?: string
   status?: string
@@ -235,10 +236,11 @@ export interface CustomerFilters {
   end_date?: string
 }
 
-// Search Types
+// ===== SEARCH TYPES =====
 export type SearchType = 'basic' | 'name' | 'phone' | 'id' | 'customer_number'
 
-// Constants
+// ===== CONSTANTS =====
+
 export const NATIONALITY_OPTIONS = [
   { value: 'KENYAN', label: 'Kenyan' },
   { value: 'OTHER', label: 'Other' },
@@ -254,6 +256,7 @@ export const ID_TYPE_OPTIONS = [
   { value: 'NATIONAL_ID', label: 'National ID' },
   { value: 'PASSPORT', label: 'Passport' },
   { value: 'DRIVING_LICENSE', label: 'Driving License' },
+  { value: 'ALIEN_CARD', label: 'Alien Card' },
 ]
 
 export const GUARANTOR_TYPE_OPTIONS = [
@@ -301,7 +304,32 @@ export const EMPLOYMENT_TYPE_OPTIONS = [
   { value: 'RETIRED', label: 'Retired' },
 ]
 
-// Helper Functions
+export const SECTOR_OPTIONS = [
+  { value: 'GOVERNMENT', label: 'Government' },
+  { value: 'PRIVATE', label: 'Private Sector' },
+  { value: 'NGO', label: 'Non-Governmental Organization' },
+  { value: 'INFORMAL', label: 'Informal Sector' },
+  { value: 'AGRICULTURE', label: 'Agriculture' },
+  { value: 'MANUFACTURING', label: 'Manufacturing' },
+  { value: 'SERVICES', label: 'Services' },
+  { value: 'CONSTRUCTION', label: 'Construction' },
+  { value: 'HEALTH', label: 'Health' },
+  { value: 'EDUCATION', label: 'Education' },
+  { value: 'OTHER', label: 'Other' },
+]
+
+export const PAYMENT_FREQUENCY_OPTIONS = [
+  { value: 'DAILY', label: 'Daily' },
+  { value: 'WEEKLY', label: 'Weekly' },
+  { value: 'BIWEEKLY', label: 'Bi-Weekly' },
+  { value: 'MONTHLY', label: 'Monthly' },
+  { value: 'QUARTERLY', label: 'Quarterly' },
+  { value: 'ANNUALLY', label: 'Annually' },
+  { value: 'IRREGULAR', label: 'Irregular' },
+]
+
+// ===== HELPER FUNCTIONS =====
+
 export const formatPhoneNumber = (phone: string): string => {
   if (!phone) return ''
   // Ensure phone starts with +254
@@ -319,11 +347,11 @@ export const calculateAge = (dateOfBirth: string): number => {
   const birthDate = new Date(dateOfBirth)
   let age = today.getFullYear() - birthDate.getFullYear()
   const monthDiff = today.getMonth() - birthDate.getMonth()
-  
+
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
     age--
   }
-  
+
   return age
 }
 
@@ -349,6 +377,19 @@ export const getRiskLevelColor = (riskLevel: string): string => {
     case 'MEDIUM':
       return 'warning'
     case 'HIGH':
+      return 'error'
+    default:
+      return 'default'
+  }
+}
+
+export const getVerificationStatusColor = (status: string): string => {
+  switch (status) {
+    case 'VERIFIED':
+      return 'success'
+    case 'PENDING':
+      return 'warning'
+    case 'REJECTED':
       return 'error'
     default:
       return 'default'
