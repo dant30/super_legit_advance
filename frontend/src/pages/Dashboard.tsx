@@ -2,13 +2,7 @@ import React, { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSelector } from 'react-redux'
 import { Helmet } from 'react-helmet-async'
-import {
-  TrendingUp,
-  Users,
-  DollarSign,
-  CreditCard,
-  AlertCircle,
-} from 'lucide-react'
+import { TrendingUp, TrendingDown, Users, AlertCircle, ArrowRight, Clock, CreditCard, DollarSign } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
 import { RootState } from '@/store/store'
 import { Card } from '@/components/ui/Card'

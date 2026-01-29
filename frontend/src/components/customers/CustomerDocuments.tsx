@@ -3,10 +3,6 @@ import { Upload } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 
-interface CustomerDocumentsProps {
-  // customerId prop removed - not needed
-}
-
 export default function CustomerDocuments() {
   const [documents] = useState([
     { id: 1, name: 'ID Document', type: 'pdf', uploadedDate: '2024-01-15', size: '2.5 MB' },

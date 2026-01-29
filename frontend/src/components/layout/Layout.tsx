@@ -116,7 +116,7 @@ const Layout: React.FC = () => {
           aria-label="Mobile navigation"
         >
           <div className="h-full bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 shadow-hard">
-            <Sidebar onClose={() => dispatch(closeSidebar())} />
+            <Sidebar />
           </div>
         </aside>
       )}

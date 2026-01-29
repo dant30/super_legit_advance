@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { ChevronDown, Home, Users, CreditCard, Settings, LogOut, BarChart3 } from 'lucide-react'
+import { Home, Users, CreditCard, BarChart3, Settings, LogOut, Menu, X, ChevronRight, ChevronDown, DollarSign, Smartphone, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useQuery } from '@tanstack/react-query'
 import axiosInstance from '@/lib/axios'

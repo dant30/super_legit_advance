@@ -24,6 +24,15 @@ import {
 import { Notification as ApiNotification, notificationsAPI } from '@/lib/api/notifications'
 import clsx from 'clsx'
 
+interface Notification {
+  id: number
+  title: string
+  message: string
+  type?: 'info' | 'warning' | 'error' | 'success'
+  date: Date
+  read: boolean
+}
+
 interface HeaderNotification {
   id: string | number
   title: string
@@ -307,32 +316,10 @@ const Header: React.FC = () => {
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading notifications...</p>
                       </div>
                     ) : notifications.length > 0 ? (
-                      notifications.map((notification) => (
-                        <div
-                          key={notification.id}
-                          className={clsx(
-                            "px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-700/50",
-                            "border-b border-gray-100 dark:border-slate-700",
-                            !notification.read && "bg-blue-50/50 dark:bg-blue-900/10"
-                          )}
-                        >
-                          <div className="flex gap-3">
-                            <div className="flex-shrink-0 mt-1">
-                              {getNotificationIcon(notification.type)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {notification.title}
-                              </p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                                {notification.message}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {formatTime(notification.created_at)}
-                              </p>
-                            </div>
-                          </div>
+                      notifications.slice(0, 5).map((notif) => (
+                        <div key={notif.id} className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+                          <p className="font-medium text-sm">{notif.title}</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">{notif.message}</p>
                         </div>
                       ))
                     ) : (
