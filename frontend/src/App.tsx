@@ -1,5 +1,4 @@
 // frontend/src/App.tsx
-// frontend/src/App.tsx
 import { useEffect, Suspense } from 'react'
 import { Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
@@ -12,7 +11,7 @@ import { checkAuth } from '@/store/slices/authSlice'
 import Layout from '@/components/layout/Layout'
 import Loading from '@/components/shared/Loading'
 import PrivateRoute from '@/router/PrivateRoute'
-import ThemeInitializer from '@/components/ui/Theme/ThemeInitializer' // Import ThemeInitializer
+import ThemeInitializer from '@/components/ui/Theme/ThemeInitializer'
 
 import { publicRoutes, protectedRoutes, errorRoutes, AppRoute } from '@/router/routes'
 
@@ -62,7 +61,7 @@ function App() {
     }
   }, [location])
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Loading size="lg" />
@@ -77,7 +76,6 @@ function App() {
         <meta name="description" content="Advanced loan management system" />
       </Helmet>
 
-      {/* Add ThemeInitializer here - it will sync with Redux */}
       <ThemeInitializer />
 
       <AnimatePresence mode="wait">
