@@ -1,40 +1,52 @@
 // frontend/src/store/slices/auditSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { auditAPI } from '@/lib/api/audit'
-import type { 
-  AuditLog, 
-  AuditLogListResponse,  // Keep this
-  AuditStats, 
+import type {
+  AuditLog,
+  AuditLogListResponse,
+  AuditStats,
   UserActivity,
-  RootState 
 } from '@/types/audit'
-// AuditLogListResponse is used in return types
 
-// Fix FilterParams - use 'any' or define the type
+type RootState = any // Import from your store
+
+/* =====================================================
+ * ASYNC THUNKS
+ * ===================================================== */
+
+/**
+ * Fetch audit logs with pagination and filters
+ */
 export const fetchAuditLogs = createAsyncThunk(
   'audit/fetchLogs',
-  async (filters?: any, { rejectWithValue } = {} as any) => {
+  async (params?: any, { rejectWithValue }) => {
     try {
-      const response = await auditAPI.getAuditLogs(filters)
+      const response = await auditAPI.getAuditLogs(params)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data || error.message)
+      return rejectWithValue(error.response?.data || error.message || 'Failed to fetch audit logs')
     }
   }
 )
 
+/**
+ * Fetch single audit log by ID
+ */
 export const fetchAuditLog = createAsyncThunk(
   'audit/fetchAuditLog',
-  async (id: string, { rejectWithValue } = {} as any) => {
+  async (id: string, { rejectWithValue }) => {
     try {
       const response = await auditAPI.getAuditLog(id)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data || error.message)
+      return rejectWithValue(error.response?.data || error.message || 'Failed to fetch audit log')
     }
   }
 )
 
+/**
+ * Fetch audit statistics
+ */
 export const fetchAuditStats = createAsyncThunk(
   'audit/fetchAuditStats',
   async (days: number = 30, { rejectWithValue }) => {
@@ -42,61 +54,105 @@ export const fetchAuditStats = createAsyncThunk(
       const response = await auditAPI.getAuditStats(days)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data || error.message)
+      return rejectWithValue(
+        error.response?.data || error.message || 'Failed to fetch audit statistics'
+      )
     }
   }
 )
 
+/**
+ * Fetch user activity
+ */
 export const fetchUserActivity = createAsyncThunk(
   'audit/fetchUserActivity',
-  async ({ userId, days }: { userId: number; days?: number }, { rejectWithValue }) => {
+  async (
+    { userId, days }: { userId: number; days?: number },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await auditAPI.getUserActivity(userId, days)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data || error.message)
+      return rejectWithValue(
+        error.response?.data || error.message || 'Failed to fetch user activity'
+      )
     }
   }
 )
 
+/**
+ * Fetch security events
+ */
 export const fetchSecurityEvents = createAsyncThunk(
   'audit/fetchSecurityEvents',
-  async (days: number = 30, { rejectWithValue }) => {
+  async (
+    { days, params }: { days?: number; params?: any },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await auditAPI.getSecurityEvents(days)
+      const response = await auditAPI.getSecurityEvents(days, params)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data || error.message)
+      return rejectWithValue(
+        error.response?.data || error.message || 'Failed to fetch security events'
+      )
     }
   }
 )
 
+/**
+ * Fetch compliance events
+ */
 export const fetchComplianceEvents = createAsyncThunk(
   'audit/fetchComplianceEvents',
-  async (days: number = 90, { rejectWithValue }) => {
+  async (
+    { days, params }: { days?: number; params?: any },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await auditAPI.getComplianceEvents(days)
+      const response = await auditAPI.getComplianceEvents(days, params)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data || error.message)
+      return rejectWithValue(
+        error.response?.data || error.message || 'Failed to fetch compliance events'
+      )
     }
   }
 )
 
+/**
+ * Search audit logs
+ */
 export const searchAuditLogs = createAsyncThunk(
   'audit/searchAuditLogs',
-  async ({ query, searchType, params }: { query: string; searchType?: string; params?: any }, { rejectWithValue }) => {
+  async (
+    {
+      query,
+      searchType,
+      params,
+    }: { query: string; searchType?: string; params?: any },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await auditAPI.searchLogs(query, searchType, params)
+      const response = await auditAPI.searchLogs(
+        query,
+        searchType as any,
+        params
+      )
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data || error.message)
+      return rejectWithValue(
+        error.response?.data || error.message || 'Failed to search audit logs'
+      )
     }
   }
 )
 
+/* =====================================================
+ * STATE INTERFACE
+ * ===================================================== */
 
-// ---- Audit State ----
 interface AuditState {
   logs: AuditLog[]
   currentLog: AuditLog | null
@@ -114,7 +170,10 @@ interface AuditState {
   }
 }
 
-// ---- Initial State ----
+/* =====================================================
+ * INITIAL STATE
+ * ===================================================== */
+
 const initialState: AuditState = {
   logs: [],
   currentLog: null,
@@ -128,41 +187,70 @@ const initialState: AuditState = {
   pagination: {
     count: 0,
     next: null,
-    previous: null
-  }
+    previous: null,
+  },
 }
 
+/* =====================================================
+ * SLICE
+ * ===================================================== */
 
 const auditSlice = createSlice({
   name: 'audit',
   initialState,
   reducers: {
-    setFilters: (state, action: PayloadAction<Partial<AuditState['filters']>>) => {
+    /**
+     * Set audit filters
+     */
+    setFilters: (state, action: PayloadAction<Record<string, any>>) => {
       state.filters = { ...state.filters, ...action.payload }
     },
+
+    /**
+     * Clear all filters
+     */
     clearFilters: (state) => {
       state.filters = {}
     },
+
+    /**
+     * Clear current log
+     */
     clearCurrentLog: (state) => {
       state.currentLog = null
     },
+
+    /**
+     * Clear error
+     */
     clearError: (state) => {
       state.error = null
     },
+
+    /**
+     * Clear all audit data
+     */
     clearAll: (state) => {
-      state.logs = []
-      state.currentLog = null
-      state.stats = null
-      state.userActivity = null
-      state.securityEvents = []
-      state.complianceEvents = []
-      state.error = null
-      state.pagination = initialState.pagination
-      state.filters = {}
-    }
+      return initialState
+    },
+
+    /**
+     * Update pagination
+     */
+    setPagination: (
+      state,
+      action: PayloadAction<{
+        count: number
+        next: string | null
+        previous: string | null
+      }>
+    ) => {
+      state.pagination = action.payload
+    },
   },
+
   extraReducers: (builder) => {
-    // Fetch audit logs
+    /* ---- Fetch Audit Logs ---- */
     builder
       .addCase(fetchAuditLogs.pending, (state) => {
         state.loading = true
@@ -174,15 +262,16 @@ const auditSlice = createSlice({
         state.pagination = {
           count: action.payload.count,
           next: action.payload.next,
-          previous: action.payload.previous
+          previous: action.payload.previous,
         }
       })
       .addCase(fetchAuditLogs.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
+        state.logs = []
       })
 
-    // Fetch single audit log
+    /* ---- Fetch Single Audit Log ---- */
     builder
       .addCase(fetchAuditLog.pending, (state) => {
         state.loading = true
@@ -195,9 +284,10 @@ const auditSlice = createSlice({
       .addCase(fetchAuditLog.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
+        state.currentLog = null
       })
 
-    // Fetch audit stats
+    /* ---- Fetch Audit Stats ---- */
     builder
       .addCase(fetchAuditStats.pending, (state) => {
         state.loading = true
@@ -210,9 +300,10 @@ const auditSlice = createSlice({
       .addCase(fetchAuditStats.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
+        state.stats = null
       })
 
-    // Fetch user activity
+    /* ---- Fetch User Activity ---- */
     builder
       .addCase(fetchUserActivity.pending, (state) => {
         state.loading = true
@@ -225,9 +316,10 @@ const auditSlice = createSlice({
       .addCase(fetchUserActivity.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
+        state.userActivity = null
       })
 
-    // Fetch security events
+    /* ---- Fetch Security Events ---- */
     builder
       .addCase(fetchSecurityEvents.pending, (state) => {
         state.loading = true
@@ -240,9 +332,10 @@ const auditSlice = createSlice({
       .addCase(fetchSecurityEvents.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
+        state.securityEvents = []
       })
 
-    // Fetch compliance events
+    /* ---- Fetch Compliance Events ---- */
     builder
       .addCase(fetchComplianceEvents.pending, (state) => {
         state.loading = true
@@ -255,9 +348,10 @@ const auditSlice = createSlice({
       .addCase(fetchComplianceEvents.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
+        state.complianceEvents = []
       })
 
-    // Search audit logs
+    /* ---- Search Audit Logs ---- */
     builder
       .addCase(searchAuditLogs.pending, (state) => {
         state.loading = true
@@ -269,17 +363,21 @@ const auditSlice = createSlice({
         state.pagination = {
           count: action.payload.count,
           next: action.payload.next,
-          previous: action.payload.previous
+          previous: action.payload.previous,
         }
       })
       .addCase(searchAuditLogs.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
+        state.logs = []
       })
-  }
+  },
 })
 
-// Selectors
+/* =====================================================
+ * SELECTORS
+ * ===================================================== */
+
 export const selectAuditLogs = (state: RootState) => state.audit.logs
 export const selectCurrentAuditLog = (state: RootState) => state.audit.currentLog
 export const selectAuditStats = (state: RootState) => state.audit.stats
@@ -291,14 +389,17 @@ export const selectAuditError = (state: RootState) => state.audit.error
 export const selectAuditPagination = (state: RootState) => state.audit.pagination
 export const selectAuditFilters = (state: RootState) => state.audit.filters
 
-// Actions
-export const { 
-  setFilters, 
-  clearFilters, 
-  clearCurrentLog, 
+/* =====================================================
+ * EXPORTS
+ * ===================================================== */
+
+export const {
+  setFilters,
+  clearFilters,
+  clearCurrentLog,
   clearError,
-  clearAll 
+  clearAll,
+  setPagination,
 } = auditSlice.actions
 
-// Reducer
 export default auditSlice.reducer

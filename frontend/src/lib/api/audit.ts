@@ -1,11 +1,19 @@
 // frontend/src/lib/api/audit.ts
 import axiosInstance from '@/lib/axios'
-import type { AuditLogListResponse, AuditStats, SecurityEvent, UserActivity, ComplianceEvent } from '@/types/audit'
+import type { 
+  AuditLogListResponse, 
+  AuditStats, 
+  UserActivity,
+  SecurityEvent,
+  ComplianceEvent 
+} from '@/types/audit'
 
 class AuditAPI {
   private baseURL = '/api/audit'
 
-  // Get all audit logs with filters
+  /**
+   * Get all audit logs with comprehensive filtering
+   */
   async getAuditLogs(params?: {
     page?: number
     page_size?: number
@@ -19,10 +27,10 @@ class AuditAPI {
     success?: boolean
     high_severity?: boolean
     ip_address?: string
+    object_id?: string
     tags?: string[]
     ordering?: string
     search?: string
-    search_type?: string
   }): Promise<AuditLogListResponse> {
     try {
       const response = await axiosInstance.get<AuditLogListResponse>(
@@ -36,7 +44,9 @@ class AuditAPI {
     }
   }
 
-  // Get specific audit log by ID
+  /**
+   * Get specific audit log by ID
+   */
   async getAuditLog(id: string): Promise<any> {
     try {
       const response = await axiosInstance.get<any>(
@@ -44,22 +54,28 @@ class AuditAPI {
       )
       return response.data
     } catch (error) {
-      console.error('Error fetching audit log:', error)
+      console.error(`Error fetching audit log ${id}:`, error)
       throw error
     }
   }
 
-  // Search audit logs
-  async searchLogs(query: string, searchType: string = 'all', params?: any): Promise<AuditLogListResponse> {
+  /**
+   * Search audit logs with advanced filters
+   */
+  async searchLogs(
+    query: string,
+    searchType: 'user' | 'object' | 'ip' | 'changes' | 'all' = 'all',
+    params?: any
+  ): Promise<AuditLogListResponse> {
     try {
       const response = await axiosInstance.get<AuditLogListResponse>(
         `${this.baseURL}/search/`,
-        { 
-          params: { 
+        {
+          params: {
             q: query,
             type: searchType,
-            ...params 
-          } 
+            ...params,
+          },
         }
       )
       return response.data
@@ -69,7 +85,9 @@ class AuditAPI {
     }
   }
 
-  // Get audit statistics
+  /**
+   * Get audit statistics and analytics
+   */
   async getAuditStats(days: number = 30): Promise<AuditStats> {
     try {
       const response = await axiosInstance.get<AuditStats>(
@@ -83,7 +101,9 @@ class AuditAPI {
     }
   }
 
-  // Export audit logs
+  /**
+   * Export audit logs to various formats
+   */
   async exportAuditLogs(
     format: 'excel' | 'csv' | 'json' = 'excel',
     params?: any
@@ -91,9 +111,9 @@ class AuditAPI {
     try {
       const response = await axiosInstance.get(
         `${this.baseURL}/export/`,
-        { 
+        {
           params: { format, ...params },
-          responseType: 'blob'
+          responseType: 'blob',
         }
       )
       return response.data
@@ -103,7 +123,9 @@ class AuditAPI {
     }
   }
 
-  // Get user activity
+  /**
+   * Get user activity details
+   */
   async getUserActivity(userId: number, days: number = 30): Promise<UserActivity> {
     try {
       const response = await axiosInstance.get<UserActivity>(
@@ -112,13 +134,18 @@ class AuditAPI {
       )
       return response.data
     } catch (error) {
-      console.error('Error fetching user activity:', error)
+      console.error(`Error fetching user activity for user ${userId}:`, error)
       throw error
     }
   }
 
-  // Get security events
-  async getSecurityEvents(days: number = 30, params?: any): Promise<AuditLogListResponse> {
+  /**
+   * Get security events (high severity failures)
+   */
+  async getSecurityEvents(
+    days: number = 30,
+    params?: any
+  ): Promise<AuditLogListResponse> {
     try {
       const response = await axiosInstance.get<AuditLogListResponse>(
         `${this.baseURL}/security/`,
@@ -131,8 +158,13 @@ class AuditAPI {
     }
   }
 
-  // Get compliance events
-  async getComplianceEvents(days: number = 90, params?: any): Promise<AuditLogListResponse> {
+  /**
+   * Get compliance events
+   */
+  async getComplianceEvents(
+    days: number = 90,
+    params?: any
+  ): Promise<AuditLogListResponse> {
     try {
       const response = await axiosInstance.get<AuditLogListResponse>(
         `${this.baseURL}/compliance/`,
@@ -145,23 +177,81 @@ class AuditAPI {
     }
   }
 
-  // Download exported file
+  /**
+   * Download exported file to browser
+   */
   downloadExportFile(blob: Blob, filename: string): void {
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', filename)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
+    try {
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', filename)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error downloading file:', error)
+      throw error
+    }
   }
 
-  // Generate filename for export
+  /**
+   * Generate filename for export with timestamp
+   */
   generateExportFilename(format: string): string {
-    const timestamp = new Date().toISOString().slice(0, 19).replace(/[:]/g, '-')
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
     return `audit_logs_${timestamp}.${format}`
+  }
+
+  /**
+   * Get audit logs by date range
+   */
+  async getAuditLogsByDateRange(
+    startDate: string,
+    endDate: string,
+    params?: any
+  ): Promise<AuditLogListResponse> {
+    return this.getAuditLogs({
+      start_date: startDate,
+      end_date: endDate,
+      ...params,
+    })
+  }
+
+  /**
+   * Get audit logs for specific model
+   */
+  async getAuditLogsByModel(
+    modelName: string,
+    params?: any
+  ): Promise<AuditLogListResponse> {
+    return this.getAuditLogs({
+      model_name: modelName,
+      ...params,
+    })
+  }
+
+  /**
+   * Get failed actions
+   */
+  async getFailedActions(params?: any): Promise<AuditLogListResponse> {
+    return this.getAuditLogs({
+      status: 'FAILURE',
+      ...params,
+    })
+  }
+
+  /**
+   * Get high severity events
+   */
+  async getHighSeverityEvents(params?: any): Promise<AuditLogListResponse> {
+    return this.getAuditLogs({
+      high_severity: true,
+      ...params,
+    })
   }
 }
 
 export const auditAPI = new AuditAPI()
+export default auditAPI
