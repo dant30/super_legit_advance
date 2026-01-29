@@ -47,7 +47,10 @@ export default function LoanList() {
   if (isLoading) return <Loading />
 
   const loans = loansData?.results || []
-  const stats = loansData?.summary || {}
+  const stats = loansData?.total_amount_approved ? {
+    total_amount_approved: loansData.total_amount_approved,
+    total_outstanding: loansData.total_outstanding || 0,
+  } : {}
 
   return (
     <>

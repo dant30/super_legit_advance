@@ -48,4 +48,20 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ kpis }) => {
   )
 }
 
+const kpis = [
+  {
+    label: 'Total Loans',
+    value: reportData?.summary?.total_loans || 0,
+    change: 12.5,
+    trend: 'up' as const,
+  },
+  {
+    label: 'Total Approved',
+    value: `KES ${((reportData?.summary?.total_approved || 0) / 1000000).toFixed(1)}M`,
+    change: 8.2,
+    trend: 'up' as const,
+  },
+  // ...existing code...
+]
+
 export default KpiCards

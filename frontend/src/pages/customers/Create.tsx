@@ -55,7 +55,11 @@ export default function CreateCustomer() {
   const onSubmit = async (data: CreateCustomerForm) => {
     setIsLoading(true)
     try {
-      await mutation.mutateAsync(data)
+      const payload: CustomerCreateData = {
+        ...data,
+        marital_status: data.marital_status as 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED' | 'SEPARATED' | undefined,
+      }
+      await mutation.mutateAsync(payload)
     } finally {
       setIsLoading(false)
     }

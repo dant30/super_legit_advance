@@ -7,11 +7,14 @@ import {
   logout as logoutAction,
   checkAuth as checkAuthAction,
   clearError,
+  selectAuth,
 } from '@/store/slices/authSlice'
 
 export const useAuth = () => {
   const dispatch = useDispatch<AppDispatch>()
   const authState = useSelector((state: RootState) => state.auth)
+  const auth = useSelector(selectAuth)
+  const isLoading = auth.status === 'loading'
 
   const login = useCallback(
     async (credentials: { email: string; password: string }) => {
@@ -64,5 +67,6 @@ export const useAuth = () => {
     hasRole,
     isAdmin,
     isStaff,
+    isLoading,
   }
 }

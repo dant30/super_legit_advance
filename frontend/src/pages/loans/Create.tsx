@@ -43,12 +43,15 @@ export default function CreateLoan() {
     },
   })
 
-  const onSubmit = async (data: CreateLoanForm) => {
-    setIsLoading(true)
+  const onSubmit = async (formData: CreateLoanForm) => {
     try {
-      await mutation.mutateAsync(data)
-    } finally {
-      setIsLoading(false)
+      const payload: LoanCreatePayload = {
+        ...formData,
+        customer: parseInt(formData.customer_id || '0'),
+      }
+      await mutation.mutateAsync(payload)
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to create loan')
     }
   }
 
