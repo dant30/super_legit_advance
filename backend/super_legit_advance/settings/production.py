@@ -86,26 +86,33 @@ CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60
 # EMAIL - Production
 # ============================================================================
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_HOST = env('EMAIL_HOST', default='')
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@superlegitadvance.com')
+
+
+# If EMAIL_HOST is not set, use console backend (logs emails instead)
+if not EMAIL_HOST:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    logger.warning("EMAIL_HOST not configured. Using console email backend.")
+
 
 # ============================================================================
 # EXTERNAL SERVICES - Production
 # ============================================================================
 MPESA_ENVIRONMENT = 'production'
-MPESA_CONSUMER_KEY = env('MPESA_CONSUMER_KEY')
-MPESA_CONSUMER_SECRET = env('MPESA_CONSUMER_SECRET')
-MPESA_SHORTCODE = env('MPESA_SHORTCODE')
-MPESA_PASSKEY = env('MPESA_PASSKEY')
-MPESA_CALLBACK_URL = env('MPESA_CALLBACK_URL')
-MPESA_INITIATOR_PASSWORD = env('MPESA_INITIATOR_PASSWORD')
+MPESA_CONSUMER_KEY = env('MPESA_CONSUMER_KEY', default='')
+MPESA_CONSUMER_SECRET = env('MPESA_CONSUMER_SECRET', default='')
+MPESA_SHORTCODE = env('MPESA_SHORTCODE', default='')
+MPESA_PASSKEY = env('MPESA_PASSKEY', default='')
+MPESA_CALLBACK_URL = env('MPESA_CALLBACK_URL', default='')
+MPESA_INITIATOR_PASSWORD = env('MPESA_INITIATOR_PASSWORD', default='')
 
-AFRICASTALKING_USERNAME = env('AFRICASTALKING_USERNAME')
-AFRICASTALKING_API_KEY = env('AFRICASTALKING_API_KEY')
+AFRICASTALKING_USERNAME = env('AFRICASTALKING_USERNAME', default='')
+AFRICASTALKING_API_KEY = env('AFRICASTALKING_API_KEY', default='')
 
 # ============================================================================
 # STATIC FILES

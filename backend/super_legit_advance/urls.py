@@ -123,14 +123,21 @@ handler404 = "apps.core.views.error_404"
 handler500 = "apps.core.views.error_500"
 
 
-# ------------------------------------------------------------------------------
+# ============================================================================
 # Frontend catch-all (React / SPA)
-# ------------------------------------------------------------------------------
+# ============================================================================
 if not settings.DEBUG:
+    # Serve index.html for all non-API routes
     urlpatterns += [
         re_path(
             r"^(?!admin|api|media|static).*",
-            TemplateView.as_view(template_name="index.html"),
+            TemplateView.as_view(
+                template_name="index.html",
+                content_type="text/html"
+            ),
             name="frontend-catchall",
         ),
     ]
+else:
+    # In development, let Vite serve the frontend
+    pass

@@ -102,10 +102,14 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'super_legit_advance.urls'
 
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+            os.path.join(BASE_DIR, '..', 'frontend', 'dist'),  # Add frontend build
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
