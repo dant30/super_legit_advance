@@ -115,11 +115,16 @@ const initialState: LoanState = {
 
 export const fetchLoans = createAsyncThunk(
   'loans/fetchLoans',
-  async (params: any = {}, { rejectWithValue }) => {
+  async (params?: any, { rejectWithValue } = {} as any) => {
     try {
-      return await loansAPI.getLoans(params)
+      const response = await loansAPI.getLoans(params)
+      return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Failed to fetch loans')
+      return rejectWithValue(
+        error.response?.data?.detail ||
+        error.message ||
+        'Failed to fetch loans'
+      )
     }
   }
 )
@@ -204,7 +209,9 @@ export const calculateLoan = createAsyncThunk(
 
 export const fetchLoanStats = createAsyncThunk(
   'loans/fetchLoanStats',
-  async (params: any = {}, { rejectWithValue }) => {  // ✅ Has default params
+  async (_params: any = {}, { rejectWithValue }) => {
+    // avoid "declared but never read" by explicitly ignoring the param
+    void _params
     try {
       return await loansAPI.getLoanStats()
     } catch (error: any) {
@@ -219,11 +226,13 @@ export const fetchLoanStats = createAsyncThunk(
 
 export const fetchLoanApplications = createAsyncThunk(
   'loans/fetchLoanApplications',
-  async (params: any = {}, { rejectWithValue }) => {
+  async (_params: any = {}, { rejectWithValue }) => {
+    // reference _params to avoid unused-local error when not used
+    void _params
     try {
-      return await loansAPI.getLoanApplications(params)
+      return await loansAPI.getLoanApplications(_params)
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || 'Failed to fetch applications')
+      return rejectWithValue(error.response?.data || 'Failed to fetch loan applications')
     }
   }
 )

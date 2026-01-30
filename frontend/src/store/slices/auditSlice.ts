@@ -136,7 +136,7 @@ export const searchAuditLogs = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await auditAPI.searchLogs(
+      const response = await auditAPI.searchAuditLogs(
         query,
         searchType as any,
         params

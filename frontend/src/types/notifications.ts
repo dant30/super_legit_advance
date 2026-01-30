@@ -39,6 +39,9 @@ export type {
   SMSLogFilters,
 } from '@/lib/api/notifications'
 
+// Ensure local type names are available for helper guards
+import type { Template, SMSLog } from '@/lib/api/notifications'
+
 /* =====================================================
  * Additional UI-specific types
  * ===================================================== */

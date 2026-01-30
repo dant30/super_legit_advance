@@ -1,18 +1,17 @@
 // frontend/src/store/slices/customerSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import {
-  customerAPI,
-  type Customer,
-  type CustomerDetailResponse,
-  type CustomerListResponse,
-  type CustomerStatsResponse,
-  type CustomerListParams,
-  type CustomerCreateData,
-  type CustomerUpdateData,
-  type Employment,
-  type EmploymentCreateData,
-  type Guarantor,
-  type GuarantorCreateData,
+import { customerAPI } from '@/lib/api/customers'
+import type {
+  Customer,
+  CustomerListParams,
+  CustomerCreateData,
+  CustomerUpdateData,
+  Employment,
+  EmploymentCreateData,
+  Guarantor,
+  GuarantorCreateData,
+  CustomerDetailResponse,
+  CustomerStatsResponse,
 } from '@/lib/api/customers'
 
 /* =====================================================

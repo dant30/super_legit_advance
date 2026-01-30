@@ -1,6 +1,5 @@
 // frontend/src/lib/api/customers.ts
 import axiosInstance from '@/lib/axios'
-import type { AxiosResponse } from 'axios'
 
 /* =====================================================
  * Core Types
