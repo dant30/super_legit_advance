@@ -3,7 +3,6 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { auditAPI } from '@/lib/api/audit'
 import type {
   AuditLog,
-  AuditLogListResponse,
   AuditStats,
   UserActivity,
 } from '@/types/audit'
@@ -19,12 +18,14 @@ type RootState = any // Import from your store
  */
 export const fetchAuditLogs = createAsyncThunk(
   'audit/fetchLogs',
-  async (params?: any, { rejectWithValue }) => {
+  async (params?: any, { rejectWithValue } = {} as any) => {
     try {
       const response = await auditAPI.getAuditLogs(params)
       return response
     } catch (error: any) {
-      return rejectWithValue(error.response?.data || error.message || 'Failed to fetch audit logs')
+      return rejectWithValue(
+        error.response?.data || error.message || 'Failed to fetch audit logs'
+      )
     }
   }
 )
@@ -49,7 +50,7 @@ export const fetchAuditLog = createAsyncThunk(
  */
 export const fetchAuditStats = createAsyncThunk(
   'audit/fetchAuditStats',
-  async (days: number = 30, { rejectWithValue }) => {
+  async (days: number = 30, { rejectWithValue } = {} as any) => {
     try {
       const response = await auditAPI.getAuditStats(days)
       return response
@@ -230,9 +231,7 @@ const auditSlice = createSlice({
     /**
      * Clear all audit data
      */
-    clearAll: (state) => {
-      return initialState
-    },
+    clearAll: () => initialState, // removed unused 'state' parameter to avoid TS6133
 
     /**
      * Update pagination

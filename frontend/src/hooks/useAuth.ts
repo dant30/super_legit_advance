@@ -77,15 +77,15 @@ export const useAuth = (): UseAuthReturn => {
   /**
    * Logout user
    */
-  const handleLogout = useCallback(async () => {
-    return dispatch(logoutAction())
+  const handleLogout = useCallback(async (): Promise<void> => {
+    await dispatch(logoutAction()) // ✅ Await the dispatch
   }, [dispatch])
 
   /**
    * Check authentication status
    */
-  const handleCheckAuth = useCallback(async () => {
-    return dispatch(checkAuthAction())
+  const handleCheckAuth = useCallback(async (): Promise<void> => {
+    await dispatch(checkAuthAction()) // ✅ Await the dispatch
   }, [dispatch])
 
   /**
@@ -146,23 +146,57 @@ export const useAuth = (): UseAuthReturn => {
     (permission: string): boolean => {
       if (!authState.user) return false
 
-      // Admin has all permissions
-      if (authState.user.role === 'admin') return true
+      // Superadmin has all permissions
+      if (authState.user.is_superuser) return true
 
-      // Implement your permission logic here
-      // For now, basic role-based permissions
-      const rolePermissions: Record<UserRole, string[]> = {
-        admin: ['*'], // All permissions
-        staff: ['view_loans', 'manage_customers', 'process_payments', 'generate_reports'],
-        officer: ['view_loans', 'manage_customers', 'process_payments'],
-        customer: ['view_own_loans', 'make_payments'],
+      const staffProfile = authState.user.staff_profile
+
+      if (!staffProfile) {
+        // Non-staff users only have basic permissions
+        return permission === 'view_own_loans' || permission === 'make_payments'
       }
 
-      const permissions = rolePermissions[authState.user.role as UserRole] || []
-      return permissions.includes(permission) || permissions.includes('*')
+      // Map permissions to staff profile flags
+      const permissionMap: Record<string, boolean> = {
+        can_approve_loans: staffProfile.can_approve_loans,
+        can_manage_customers: staffProfile.can_manage_customers,
+        can_process_payments: staffProfile.can_process_payments,
+        can_generate_reports: staffProfile.can_generate_reports,
+      }
+
+      return permissionMap[permission] ?? false
     },
     [authState.user]
   )
+
+  /**
+   * Check approval tier for loan amounts
+   */
+  const canApproveLoanAmount = useCallback(
+    (amount: number): boolean => {
+      if (!authState.user?.staff_profile) return false
+
+      const maxAmount = authState.user.staff_profile.max_loan_approval_amount
+      return maxAmount ? amount <= maxAmount : false
+    },
+    [authState.user]
+  )
+
+  /**
+   * Check if staff is available
+   */
+  const isStaffAvailable = useCallback((): boolean => {
+    const staffProfile = authState.user?.staff_profile
+    return staffProfile?.is_available ?? false
+  }, [authState.user])
+
+  /**
+   * Check if staff is on leave
+   */
+  const isStaffOnLeave = useCallback((): boolean => {
+    const staffProfile = authState.user?.staff_profile
+    return staffProfile?.is_on_leave ?? false
+  }, [authState.user])
 
   /**
    * Check if user is admin
@@ -243,6 +277,11 @@ export const useAuth = (): UseAuthReturn => {
     isVerified: isUserVerified,
     isLocked: isUserLocked,
     requires2FA: requiresTwoFactor,
+
+    // Additional checks
+    canApproveLoanAmount,
+    isStaffAvailable,
+    isStaffOnLeave,
   }
 }
 

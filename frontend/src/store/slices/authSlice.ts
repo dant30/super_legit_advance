@@ -2,7 +2,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { authAPI } from '@/lib/api/auth'
 import axiosInstance from '@/lib/axios'
-import type { User, LoginCredentials, AuthResponse, PasswordChange } from '@/types/auth'
+import type { User, LoginCredentials } from '@/types/auth'
 
 // ============================================================================
 // STATE INTERFACE
@@ -34,15 +34,12 @@ const initialState: AuthState = {
  */
 export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {  // ✅ Now used in catch block
     try {
       const token = localStorage.getItem('access_token')
-
       if (!token) {
         return null
       }
-
-      // Verify token is still valid and fetch user
       const user = await authAPI.getCurrentUser()
       return user
     } catch (error: any) {
@@ -101,7 +98,8 @@ export const login = createAsyncThunk(
  */
 export const logout = createAsyncThunk(
   'auth/logout',
-  async (_, { rejectWithValue }) => {
+  // remove unused thunkAPI param to avoid TS6133 when not using rejectWithValue
+  async () => {
     try {
       await authAPI.logout()
     } catch (error) {
@@ -304,8 +302,6 @@ const authSlice = createSlice({
         state.isLoading = false
         state.isAuthenticated = false
         state.user = null
-        // Don't set error on page load - too noisy
-        state.error = null
       })
 
     // ========================================================================
@@ -339,7 +335,7 @@ const authSlice = createSlice({
       .addCase(logout.pending, (state) => {
         state.isLoading = true
       })
-      .addCase(logout.fulfilled, (state) => {
+      .addCase(logout.fulfilled, (state) => { // removed unused 'action' parameter
         state.isLoading = false
         state.user = null
         state.isAuthenticated = false
