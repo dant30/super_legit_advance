@@ -26,7 +26,8 @@ const Error: React.FC<ErrorProps> = ({
   className = '',
 }) => {
   const resolvedMessage =
-    message || error.message || 'An unexpected error occurred.'
+    message ||
+    (error instanceof Error ? error.message : 'An unexpected error occurred.')
 
   const handleRetry = retry ?? resetErrorBoundary
 

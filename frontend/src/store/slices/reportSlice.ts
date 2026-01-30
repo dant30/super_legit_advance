@@ -478,8 +478,8 @@ const reportSlice = createSlice({
 export const {
   setCurrentReport,
   setFilterParams,
-  clearFilterParams,
-  clearReportData,
+  clearFilterParams,  // ✅ ADD THIS
+  clearReportData,    // ✅ ADD THIS
   clearError,
   clearSuccess,
   setSelectedFormat,

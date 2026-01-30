@@ -4,34 +4,17 @@ import type {
   AuditLogListResponse, 
   AuditStats, 
   UserActivity,
-  SecurityEvent,
-  ComplianceEvent 
 } from '@/types/audit'
 
 class AuditAPI {
-  private baseURL = '/api/audit'
+  private readonly baseURL = '/audit'
+
+  // ==================== AUDIT LOGS ====================
 
   /**
-   * Get all audit logs with comprehensive filtering
+   * Get paginated audit logs
    */
-  async getAuditLogs(params?: {
-    page?: number
-    page_size?: number
-    action?: string
-    severity?: 'INFO' | 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-    status?: 'SUCCESS' | 'FAILURE' | 'PENDING' | 'PARTIAL'
-    model_name?: string
-    user_id?: number
-    start_date?: string
-    end_date?: string
-    success?: boolean
-    high_severity?: boolean
-    ip_address?: string
-    object_id?: string
-    tags?: string[]
-    ordering?: string
-    search?: string
-  }): Promise<AuditLogListResponse> {
+  async getAuditLogs(params?: any): Promise<AuditLogListResponse> {
     try {
       const response = await axiosInstance.get<AuditLogListResponse>(
         `${this.baseURL}/`,
@@ -45,11 +28,11 @@ class AuditAPI {
   }
 
   /**
-   * Get specific audit log by ID
+   * Get single audit log by ID
    */
   async getAuditLog(id: string): Promise<any> {
     try {
-      const response = await axiosInstance.get<any>(
+      const response = await axiosInstance.get(
         `${this.baseURL}/${id}/`
       )
       return response.data
@@ -60,9 +43,9 @@ class AuditAPI {
   }
 
   /**
-   * Search audit logs with advanced filters
+   * Search audit logs
    */
-  async searchLogs(
+  async searchAuditLogs(
     query: string,
     searchType: 'user' | 'object' | 'ip' | 'changes' | 'all' = 'all',
     params?: any
@@ -72,8 +55,8 @@ class AuditAPI {
         `${this.baseURL}/search/`,
         {
           params: {
-            q: query,
-            type: searchType,
+            query,
+            search_type: searchType,
             ...params,
           },
         }
@@ -212,11 +195,22 @@ class AuditAPI {
     endDate: string,
     params?: any
   ): Promise<AuditLogListResponse> {
-    return this.getAuditLogs({
-      start_date: startDate,
-      end_date: endDate,
-      ...params,
-    })
+    try {
+      const response = await axiosInstance.get<AuditLogListResponse>(
+        `${this.baseURL}/`,
+        {
+          params: {
+            start_date: startDate,
+            end_date: endDate,
+            ...params,
+          },
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Error fetching audit logs by date range:', error)
+      throw error
+    }
   }
 
   /**
@@ -226,30 +220,42 @@ class AuditAPI {
     modelName: string,
     params?: any
   ): Promise<AuditLogListResponse> {
-    return this.getAuditLogs({
-      model_name: modelName,
-      ...params,
-    })
+    try {
+      const response = await axiosInstance.get<AuditLogListResponse>(
+        `${this.baseURL}/`,
+        {
+          params: {
+            model_name: modelName,
+            ...params,
+          },
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Error fetching audit logs by model:', error)
+      throw error
+    }
   }
 
   /**
-   * Get failed actions
+   * Get failed actions only
    */
   async getFailedActions(params?: any): Promise<AuditLogListResponse> {
-    return this.getAuditLogs({
-      status: 'FAILURE',
-      ...params,
-    })
-  }
-
-  /**
-   * Get high severity events
-   */
-  async getHighSeverityEvents(params?: any): Promise<AuditLogListResponse> {
-    return this.getAuditLogs({
-      high_severity: true,
-      ...params,
-    })
+    try {
+      const response = await axiosInstance.get<AuditLogListResponse>(
+        `${this.baseURL}/`,
+        {
+          params: {
+            status: 'FAILURE',
+            ...params,
+          },
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Error fetching failed actions:', error)
+      throw error
+    }
   }
 }
 

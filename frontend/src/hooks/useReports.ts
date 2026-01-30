@@ -18,7 +18,12 @@ import {
   getRiskAssessment,
   setCurrentReport,
   setFilterParams,
+  clearFilterParams,  // ✅ ADD THIS
+  clearReportData,    // ✅ ADD THIS
   clearError,
+  clearSuccess,
+  setSelectedFormat,
+  setGenerationProgress,
 } from '@/store/slices/reportSlice'
 import { RootState } from '@/store/store'
 import {
@@ -42,7 +47,6 @@ export const useReports = () => {
     generating,
     exporting,
     error,
-    success,
     filterParams,
     selectedFormat,
     generationProgress,
@@ -293,75 +297,6 @@ export const useReports = () => {
     dispatch(clearError())
   }, [dispatch])
 
-  // ==================== UTILITY METHODS ====================
-
-  const getReportFilters = useCallback((): ReportParameter => {
-    return filterParams
-  }, [filterParams])
-
-  const buildReportParams = useCallback(
-    (overrides?: Partial<ReportParameter>): ReportParameter => {
-      return {
-        ...filterParams,
-        ...overrides,
-      }
-    },
-    [filterParams]
-  )
-
-  const formatReportData = useCallback((data: any): any => {
-    // Add any data transformation logic here
-    return data
-  }, [])
-
-  // ==================== BATCH OPERATIONS ====================
-
-  const generateMultipleReports = useCallback(
-    async (
-      reportConfigs: Array<{
-        type: ReportType
-        format: ReportFormat
-        parameters?: ReportParameter
-      }>
-    ) => {
-      const results = []
-      for (const config of reportConfigs) {
-        try {
-          const result = await generateReportByType(
-            config.type,
-            config.format,
-            config.parameters
-          )
-          results.push({ success: true, report: result })
-        } catch (err) {
-          results.push({ success: false, error: err })
-        }
-      }
-      return results
-    },
-    [generateReportByType]
-  )
-
-  const exportMultipleFormats = useCallback(
-    async (
-      dataType: 'loans' | 'payments' | 'customers',
-      formats: ReportFormat[],
-      filters?: any
-    ) => {
-      const results = []
-      for (const format of formats) {
-        try {
-          const result = await quickExport(dataType, format as any, filters)
-          results.push({ success: true, format, ...result })
-        } catch (err) {
-          results.push({ success: false, format, error: err })
-        }
-      }
-      return results
-    },
-    [quickExport]
-  )
-
   // ==================== HISTORY ====================
 
   const fetchReportHistory = useCallback(
@@ -409,7 +344,6 @@ export const useReports = () => {
     generating,
     exporting,
     error,
-    success,
     filterParams,
     selectedFormat,
     generationProgress,
@@ -435,6 +369,7 @@ export const useReports = () => {
     // Exports
     exportPDF,
     exportExcel,
+    quickExport,
 
     // Filters & State
     updateFilters,
@@ -451,3 +386,5 @@ export const useReports = () => {
     cancelExport,
   }
 }
+
+export default useReports
