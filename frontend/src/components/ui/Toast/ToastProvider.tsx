@@ -1,74 +1,45 @@
-import React, { createContext, useContext, useState, useCallback } from 'react'
-import { createPortal } from 'react-dom'
-import Toast from './Toast'
-import type { ToastProps } from './Toast'
+import React, { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import Toast, { ToastProps } from './Toast'
+import { v4 as uuidv4 } from 'uuid'
 
-export interface ToastMessage extends Omit<ToastProps, 'onClose'> {
-  id: string
+type ToastInput = Omit<Partial<ToastProps>, 'id' | 'onClose'> & { message: string }
+
+type ToastContextValue = {
+  addToast: (t: ToastInput) => string
+  removeToast: (id: string) => void
 }
 
-interface ToastContextType {
-  toasts: ToastMessage[]
-  showToast: (props: Omit<ToastMessage, 'id'>) => void
-  hideToast: (id: string) => void
-  hideAllToasts: () => void
-}
-
-const ToastContext = createContext<ToastContextType | undefined>(undefined)
-
-let toastId = 0
+const ToastContext = createContext<ToastContextValue | undefined>(undefined)
 
 export const useToast = () => {
-  const context = useContext(ToastContext)
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider')
-  }
-  return context
+  const ctx = useContext(ToastContext)
+  if (!ctx) throw new Error('useToast must be used within ToastProvider')
+  return ctx
 }
 
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [toasts, setToasts] = useState<ToastMessage[]>([])
+export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [toasts, setToasts] = useState<Array<ToastProps & { id: string }>>([])
 
-  const showToast = useCallback((props: Omit<ToastMessage, 'id'>) => {
-    const id = `toast-${++toastId}`
-    const newToast = { ...props, id }
-    setToasts((prev) => [...prev, newToast])
-
-    // Auto-remove after duration if set
-    if ((props.duration ?? 5000) !== 0) {
-      setTimeout(() => {
-        hideToast(id)
-      }, props.duration ?? 5000)
-    }
+  const addToast = useCallback((t: ToastInput) => {
+    const id = uuidv4()
+    setToasts(prev => [...prev, { ...t, id, onClose: () => removeToast(id) }])
+    return id
   }, [])
 
-  const hideToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id))
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id))
   }, [])
 
-  const hideAllToasts = useCallback(() => {
-    setToasts([])
-  }, [])
+  const value = useMemo(() => ({ addToast, removeToast }), [addToast, removeToast])
 
   return (
-    <ToastContext.Provider
-      value={{ toasts, showToast, hideToast, hideAllToasts }}
-    >
+    <ToastContext.Provider value={value}>
       {children}
-      {createPortal(
-        <div className="fixed z-[9999]">
-          {toasts.map((toast) => (
-            <Toast
-              key={toast.id}
-              {...toast}
-              onClose={() => hideToast(toast.id)}
-            />
-          ))}
-        </div>,
-        document.body
-      )}
+      <div className="fixed bottom-4 right-4 z-50 space-y-2">
+        {toasts.map(toast => (
+          <Toast key={toast.id} {...toast} />
+        ))}
+      </div>
     </ToastContext.Provider>
   )
 }

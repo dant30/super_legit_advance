@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react'
-import { cn } from '@/lib/utils/cn'
 import { Upload, X, File, Image, CheckCircle, AlertCircle, Trash2 } from 'lucide-react'
+import clsx from 'clsx'
+import { cn } from '@/lib/utils/cn'
 
 export interface UploadedFile {
   id: string
@@ -193,10 +194,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
       {/* Dropzone */}
       <div
         className={cn(
-          'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors',
+          'relative border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer',
           dragOver
-            ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-900/20'
-            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500',
+            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+            : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/50 hover:border-gray-400',
           disabled && 'opacity-50 cursor-not-allowed',
           dropzoneClassName
         )}
@@ -206,30 +207,31 @@ const FileUpload: React.FC<FileUploadProps> = ({
         onDragLeave={handleDragLeave}
         role="button"
         tabIndex={0}
+        aria-label="File upload area"
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !disabled && !uploading) {
             fileInputRef.current?.click()
           }
         }}
       >
-        <Upload className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
-        <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-          {label}
-        </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          {description}
-        </p>
-        <button
-          type="button"
-          className="btn-primary"
+        <input
+          ref={fileInputRef}
+          type="file"
+          onChange={handleFileSelect}
+          accept={acceptedTypes.join(',')}
+          multiple={multiple}
+          className="hidden"
           disabled={disabled || uploading}
-          onClick={(e) => {
-            e.stopPropagation()
-            fileInputRef.current?.click()
-          }}
-        >
-          Browse Files
-        </button>
+        />
+
+        <Upload className="h-8 w-8 mx-auto mb-3 text-gray-400" />
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          or drag and drop
+        </p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+          {acceptedTypes.join(', ').toUpperCase()} up to {maxSize}MB
+        </p>
       </div>
 
       {/* File List */}
@@ -333,6 +335,13 @@ const FileUpload: React.FC<FileUploadProps> = ({
               </span>
             </div>
           </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-3 flex items-center gap-2 text-sm text-danger-600 dark:text-danger-400">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          <span>{error}</span>
         </div>
       )}
     </div>

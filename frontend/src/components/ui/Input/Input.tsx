@@ -1,54 +1,40 @@
 // frontend/src/components/ui/Input/Input.tsx
 import React, { forwardRef } from 'react'
-import clsx from 'clsx'
-import { LucideIcon } from 'lucide-react'
+import { cn } from '@/lib/utils/cn'
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
-  helperText?: string
-  fullWidth?: boolean
+  className?: string
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
-    {
-      label,
-      error,
-      helperText,
-      fullWidth = true,
-      className = '',
-      ...props
-    },
+    { label, error, className, ...props },
     ref
   ) => {
     return (
-      <div className={fullWidth ? 'w-full' : ''}>
+      <label className="block">
         {label && (
-          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">
+          <span className="text-sm font-medium text-gray-700 mb-1 block">
             {label}
-          </label>
+          </span>
         )}
         <input
           ref={ref}
-          className={`
-            px-3 py-2 border rounded-lg
-            bg-white dark:bg-gray-700
-            text-gray-900 dark:text-white
-            border-gray-300 dark:border-gray-600
-            focus:outline-none focus:ring-2 focus:ring-primary-500
-            disabled:bg-gray-100 dark:disabled:bg-gray-800
-            disabled:cursor-not-allowed
-            ${error ? 'border-danger-500' : ''}
-            ${fullWidth ? 'w-full' : ''}
-            ${className}
-          `}
           {...props}
+          className={cn(
+            'form-input block w-full rounded-md border px-3 py-2 transition',
+            error
+              ? 'border-danger-500 focus:border-danger-600'
+              : 'border-gray-300 focus:border-primary-500',
+            className
+          )}
+          aria-invalid={!!error}
         />
-        {error && <p className="mt-1 text-sm text-danger-600">{error}</p>}
-        {helperText && !error && <p className="mt-1 text-sm text-gray-500">{helperText}</p>}
-      </div>
+        {error && <p className="mt-1 text-xs text-danger-600">{error}</p>}
+      </label>
     )
   }
 )

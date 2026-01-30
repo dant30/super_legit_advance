@@ -14,7 +14,6 @@ import {
   Search,
   Moon,
   Sun,
-  Clock,
   AlertCircle,
   CheckCircle2,
   Inbox,
@@ -132,8 +131,8 @@ const Header: React.FC = () => {
 
   const handleLogout = useCallback(async () => {
     try {
-      dispatch(logout() as any)
-      navigate('/login', { replace: true })
+      await dispatch(logout() as any)
+      navigate('/login')
     } catch (error) {
       console.error('Logout failed:', error)
     }
@@ -152,29 +151,17 @@ const Header: React.FC = () => {
     }
   }, [searchQuery, navigate])
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationTypeColor = (type: HeaderNotification['type']): string => {
     switch (type) {
       case 'success':
-        return <CheckCircle2 className="h-4 w-4 text-success-500" />
+        return 'text-success-500'
       case 'warning':
-        return <AlertCircle className="h-4 w-4 text-warning-500" />
+        return 'text-warning-500'
       case 'error':
-        return <AlertCircle className="h-4 w-4 text-danger-500" />
+        return 'text-danger-500'
       default:
-        return <Bell className="h-4 w-4 text-primary-500" />
+        return 'text-primary-500'
     }
-  }
-
-  const formatTime = (date: string) => {
-    const now = new Date()
-    const time = new Date(date)
-    const diffMs = now.getTime() - time.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-
-    if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins}m ago`
-    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`
-    return `${Math.floor(diffMins / 1440)}d ago`
   }
 
   return (
@@ -231,31 +218,22 @@ const Header: React.FC = () => {
           {/* Search Bar - Desktop */}
           <div className="hidden md:flex flex-1 max-w-lg lg:max-w-xl xl:max-w-2xl">
             <form onSubmit={handleSearch} className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-0 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 ml-3" />
               <input
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search customers, loans..."
-                className="form-input pl-10 pr-4 w-full text-sm lg:text-base"
+                placeholder="Search customers, loans, payments..."
+                className="form-input pl-10 w-full"
               />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
             </form>
           </div>
 
-          {/* Right side actions */}
-          <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
-            {/* Search Button - Mobile */}
+          {/* Right Actions */}
+          <div className="flex items-center gap-2 ml-auto">
+            {/* Mobile Search Toggle */}
             <button
-              onClick={() => setIsMobileSearchOpen(true)}
+              onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
               className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
               aria-label="Search"
             >
@@ -312,7 +290,7 @@ const Header: React.FC = () => {
                   <div className="overflow-y-auto max-h-[calc(100vh-12rem)] md:max-h-80">
                     {notificationsLoading ? (
                       <div className="p-8 text-center">
-                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading notifications...</p>
                       </div>
                     ) : notifications.length > 0 ? (

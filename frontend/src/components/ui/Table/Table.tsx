@@ -1,67 +1,56 @@
 // frontend/src/components/ui/Table/Table.tsx
 import React from 'react'
-import { ChevronUp, ChevronDown } from 'lucide-react'
-import clsx from 'clsx'
+import { cn } from '@/lib/utils/cn'
 
-interface Column<T = any> {
-  accessor: string | ((row: T) => any)
-  header: string
-  cell?: (info: any) => React.ReactNode
+export type Column<T> = {
+  key: string
+  header: React.ReactNode
+  render?: (row: T) => React.ReactNode
+  align?: 'left' | 'center' | 'right'
 }
 
-interface TableProps<T = any> {
+interface TableProps<T> {
   columns: Column<T>[]
   data: T[]
-  isLoading?: boolean
-  isError?: boolean
+  rowKey?: (row: T) => string | number
+  className?: string
+  onRowClick?: (row: T) => void
 }
 
-export const Table: React.FC<TableProps> = ({ columns, data, isLoading, isError }) => {
-  if (isLoading) {
-    return <div className="p-4 text-center">Loading...</div>
-  }
-
-  if (isError) {
-    return <div className="p-4 text-center text-red-500">Error loading data</div>
-  }
-
+function TableInner<T extends Record<string, any>>({ columns, data, rowKey, className, onRowClick }: TableProps<T>) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr className="border-b border-gray-200 dark:border-gray-700">
-            {columns.map((column, idx) => (
-              <th
-                key={idx}
-                className="text-left font-medium text-gray-600 dark:text-gray-300 px-4 py-3"
-                style={{ width: column.width }}
-              >
-                {column.header}
+    <div className={cn('overflow-auto rounded-md border', className)}>
+      <table className="min-w-full divide-y">
+        <thead className="bg-gray-50">
+          <tr>
+            {columns.map((col) => (
+              <th key={col.key} className={cn('px-4 py-2 text-left text-xs font-medium text-gray-600')}>
+                {col.header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
-          {data.map((row, rowIdx) => (
-            <tr
-              key={rowIdx}
-              onClick={() => onRowClick?.(row)}
-              className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer"
-            >
-              {columns.map((column, colIdx) => (
-                <td
-                  key={colIdx}
-                  className="text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-800 px-4 py-3"
-                >
-                  {column.cell
-                    ? column.cell({ getValue: () => (row as any)[column.accessor as string] })
-                    : (row as any)[column.accessor as string]}
-                </td>
-              ))}
-            </tr>
-          ))}
+        <tbody className="bg-white divide-y">
+          {data.map((row, idx) => {
+            const key = rowKey ? rowKey(row) : (row.id ?? idx)
+            return (
+              <tr
+                key={String(key)}
+                onClick={() => onRowClick?.(row)}
+                className={cn(onRowClick ? 'cursor-pointer hover:bg-gray-50' : '')}
+              >
+                {columns.map((col) => (
+                  <td key={col.key} className={cn('px-4 py-3 text-sm text-gray-700', col.align === 'center' && 'text-center', col.align === 'right' && 'text-right')}>
+                    {col.render ? col.render(row) : (row[col.key] ?? '')}
+                  </td>
+                ))}
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
   )
 }
+
+export default TableInner

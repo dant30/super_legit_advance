@@ -2,94 +2,100 @@
 import React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import clsx from 'clsx'
 
-export interface PaginationProps {
-  // Support both shapes: `page` (pages) or `currentPage` and `totalItems` + pageSize
-  page?: number
-  currentPage?: number
-  total?: number // total pages
-  totalItems?: number // total items (legacy callers)
+interface PaginationProps {
+  currentPage: number
+  totalPages: number
   onPageChange: (page: number) => void
-  pageSize?: number
+  className?: string
 }
 
 const Pagination: React.FC<PaginationProps> = ({
-  page,
   currentPage,
-  total,
-  totalItems,
+  totalPages,
   onPageChange,
-  pageSize = 1,
+  className = '',
 }) => {
-  const current = page ?? currentPage ?? 1
-  const totalPages = total ?? (totalItems ? Math.max(1, Math.ceil(totalItems / pageSize)) : 1)
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = []
+    const maxVisible = 5
 
-  const handlePrevious = () => {
-    if (current > 1) onPageChange(current - 1)
-  }
-
-  const handleNext = () => {
-    if (current < totalPages) onPageChange(current + 1)
-  }
-
-  const renderPageButtons = () => {
-    const buttons = []
-    const maxButtons = 5
-    let startPage = Math.max(1, current - Math.floor(maxButtons / 2))
-    let endPage = Math.min(totalPages, startPage + maxButtons - 1)
-
-    if (endPage - startPage < maxButtons - 1) {
-      startPage = Math.max(1, endPage - maxButtons + 1)
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1)
     }
 
-    for (let i = startPage; i <= endPage; i++) {
-      buttons.push(
-        <button
-          key={i}
-          onClick={() => onPageChange(i)}
-          className={`px-3 py-2 rounded ${
-            current === i
-              ? 'bg-primary-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
-          }`}
-        >
-          {i}
-        </button>
-      )
+    pages.push(1)
+
+    if (currentPage > 3) {
+      pages.push('...')
     }
 
-    return buttons
+    const start = Math.max(2, currentPage - 1)
+    const end = Math.min(totalPages - 1, currentPage + 1)
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i)
+    }
+
+    if (currentPage < totalPages - 2) {
+      pages.push('...')
+    }
+
+    pages.push(totalPages)
+
+    return pages
   }
 
-  if (totalPages <= 1) return null
+  const pages = getPageNumbers()
+  const canGoBack = currentPage > 1
+  const canGoNext = currentPage < totalPages
 
   return (
-    <div className="flex items-center justify-between">
-      <p className="text-sm text-gray-600 dark:text-gray-400">
-        Page <span className="font-medium">{current}</span> of <span className="font-medium">{totalPages}</span>
-      </p>
+    <div className={clsx('flex items-center justify-center gap-2', className)}>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={!canGoBack}
+        icon={<ChevronLeft className="h-4 w-4" />}
+      >
+        Previous
+      </Button>
 
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handlePrevious}
-          disabled={current === 1}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-
-        <div className="flex gap-1">{renderPageButtons()}</div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleNext}
-          disabled={current >= totalPages}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+      <div className="flex items-center gap-1">
+        {pages.map((page, idx) => (
+          <React.Fragment key={idx}>
+            {page === '...' ? (
+              <span className="px-2 text-gray-500 dark:text-gray-400">...</span>
+            ) : (
+              <Button
+                variant={page === currentPage ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => onPageChange(page as number)}
+                className={clsx(
+                  'min-w-10 h-10 p-0',
+                  page === currentPage
+                    ? 'bg-primary-600 text-white hover:bg-primary-700'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+                )}
+              >
+                {page}
+              </Button>
+            )}
+          </React.Fragment>
+        ))}
       </div>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={!canGoNext}
+        icon={<ChevronRight className="h-4 w-4" />}
+      >
+        Next
+      </Button>
     </div>
   )
 }

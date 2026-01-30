@@ -1,129 +1,93 @@
 // frontend/src/components/ui/Select/Select.tsx
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
+import clsx from 'clsx'
 
-export interface SelectOption {
-  value: string | number
-  label: string
-  disabled?: boolean
-  icon?: React.ReactNode
-}
-
-export interface SelectProps
-  extends React.InputHTMLAttributes<HTMLSelectElement> {
-  options: SelectOption[]
+export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string
   error?: string
   helperText?: string
-  fullWidth?: boolean
+  options: Array<{ value: string | number; label: string }>
+  variant?: 'default' | 'filled'
+  size?: 'sm' | 'md' | 'lg'
 }
 
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   (
     {
-      options,
       label,
       error,
       helperText,
-      fullWidth = true,
+      options,
+      variant = 'default',
+      size = 'md',
       className = '',
-      value,
-      onChange,
-      ...props
+      disabled = false,
+      ...selectProps
     },
     ref
   ) => {
-    const [isOpen, setIsOpen] = useState(false)
-    const containerRef = useRef<HTMLDivElement>(null)
-    const [selectedOption, setSelectedOption] = useState<SelectOption | null>(
-      options.find((opt) => opt.value === value) || null
-    )
+    const [isFocused, setIsFocused] = useState(false)
 
-    useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        if (
-          containerRef.current &&
-          !containerRef.current.contains(event.target as Node)
-        ) {
-          setIsOpen(false)
-        }
-      }
+    const sizeClasses = {
+      sm: 'px-3 py-1.5 text-sm',
+      md: 'px-4 py-2 text-base',
+      lg: 'px-4 py-3 text-lg',
+    }
 
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }, [])
-
-    const handleSelect = (option: SelectOption) => {
-      setSelectedOption(option)
-      setIsOpen(false)
-      if (onChange) {
-        onChange({
-          target: { value: option.value },
-        } as React.ChangeEvent<HTMLSelectElement>)
-      }
+    const variantClasses = {
+      default: 'border border-gray-300 dark:border-gray-600',
+      filled: 'bg-gray-100 dark:bg-gray-900 border-b-2 border-gray-400 dark:border-gray-600',
     }
 
     return (
-      <div ref={containerRef} className={fullWidth ? 'w-full' : ''}>
+      <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">
+          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             {label}
+            {selectProps.required && <span className="text-danger-600 ml-1">*</span>}
           </label>
         )}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setIsOpen(!isOpen)}
-            className={`
-              w-full px-3 py-2 border rounded-lg text-left
-              bg-white dark:bg-gray-700
-              text-gray-900 dark:text-white
-              border-gray-300 dark:border-gray-600
-              focus:outline-none focus:ring-2 focus:ring-primary-500
-              ${error ? 'border-danger-500' : ''}
-              ${fullWidth ? 'w-full' : ''}
-              ${className}
-            `}
-          >
-            <div className="flex items-center justify-between">
-              <span>{selectedOption?.label || 'Select...'}</span>
-              <ChevronDown
-                className={`h-4 w-4 transition ${
-                  isOpen ? 'rotate-180' : ''
-                }`}
-              />
-            </div>
-          </button>
 
-          {isOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10">
-              {options.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => handleSelect(option)}
-                  disabled={option.disabled}
-                  className={`
-                    w-full px-3 py-2 text-left flex items-center gap-2
-                    hover:bg-gray-100 dark:hover:bg-gray-600
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    ${
-                      selectedOption?.value === option.value
-                        ? 'bg-primary-100 dark:bg-primary-900/20'
-                        : ''
-                    }
-                  `}
-                >
-                  {option.icon}
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="relative">
+          <select
+            ref={ref}
+            disabled={disabled}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            className={clsx(
+              'w-full appearance-none rounded-lg transition-colors',
+              'bg-white dark:bg-gray-800',
+              'text-gray-900 dark:text-white',
+              'placeholder-gray-500 dark:placeholder-gray-400',
+              'disabled:opacity-50 disabled:cursor-not-allowed',
+              sizeClasses[size],
+              variantClasses[variant],
+              error
+                ? 'border-danger-500 dark:border-danger-500'
+                : isFocused
+                ? 'border-primary-500 ring-2 ring-primary-200 dark:ring-primary-900'
+                : '',
+              className
+            )}
+            {...selectProps}
+          >
+            <option value="">Select an option</option>
+            {options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+
+          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
         </div>
-        {error && <p className="mt-1 text-sm text-danger-600">{error}</p>}
+
+        {error && (
+          <p className="mt-1 text-sm text-danger-600 dark:text-danger-400">{error}</p>
+        )}
         {helperText && !error && (
-          <p className="mt-1 text-sm text-gray-500">{helperText}</p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{helperText}</p>
         )}
       </div>
     )
