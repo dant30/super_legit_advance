@@ -14,23 +14,12 @@ import {
   Search,
   Moon,
   Sun,
-  AlertCircle,
-  CheckCircle2,
   Inbox,
   HelpCircle,
   X,
 } from 'lucide-react'
 import { Notification as ApiNotification, notificationsAPI } from '@/lib/api/notifications'
 import clsx from 'clsx'
-
-interface Notification {
-  id: number
-  title: string
-  message: string
-  type?: 'info' | 'warning' | 'error' | 'success'
-  date: Date
-  read: boolean
-}
 
 interface HeaderNotification {
   id: string | number
@@ -151,22 +140,9 @@ const Header: React.FC = () => {
     }
   }, [searchQuery, navigate])
 
-  const getNotificationTypeColor = (type: HeaderNotification['type']): string => {
-    switch (type) {
-      case 'success':
-        return 'text-success-500'
-      case 'warning':
-        return 'text-warning-500'
-      case 'error':
-        return 'text-danger-500'
-      default:
-        return 'text-primary-500'
-    }
-  }
-
   return (
     <>
-      {/* Mobile Search Overlay - Fixed position to cover entire screen */}
+      {/* Mobile Search Overlay */}
       {isMobileSearchOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/50 dark:bg-black/70" />
@@ -176,23 +152,16 @@ const Header: React.FC = () => {
           >
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700">
               <div className="flex-1">
-                <form onSubmit={handleSearch} className="relative">
-                  <Search className="absolute left-0 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 ml-3" />
+                <form onSubmit={handleSearch} className="relative w-full">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search customers, loans..."
-                    className="form-input pl-10 pr-12 w-full text-base py-3"
+                    placeholder="Search..."
                     autoFocus
+                    className="form-input pl-10 w-full"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
                 </form>
               </div>
               <button
@@ -200,13 +169,8 @@ const Header: React.FC = () => {
                 className="ml-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                 aria-label="Close search"
               >
-                Cancel
+                <X className="h-5 w-5" />
               </button>
-            </div>
-            <div className="p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Search for customers, loans, or payments...
-              </p>
             </div>
           </div>
         </div>
@@ -231,7 +195,7 @@ const Header: React.FC = () => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2 ml-auto">
-            {/* Mobile Search Toggle */}
+            {/* Mobile Search */}
             <button
               onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
               className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
@@ -295,9 +259,9 @@ const Header: React.FC = () => {
                       </div>
                     ) : notifications.length > 0 ? (
                       notifications.slice(0, 5).map((notif) => (
-                        <div key={notif.id} className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                          <p className="font-medium text-sm">{notif.title}</p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">{notif.message}</p>
+                        <div key={notif.id} className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors">
+                          <p className="font-medium text-sm text-gray-900 dark:text-white">{notif.title}</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{notif.message}</p>
                         </div>
                       ))
                     ) : (
@@ -315,7 +279,7 @@ const Header: React.FC = () => {
                         navigate('/notifications')
                         setIsNotificationsOpen(false)
                       }}
-                      className="w-full text-center py-3 text-sm text-primary-600 dark:text-primary-400 hover:bg-gray-50 dark:hover:bg-slate-700/50 rounded-b-lg"
+                      className="w-full text-center py-3 text-sm text-primary-600 dark:text-primary-400 hover:bg-gray-50 dark:hover:bg-slate-700/50 rounded-b-lg transition-colors"
                     >
                       View all notifications
                     </button>
@@ -422,7 +386,7 @@ const Header: React.FC = () => {
                   <div className="border-t border-gray-200 dark:border-slate-700 py-2">
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-3 text-sm text-danger-600 dark:text-danger-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3"
+                      className="w-full text-left px-4 py-3 text-sm text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 flex items-center gap-3"
                     >
                       <LogOut className="h-4 w-4 flex-shrink-0" />
                       <span>Logout</span>

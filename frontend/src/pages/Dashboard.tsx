@@ -77,7 +77,7 @@ const Dashboard: React.FC = () => {
   })
 
   useEffect(() => {
-    // dispatch(fetchLoans() as any)
+    // Additional initialization if needed
   }, [])
 
   if (isLoading) {
@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
         <Card className="p-6 max-w-md">
           <div className="flex items-center gap-3 mb-4">
             <AlertCircle className="h-6 w-6 text-danger-500" />
-            <h2 className="text-lg font-semibold">Failed to load dashboard</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Failed to load dashboard</h2>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Please try refreshing the page</p>
           <Button onClick={() => window.location.reload()}>Refresh</Button>
@@ -103,17 +103,34 @@ const Dashboard: React.FC = () => {
     )
   }
 
+  // Safe default values
+  const statsData = stats || {
+    total_loans: 0,
+    active_loans: 0,
+    overdue_loans: 0,
+    total_portfolio: 0,
+    total_customers: 0,
+    total_repayments: 0,
+    total_amount_paid: 0,
+    monthly_target: 0,
+    monthly_collected: 0,
+    collection_rate: 0,
+    top_collectors: [],
+    pending_approvals: 0,
+    pending_documents: 0,
+  }
+
   const quickStats: QuickStat[] = [
     {
       label: 'Active Loans',
-      value: stats?.active_loans || 0,
+      value: statsData.active_loans,
       icon: <CreditCard className="h-6 w-6" />,
       color: 'text-primary-600',
       bgColor: 'bg-primary-100 dark:bg-primary-900/20',
     },
     {
       label: 'Total Portfolio',
-      value: `KES ${((stats?.total_portfolio || 0) / 1000000).toFixed(1)}M`,
+      value: `KES ${((statsData.total_portfolio || 0) / 1000000).toFixed(1)}M`,
       change: 12.5,
       icon: <DollarSign className="h-6 w-6" />,
       color: 'text-success-600',
@@ -121,7 +138,7 @@ const Dashboard: React.FC = () => {
     },
     {
       label: 'Overdue Loans',
-      value: stats?.overdue_loans || 0,
+      value: statsData.overdue_loans,
       change: -5.2,
       icon: <AlertCircle className="h-6 w-6" />,
       color: 'text-danger-600',
@@ -129,7 +146,7 @@ const Dashboard: React.FC = () => {
     },
     {
       label: 'Total Customers',
-      value: stats?.total_customers || 0,
+      value: statsData.total_customers,
       change: 8.3,
       icon: <Users className="h-6 w-6" />,
       color: 'text-warning-600',
@@ -194,17 +211,17 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Alerts Section */}
-        {(stats?.pending_approvals || 0) > 0 && (
+        {statsData.pending_approvals && statsData.pending_approvals > 0 && (
           <Card className="p-4 bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <AlertCircle className="h-6 w-6 text-warning-600" />
+                <AlertCircle className="h-6 w-6 text-warning-600 flex-shrink-0" />
                 <div>
                   <p className="font-semibold text-warning-900 dark:text-warning-100">
-                    {stats.pending_approvals} Pending Approvals
+                    {statsData.pending_approvals} Pending Approvals
                   </p>
                   <p className="text-sm text-warning-700 dark:text-warning-200">
-                    {stats.pending_documents || 0} applications awaiting documents
+                    {statsData.pending_documents || 0} applications awaiting documents
                   </p>
                 </div>
               </div>
@@ -221,17 +238,17 @@ const Dashboard: React.FC = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Loan Overview Widget */}
             <LoanOverview
-              totalLoans={stats?.total_loans || 0}
-              activeLoans={stats?.active_loans || 0}
-              overdueLoans={stats?.overdue_loans || 0}
-              totalPortfolio={stats?.total_portfolio || 0}
+              totalLoans={statsData.total_loans}
+              activeLoans={statsData.active_loans}
+              overdueLoans={statsData.overdue_loans}
+              totalPortfolio={statsData.total_portfolio}
             />
 
             {/* Collection Performance */}
             <CollectionTarget
-              monthlyTarget={stats?.monthly_target || 0}
-              monthlyCollected={stats?.monthly_collected || 0}
-              collectionRate={stats?.collection_rate || 0}
+              monthlyTarget={statsData.monthly_target}
+              monthlyCollected={statsData.monthly_collected}
+              collectionRate={statsData.collection_rate}
             />
 
             {/* Recent Activities */}
@@ -249,9 +266,9 @@ const Dashboard: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Top Collectors</h3>
                 <ArrowRight className="h-4 w-4 text-gray-400" />
               </div>
-              {stats?.top_collectors && stats.top_collectors.length > 0 ? (
+              {statsData.top_collectors && statsData.top_collectors.length > 0 ? (
                 <div className="space-y-3">
-                  {stats.top_collectors.slice(0, 5).map((collector, idx) => (
+                  {statsData.top_collectors.slice(0, 5).map((collector, idx) => (
                     <div key={idx} className="flex items-center justify-between pb-3 border-b last:border-b-0">
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">{collector.name}</p>

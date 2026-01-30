@@ -2,12 +2,8 @@
 import { useState, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { mpesaAPI } from '@/lib/api/mpesa'
-import {
+import type {
   STKPushRequest,
-  MpesaPayment,
-  MpesaTransaction,
-  PaymentSummary,
-  PaginatedResponse,
   PaymentHistoryParams,
   TransactionListParams,
   PaymentRetryRequest,
@@ -297,3 +293,5 @@ export const useMpesa = () => {
     clearSummaryState
   }
 }
+
+export default useMpesa

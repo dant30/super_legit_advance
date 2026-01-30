@@ -11,7 +11,6 @@ import {
   clearError,
   setCurrentPage,
   addNotification,
-  updateNotification,
   markAsRead,
 } from '@/store/slices/notificationSlice'
 import { notificationsAPI } from '@/lib/api/notifications'
@@ -21,15 +20,11 @@ import type {
   SMSLog,
   NotificationStats,
   SMSStats,
-  NotificationListResponse,
-  TemplateListResponse,
-  SMSLogListResponse,
   CreateNotificationPayload,
   UpdateTemplatePayload,
   CreateTemplatePayload,
   BulkNotificationPayload,
   TestNotificationPayload,
-  TemplatePreviewPayload,
   NotificationFilters,
   TemplateFilters,
   SMSLogFilters,
@@ -123,18 +118,15 @@ export const useNotifications = (): UseNotificationsReturn => {
 
   /* ===== DIRECT API - NOTIFICATIONS ===== */
 
-  const createNotification = useCallback(
-    async (data: CreateNotificationPayload) => {
-      try {
-        const notification = await notificationsAPI.createNotification(data)
-        dispatch(addNotification(notification))
-        return notification
-      } catch (error) {
-        throw error
-      }
-    },
-    [dispatch]
-  )
+  const createNotification = useCallback(async (data: CreateNotificationPayload) => {
+    try {
+      const notification = await notificationsAPI.createNotification(data)
+      dispatch(addNotification(notification))
+      return notification
+    } catch (error) {
+      throw error
+    }
+  }, [dispatch])
 
   const sendNotification = useCallback(async (id: number) => {
     try {

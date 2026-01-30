@@ -1,10 +1,14 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import Toast, { ToastProps } from './Toast'
-import { v4 as uuidv4 } from 'uuid'
+
+// Simple UUID generator (no external dependency needed)
+const generateId = (): string => {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+}
 
 type ToastInput = Omit<Partial<ToastProps>, 'id' | 'onClose'> & { message: string }
 
-type ToastContextValue = {
+interface ToastContextValue {
   addToast: (t: ToastInput) => string
   removeToast: (id: string) => void
 }
@@ -20,9 +24,14 @@ export const useToast = () => {
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Array<ToastProps & { id: string }>>([])
 
-  const addToast = useCallback((t: ToastInput) => {
-    const id = uuidv4()
-    setToasts(prev => [...prev, { ...t, id, onClose: () => removeToast(id) }])
+  const addToast = useCallback((t: ToastInput): string => {
+    const id = generateId()
+    const newToast: ToastProps & { id: string } = {
+      ...t,
+      id,
+      onClose: () => removeToast(id),
+    }
+    setToasts(prev => [...prev, newToast])
     return id
   }, [])
 
@@ -30,14 +39,16 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToasts(prev => prev.filter(t => t.id !== id))
   }, [])
 
-  const value = useMemo(() => ({ addToast, removeToast }), [addToast, removeToast])
+  const value: ToastContextValue = useMemo(() => ({ addToast, removeToast }), [addToast, removeToast])
 
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 space-y-2">
+      <div className="fixed bottom-4 right-4 z-50 space-y-2 pointer-events-none">
         {toasts.map(toast => (
-          <Toast key={toast.id} {...toast} />
+          <div key={toast.id} className="pointer-events-auto">
+            <Toast {...toast} />
+          </div>
         ))}
       </div>
     </ToastContext.Provider>
