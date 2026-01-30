@@ -1,4 +1,5 @@
 // frontend/src/components/shared/Error.tsx
+// frontend/src/components/shared/Error.tsx
 import React from 'react'
 import { AlertCircle } from 'lucide-react'
 import clsx from 'clsx'
@@ -6,7 +7,8 @@ import type { FallbackProps } from 'react-error-boundary'
 
 type ErrorVariant = 'default' | 'danger' | 'warning' | 'info'
 
-export interface ErrorProps extends FallbackProps {
+export interface ErrorProps extends Omit<FallbackProps, 'error'> {
+  error: unknown
   title?: string
   message?: string
   variant?: ErrorVariant
@@ -26,8 +28,12 @@ const Error: React.FC<ErrorProps> = ({
   className = '',
 }) => {
   const resolvedMessage =
-    message ||
-    (error instanceof Error ? error.message : 'An unexpected error occurred.')
+    message ??
+    (error && typeof error === 'object' && 'message' in error
+      ? String((error as any).message)
+      : typeof error === 'string'
+      ? error
+      : 'An unexpected error occurred.')
 
   const handleRetry = retry ?? resetErrorBoundary
 
@@ -51,11 +57,7 @@ const Error: React.FC<ErrorProps> = ({
 
   const content = (
     <div
-      className={clsx(
-        'rounded-lg border p-4',
-        variants[variant],
-        className
-      )}
+      className={clsx('rounded-lg border p-4', variants[variant], className)}
       role="alert"
     >
       <div className="flex items-start gap-3">

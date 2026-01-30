@@ -18,12 +18,10 @@ import {
   getRiskAssessment,
   setCurrentReport,
   setFilterParams,
-  clearFilterParams,  // ✅ ADD THIS
-  clearReportData,    // ✅ ADD THIS
+  clearFilterParams,  // ✅ KEEP
+  clearReportData,    // ✅ KEEP
   clearError,
-  clearSuccess,
-  setSelectedFormat,
-  setGenerationProgress,
+  // removed unused: clearSuccess, setSelectedFormat, setGenerationProgress
 } from '@/store/slices/reportSlice'
 import { RootState } from '@/store/store'
 import {

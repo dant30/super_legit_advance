@@ -58,12 +58,12 @@ const initialState: NotificationState = {
  */
 export const fetchNotifications = createAsyncThunk(
   'notifications/fetchNotifications',
-  async (params?: any, { rejectWithValue } = {} as any) => {
+  async (params: any = {}, thunkAPI) => {
     try {
       const response = await notificationsAPI.getNotifications(params)
       return response
     } catch (error: any) {
-      return rejectWithValue(
+      return thunkAPI.rejectWithValue(
         error.response?.data?.detail ||
         error.message ||
         'Failed to fetch notifications'
@@ -77,14 +77,14 @@ export const fetchNotifications = createAsyncThunk(
  */
 export const fetchStats = createAsyncThunk(
   'notifications/fetchStats',
-  async (params?: { days?: number }, { rejectWithValue }) => {
+  async (params: { days?: number } = {}, thunkAPI) => {
     try {
       const response = await notificationsAPI.getStats(params)
       return response
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.detail || 
-        error.message || 
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.detail ||
+        error.message ||
         'Failed to fetch notification statistics'
       )
     }
@@ -96,12 +96,12 @@ export const fetchStats = createAsyncThunk(
  */
 export const fetchTemplates = createAsyncThunk(
   'notifications/fetchTemplates',
-  async (params?: TemplateFilters, { rejectWithValue } = {} as any) => {
+  async (params: TemplateFilters | undefined = undefined, thunkAPI) => {
     try {
       const response = await notificationsAPI.getTemplates(params)
       return response.results
     } catch (error: any) {
-      return rejectWithValue(
+      return thunkAPI.rejectWithValue(
         error.response?.data?.detail ||
         error.message ||
         'Failed to fetch templates'
@@ -115,12 +115,12 @@ export const fetchTemplates = createAsyncThunk(
  */
 export const fetchSMSLogs = createAsyncThunk(
   'notifications/fetchSMSLogs',
-  async (params?: any, { rejectWithValue } = {} as any) => {
+  async (params: any = {}, thunkAPI) => {
     try {
       const response = await notificationsAPI.getSMSLogs(params)
       return response.results
     } catch (error: any) {
-      return rejectWithValue(
+      return thunkAPI.rejectWithValue(
         error.response?.data?.detail ||
         error.message ||
         'Failed to fetch SMS logs'
@@ -134,12 +134,12 @@ export const fetchSMSLogs = createAsyncThunk(
  */
 export const fetchSMSStats = createAsyncThunk(
   'notifications/fetchSMSStats',
-  async (params?: { days?: number }, { rejectWithValue } = {} as any) => {
+  async (params: { days?: number } = {}, thunkAPI) => {
     try {
       const response = await notificationsAPI.getSMSStats(params)
       return response
     } catch (error: any) {
-      return rejectWithValue(
+      return thunkAPI.rejectWithValue(
         error.response?.data?.detail ||
         error.message ||
         'Failed to fetch SMS statistics'
