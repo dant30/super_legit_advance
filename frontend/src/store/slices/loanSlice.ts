@@ -204,7 +204,7 @@ export const calculateLoan = createAsyncThunk(
 
 export const fetchLoanStats = createAsyncThunk(
   'loans/fetchLoanStats',
-  async (_params: any = {}, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {  // ✅ Has default params
     try {
       return await loansAPI.getLoanStats()
     } catch (error: any) {

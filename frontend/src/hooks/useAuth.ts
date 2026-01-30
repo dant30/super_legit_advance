@@ -45,6 +45,11 @@ interface UseAuthReturn {
   isVerified: () => boolean
   isLocked: () => boolean
   requires2FA: () => boolean
+
+  // Staff-specific checks
+  canApproveLoanAmount: (amount: number) => boolean
+  isStaffAvailable: () => boolean
+  isStaffOnLeave: () => boolean
 }
 
 type UserRole = 'admin' | 'staff' | 'officer' | 'customer'
@@ -247,7 +252,7 @@ export const useAuth = (): UseAuthReturn => {
 
   return {
     // State
-    user: authState.user,
+    user: authState.user || null,
     isAuthenticated: authState.isAuthenticated,
     isLoading: authState.isLoading,
     isRefreshing: authState.isRefreshing,
@@ -278,7 +283,7 @@ export const useAuth = (): UseAuthReturn => {
     isLocked: isUserLocked,
     requires2FA: requiresTwoFactor,
 
-    // Additional checks
+    // Staff-specific checks
     canApproveLoanAmount,
     isStaffAvailable,
     isStaffOnLeave,

@@ -1,7 +1,6 @@
 // frontend/src/hooks/useReports.ts
 
 import { useCallback, useRef } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
   fetchReports,
@@ -19,8 +18,6 @@ import {
   getRiskAssessment,
   setCurrentReport,
   setFilterParams,
-  clearFilterParams,
-  clearReportData,
   clearError,
 } from '@/store/slices/reportSlice'
 import { RootState } from '@/store/store'
@@ -37,7 +34,6 @@ export const useReports = () => {
   const dispatch = useAppDispatch()
   const downloadAbortRef = useRef<AbortController | null>(null)
 
-  // Selectors
   const {
     reports,
     currentReport,
@@ -439,7 +435,6 @@ export const useReports = () => {
     // Exports
     exportPDF,
     exportExcel,
-    quickExport,
 
     // Filters & State
     updateFilters,
@@ -447,15 +442,6 @@ export const useReports = () => {
     selectReport,
     clearCurrentReport,
     handleError,
-
-    // Utilities
-    getReportFilters,
-    buildReportParams,
-    formatReportData,
-
-    // Batch Operations
-    generateMultipleReports,
-    exportMultipleFormats,
 
     // History
     fetchReportHistory,

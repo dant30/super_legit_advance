@@ -10,7 +10,6 @@ import {
   approveLoan,
   rejectLoan,
   disburseLoan,
-  calculateLoan,
   fetchLoanStats,
   fetchLoanApplications,
   fetchLoanApplicationById,
@@ -134,7 +133,7 @@ export const useLoans = () => {
   )
 
   const getStatistics = useCallback(() => {
-    return dispatch(fetchLoanStats())
+    return dispatch(fetchLoanStats({}))  // ✅ Pass empty object
   }, [dispatch])
 
   const exportLoans = useCallback(
