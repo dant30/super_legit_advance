@@ -4,7 +4,6 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { reportsAPI } from '@/lib/api/reports'
 import {
   ReportState,
-  ReportType,
   ReportFormat,
   ReportParameter,
   ReportGenerationRequest,
@@ -31,12 +30,14 @@ const initialState: ReportState = {
 
 export const fetchReports = createAsyncThunk(
   'reports/fetchReports',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await reportsAPI.getReports(params)
       return response.results || []
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch reports')
+      return rejectWithValue(
+        error.response?.data?.error || 'Failed to fetch reports'
+      )
     }
   }
 )
@@ -85,7 +86,7 @@ export const exportToExcel = createAsyncThunk(
 
 export const getLoansReport = createAsyncThunk(
   'reports/getLoansReport',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await reportsAPI.getLoansReport(params)
       return response
@@ -99,7 +100,7 @@ export const getLoansReport = createAsyncThunk(
 
 export const getPaymentsReport = createAsyncThunk(
   'reports/getPaymentsReport',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await reportsAPI.getPaymentsReport(params)
       return response
@@ -113,7 +114,7 @@ export const getPaymentsReport = createAsyncThunk(
 
 export const getCustomersReport = createAsyncThunk(
   'reports/getCustomersReport',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await reportsAPI.getCustomersReport(params)
       return response
@@ -127,7 +128,7 @@ export const getCustomersReport = createAsyncThunk(
 
 export const getPerformanceReport = createAsyncThunk(
   'reports/getPerformanceReport',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await reportsAPI.getPerformanceReport(params)
       return response
@@ -141,7 +142,7 @@ export const getPerformanceReport = createAsyncThunk(
 
 export const getDailySummary = createAsyncThunk(
   'reports/getDailySummary',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await reportsAPI.getDailySummary(params)
       return response
@@ -155,7 +156,7 @@ export const getDailySummary = createAsyncThunk(
 
 export const getMonthlySummary = createAsyncThunk(
   'reports/getMonthlySummary',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await reportsAPI.getMonthlySummary(params)
       return response
@@ -169,7 +170,7 @@ export const getMonthlySummary = createAsyncThunk(
 
 export const getAuditReport = createAsyncThunk(
   'reports/getAuditReport',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await reportsAPI.getAuditReport(params)
       return response
@@ -183,7 +184,7 @@ export const getAuditReport = createAsyncThunk(
 
 export const getCollectionReport = createAsyncThunk(
   'reports/getCollectionReport',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await reportsAPI.getCollectionReport(params)
       return response
@@ -197,7 +198,7 @@ export const getCollectionReport = createAsyncThunk(
 
 export const getRiskAssessment = createAsyncThunk(
   'reports/getRiskAssessment',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await reportsAPI.getRiskAssessment(params)
       return response

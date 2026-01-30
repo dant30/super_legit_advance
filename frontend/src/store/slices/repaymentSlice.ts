@@ -6,7 +6,6 @@ import type {
   RepaymentSchedule,
   Penalty,
   DashboardStats,
-  PaginatedResponse,
 } from '@/lib/api/repayments'
 
 export interface RepaymentState {
@@ -47,7 +46,7 @@ const initialState: RepaymentState = {
 
 export const fetchRepayments = createAsyncThunk(
   'repayments/fetchRepayments',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await repaymentsAPI.getRepayments(params)
       return response
@@ -79,7 +78,10 @@ export const fetchRepayment = createAsyncThunk(
 
 export const fetchSchedules = createAsyncThunk(
   'repayments/fetchSchedules',
-  async ({ loanId, params }: { loanId: number; params?: any }, { rejectWithValue }) => {
+  async (
+    { loanId, params = {} }: { loanId: number; params?: any },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await repaymentsAPI.getSchedules(loanId, params)
       return response
@@ -95,7 +97,7 @@ export const fetchSchedules = createAsyncThunk(
 
 export const fetchPenalties = createAsyncThunk(
   'repayments/fetchPenalties',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await repaymentsAPI.getPenalties(params)
       return response
@@ -127,7 +129,7 @@ export const fetchDashboardStats = createAsyncThunk(
 
 export const fetchOverdueRepayments = createAsyncThunk(
   'repayments/fetchOverdueRepayments',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await repaymentsAPI.getOverdueRepayments(params)
       return response
@@ -143,7 +145,7 @@ export const fetchOverdueRepayments = createAsyncThunk(
 
 export const fetchUpcomingRepayments = createAsyncThunk(
   'repayments/fetchUpcomingRepayments',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any = {}, { rejectWithValue }) => {
     try {
       const response = await repaymentsAPI.getUpcomingRepayments(params)
       return response
