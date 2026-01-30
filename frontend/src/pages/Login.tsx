@@ -25,7 +25,7 @@ const Login: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
 
-  const { isAuthenticated, loading, error } = useSelector(
+  const { isAuthenticated, isLoading, error } = useSelector(
     (state: RootState) => state.auth
   )
 
@@ -48,10 +48,10 @@ const Login: React.FC = () => {
 
   // Redirect after login
   useEffect(() => {
-    if (isAuthenticated && !loading) {
+    if (isAuthenticated && !isLoading) {
       navigate('/dashboard', { replace: true })
     }
-  }, [isAuthenticated, loading, navigate])
+  }, [isAuthenticated, isLoading, navigate])
 
   const togglePasswordVisibility = useCallback(() => {
     setShowPassword(prev => !prev)

@@ -1,5 +1,5 @@
 // frontend/src/store/slices/mpesaSlice.ts
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { mpesaAPI } from '@/lib/api/mpesa'
 import {
   MpesaPayment,
@@ -115,7 +115,7 @@ export const initiateSTKPush = createAsyncThunk(
  */
 export const fetchPaymentHistory = createAsyncThunk(
   'mpesa/fetchPaymentHistory',
-  async (params?: PaymentHistoryParams, { rejectWithValue }) => {
+  async (params?: PaymentHistoryParams, { rejectWithValue } = {} as any) => {
     try {
       const response = await mpesaAPI.getPaymentHistory(params)
       return response
@@ -132,7 +132,7 @@ export const fetchPaymentHistory = createAsyncThunk(
  */
 export const fetchTransactions = createAsyncThunk(
   'mpesa/fetchTransactions',
-  async (params?: TransactionListParams, { rejectWithValue }) => {
+  async (params?: TransactionListParams, { rejectWithValue } = {} as any) => {
     try {
       const response = await mpesaAPI.getTransactions(params)
       return response
@@ -149,7 +149,7 @@ export const fetchTransactions = createAsyncThunk(
  */
 export const fetchPaymentSummary = createAsyncThunk(
   'mpesa/fetchPaymentSummary',
-  async (days?: number, { rejectWithValue }) => {
+  async (days?: number, { rejectWithValue } = {} as any) => {
     try {
       const response = await mpesaAPI.getPaymentSummary(days)
       return response
@@ -167,13 +167,11 @@ export const fetchPaymentSummary = createAsyncThunk(
 export const fetchPaymentStatus = createAsyncThunk(
   'mpesa/fetchPaymentStatus',
   async (
-    {
-      paymentReference,
-      checkoutRequestId
-    }: { paymentReference?: string; checkoutRequestId?: string },
-    { rejectWithValue }
+    payload: { paymentReference?: string; checkoutRequestId?: string } = {},
+    { rejectWithValue } = {} as any
   ) => {
     try {
+      const { paymentReference, checkoutRequestId } = payload
       const response = await mpesaAPI.getPaymentStatus(paymentReference, checkoutRequestId)
       return response
     } catch (error: any) {
@@ -189,7 +187,7 @@ export const fetchPaymentStatus = createAsyncThunk(
  */
 export const fetchTransaction = createAsyncThunk(
   'mpesa/fetchTransaction',
-  async (receiptNumber: string, { rejectWithValue }) => {
+  async (receiptNumber: string, { rejectWithValue } = {} as any) => {
     try {
       const response = await mpesaAPI.getTransaction(receiptNumber)
       return response
