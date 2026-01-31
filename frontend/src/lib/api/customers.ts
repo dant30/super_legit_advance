@@ -275,9 +275,21 @@ class CustomerAPI {
 
   async getCustomers(params?: CustomerListParams): Promise<CustomerListResponse> {
     try {
-      const response = await axiosInstance.get<CustomerListResponse>(this.baseURL, {
+      const response = await axiosInstance.get<any>(this.baseURL, {
         params,
       })
+      
+      // ✅ FIXED: Handle new response format with { success, data, pagination }
+      if (response.data.success && response.data.data) {
+        return {
+          results: response.data.data,
+          count: response.data.pagination.total,
+          next: response.data.pagination.next || null,
+          previous: response.data.pagination.previous || null,
+        }
+      }
+      
+      // Fallback for old format
       return response.data
     } catch (error) {
       console.error('Error fetching customers:', error)
@@ -287,7 +299,13 @@ class CustomerAPI {
 
   async getCustomer(id: string): Promise<CustomerDetailResponse> {
     try {
-      const response = await axiosInstance.get<CustomerDetailResponse>(`${this.baseURL}/${id}/`)
+      const response = await axiosInstance.get<any>(`${this.baseURL}/${id}/`)
+      
+      // Handle response format
+      if (response.data.success && response.data.data) {
+        return response.data.data
+      }
+      
       return response.data
     } catch (error) {
       console.error('Error fetching customer:', error)

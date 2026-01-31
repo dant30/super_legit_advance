@@ -15,7 +15,6 @@ import { Error } from '@/components/shared/Error'
 import { Breadcrumbs } from '@/components/shared/Breadcrumbs'
 import { Pagination } from '@/components/shared/Pagination'
 import { useToast } from '@/components/ui/Toast/useToast'
-
 import toast from 'react-hot-toast'
 import type { Customer, CustomerListParams } from '@/types/customers'
 
@@ -51,19 +50,24 @@ const CustomerList: React.FC = () => {
 
   const loadCustomers = async () => {
     try {
-      await fetchCustomers(filters)
+      console.log('Loading customers with filters:', filters)
+      const result = await fetchCustomers(filters)
+      console.log('Customers loaded:', result)
     } catch (error: any) {
+      console.error('Failed to load customers:', error)
       toast.error(error.message || 'Failed to load customers')
     }
   }
 
   const loadStats = async () => {
     try {
-      const statsData = await getCustomerStats()
-      setStats(statsData)
+      const result = await getCustomerStats()
+      console.log('Stats loaded:', result)
+      if (result?.payload) {
+        setStats(result.payload)
+      }
     } catch (error: any) {
       console.error('Failed to load stats:', error)
-      toast.error('Failed to load statistics')
     }
   }
 
@@ -96,7 +100,7 @@ const CustomerList: React.FC = () => {
     setFilters(prev => ({ 
       ...prev, 
       page_size: size, 
-      page: 1  // Reset to first page when changing page size
+      page: 1
     }))
   }
 
@@ -136,8 +140,6 @@ const CustomerList: React.FC = () => {
   const handleBlacklist = async (customer: Customer) => {
     const reason = prompt('Enter reason for blacklisting:')
     if (reason) {
-      // You'll need to implement this in your hook
-      // await blacklistCustomer(customer.id, reason)
       toast.success(`Customer ${customer.full_name} has been blacklisted`)
     }
   }
@@ -147,13 +149,15 @@ const CustomerList: React.FC = () => {
     { label: 'Customers', href: '/customers' }
   ]
 
-  // Calculate pagination values with fallbacks
+  // ✅ FIXED: Ensure customers is an array
+  const customersList = Array.isArray(customers) ? customers : []
+  
   const totalItems = customersPagination?.total || 0
   const totalPages = customersPagination?.total_pages || 1
   const currentPage = customersPagination?.page || 1
   const pageSize = filters.page_size || 20
 
-  if (customersLoading && (!customers || customers.length === 0)) {
+  if (customersLoading && customersList.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Loading message="Loading customers..." />
@@ -218,8 +222,9 @@ const CustomerList: React.FC = () => {
             )}
 
             <div className="px-4">
+              {/* ✅ FIXED: Explicitly pass customers array */}
               <CustomerTable
-                customers={Array.isArray(customers) ? customers : []}
+                customers={customersList}
                 loading={customersLoading || searchLoading}
                 onViewDetail={handleViewDetail}
                 onEdit={handleEditCustomer}
@@ -227,7 +232,6 @@ const CustomerList: React.FC = () => {
               />
             </div>
 
-            {/* Enhanced Pagination with all features */}
             {totalItems > 0 && (
               <div className="mt-6 border-t">
                 <Pagination
@@ -237,8 +241,7 @@ const CustomerList: React.FC = () => {
                   pageSize={pageSize}
                   onPageChange={handlePageChange}
                   onPageSizeChange={handlePageSizeChange}
-                  className="border-none" // Remove border since Card already has border
-                  // Enhanced features
+                  className="border-none"
                   showPageSize={true}
                   showInfo={true}
                   showFirstLast={true}

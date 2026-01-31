@@ -120,7 +120,8 @@ export const fetchCustomers = createAsyncThunk(
   'customers/fetchCustomers',
   async (params: CustomerListParams, { rejectWithValue }) => {
     try {
-      return await customerAPI.getCustomers(params)
+      const result = await customerAPI.getCustomers(params)
+      return result
     } catch (error: any) {
       return rejectWithValue(error.response?.data || 'Failed to fetch customers')
     }
@@ -362,12 +363,13 @@ const customerSlice = createSlice({
       })
       .addCase(fetchCustomers.fulfilled, (state, action) => {
         state.customersLoading = false
-        state.customers = action.payload.results
+        // ✅ FIXED: Handle the response structure
+        state.customers = action.payload.results || []
         state.customersPagination = {
-          page: 1,
-          page_size: 20,
-          total: action.payload.count,
-          total_pages: Math.ceil(action.payload.count / 20),
+          page: action.payload.pagination?.current_page || 1,
+          page_size: action.payload.pagination?.per_page || 20,
+          total: action.payload.count || 0,
+          total_pages: action.payload.pagination?.total_pages || 1,
         }
       })
       .addCase(fetchCustomers.rejected, (state, action) => {
