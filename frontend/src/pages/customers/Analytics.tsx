@@ -4,6 +4,7 @@ import { useCustomers } from '@/hooks/useCustomers'
 import { Card } from '@/components/ui/Card'
 import { Breadcrumbs } from '@/components/shared/Breadcrumbs'
 import { Loading } from '@/components/shared/Loading'
+import { Select } from '@/components/ui/Select/Select'
 import { 
   BarChart, 
   Bar, 
@@ -76,16 +77,19 @@ const CustomerAnalytics: React.FC = () => {
             <p className="text-gray-600 mt-2">Insights and statistics about your customers</p>
           </div>
           <div className="flex space-x-2">
-            <select
+            <Select
               value={timeRange}
-              onChange={(e) => setTimeRange(e.target.value as any)}
-              className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="week">Last Week</option>
-              <option value="month">Last Month</option>
-              <option value="quarter">Last Quarter</option>
-              <option value="year">Last Year</option>
-            </select>
+              onValueChange={(value) => setTimeRange(value as any)}
+              options={[
+                { value: 'week', label: 'Last Week' },
+                { value: 'month', label: 'Last Month' },
+                { value: 'quarter', label: 'Last Quarter' },
+                { value: 'year', label: 'Last Year' },
+              ]}
+              placeholder="Select time range"
+              uiSize="md"
+              className="w-40" // Add appropriate width
+            />
           </div>
         </div>
       </div>
