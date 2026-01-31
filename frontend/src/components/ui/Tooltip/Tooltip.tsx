@@ -14,7 +14,7 @@ export interface TooltipProps {
   offset?: number
 }
 
-const Tooltip: React.FC<TooltipProps> = ({
+export const Tooltip: React.FC<TooltipProps> = ({
   children,
   content,
   position = 'top',
@@ -142,5 +142,3 @@ const Tooltip: React.FC<TooltipProps> = ({
     </>
   )
 }
-
-export default Tooltip

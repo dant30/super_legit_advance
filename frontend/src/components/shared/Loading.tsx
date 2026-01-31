@@ -3,7 +3,7 @@ import React from 'react'
 import { Loader2 } from 'lucide-react'
 import clsx from 'clsx'
 
-interface LoadingProps {
+export interface LoadingProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
   text?: string
   fullScreen?: boolean
@@ -11,7 +11,7 @@ interface LoadingProps {
   className?: string
 }
 
-const Loading: React.FC<LoadingProps> = ({
+export const Loading: React.FC<LoadingProps> = ({
   size = 'md',
   text,
   fullScreen = false,
@@ -26,11 +26,13 @@ const Loading: React.FC<LoadingProps> = ({
   }
 
   const spinner = (
-    <div className={clsx(
-      'flex flex-col items-center justify-center',
-      !inline && 'p-6',
-      className
-    )}>
+    <div
+      className={clsx(
+        'flex flex-col items-center justify-center gap-2',
+        !inline && 'p-6',
+        className
+      )}
+    >
       <Loader2
         className={clsx(
           sizeClasses[size],
@@ -40,10 +42,12 @@ const Loading: React.FC<LoadingProps> = ({
         aria-hidden="true"
       />
       {text && (
-        <p className={clsx(
-          'mt-3 text-sm text-gray-600 dark:text-gray-400',
-          inline && 'ml-2'
-        )}>
+        <p
+          className={clsx(
+            'mt-2 text-sm text-gray-600 dark:text-gray-400 text-center',
+            inline && 'ml-2'
+          )}
+        >
           {text}
         </p>
       )}
@@ -66,7 +70,10 @@ const Loading: React.FC<LoadingProps> = ({
     return (
       <div className="inline-flex items-center gap-2">
         <Loader2
-          className={clsx(sizeClasses.sm, 'animate-spin text-primary-600 dark:text-primary-400')}
+          className={clsx(
+            sizeClasses[size],
+            'animate-spin text-primary-600 dark:text-primary-400'
+          )}
           aria-hidden="true"
         />
         {text && <span className="text-sm text-gray-600 dark:text-gray-400">{text}</span>}
@@ -77,4 +84,4 @@ const Loading: React.FC<LoadingProps> = ({
   return spinner
 }
 
-export default Loading
+// export default Loading

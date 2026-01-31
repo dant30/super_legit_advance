@@ -321,12 +321,20 @@ super_legit_advance/
 │       │   │   ├── Toast/
 │       │   │   │   ├── Toast.tsx
 |       |   |   |   ├── ToastProvider.tsx
+│       │   │   │   ├── useToast.tsx
 │       │   │   │   └── index.ts
 │       │   │   ├── Tabs/
 │       │   │   │   ├── Tabs.tsx
 │       │   │   │   └── index.ts
 │       │   │   |── Accordion/
 │       │   │   |   ├── Accordion.tsx
+│       │   │   |   └── index.ts
+│       │   │   |── RadioGroup/
+│       │   │   |   ├── RadioGroup.tsx
+│       │   │   |   ├── RadioGroupItem.tsx
+│       │   │   |   └── index.ts
+│       │   │   |── Label/
+│       │   │   |   ├── Label.tsx
 │       │   │   |   └── index.ts
 │       │   │   ├── Theme/
 │       │   │   │   ├── ThemeInitializer.tsx
@@ -343,98 +351,86 @@ super_legit_advance/
 │       │   │   ├── Breadcrumbs.tsx            
 │       │   │   └── FileUpload.tsx
 │       │   ├── dashboard/
-│       │   |   ├── LoanOverview.tsx              # Loan summary widget
-│       │   |   ├── CollectionTarget.tsx          # Collection progress
-│       │   |   ├── CustomerStats.tsx             # Customer metrics
-│       │   |   ├── RecentActivities.tsx          # Activity feed
-│       │   |   ├── PendingTasks.tsx              # Task list
-│       │   |   └── PerformanceMetrics.tsx        # Staff performance
+│       │   |   ├── component1.tsx        
+│       │   |   ├── component2.tsx          
+│       │   |   └── component_n.tsx
 │       │   ├── reports/
-│       │   │   ├── Charts/
-│       │   │   │   ├── LoanStatusChart.tsx        # Pie/Donut chart
-│       │   │   │   ├── RepaymentTrends.tsx        # Line chart
-│       │   │   │   ├── CustomerGrowthChart.tsx    # Bar chart
-│       │   │   │   ├── CollectionPerformance.tsx  # Area chart
-│       │   │   │   └── DelinquencyHeatmap.tsx     # Calendar heatmap
-│       │   │   ├── Filters/
-│       │   │   │   ├── DateRangeFilter.tsx
-│       │   │   │   ├── StatusFilter.tsx
-│       │   │   │   ├── StaffFilter.tsx
-│       │   │   │   ├── CustomerFilter.tsx
-│       │   │   │   └── ExportButtons.tsx          # Excel/PDF/CSV export
-│       │   │   ├── print/
-│       │   │   |   ├── ReportHeader.tsx
-│       │   │   |   ├── ReportFooter.tsx
-│       │   │   |   └── PrintLayout.tsx
-│       │   │   ├── Metrics/
-│       │   │   │   ├── KpiCards.tsx               # KPI summary cards
-│       │   │   │   ├── ComparisonChart.tsx        # YoY/MoM comparisons
-│       │   │   │   ├── TrendIndicator.tsx         # Up/down indicators
-│       │   │   │   └── GoalTracker.tsx            # Progress toward goals
-│       │   │   └── Tables/
-│       │   │       ├── ReportTable.tsx            # Configurable data table
-│       │   │       ├── SummaryTable.tsx           # Aggregated data
-│       │   │       └── DetailTable.tsx            # Detailed view
+│       │   │   ├── folder1/
+│       │   │   │   ├── component1.tsx 
+│       │   │   │   ├── component2.tsx   
+│       │   │   │   └── component_n.tsx  
+│       │   │   ├── folder2/
+│       │   │   │   ├── component1.tsx 
+│       │   │   │   ├── component2.tsx   
+│       │   │   │   └── component_n.tsx    
+│       │   │   ├── folder3/
+│       │   │   │   ├── component1.tsx 
+│       │   │   │   ├── component2.tsx   
+│       │   │   │   └── component_n.tsx  
+│       │   │   └── folder4/
+│       │   │       ├── component1.tsx 
+│       │   │       ├── component2.tsx   
+│       │   │       └── component_n.tsx         
 │       │   ├── loans/
-│       │   │   ├── LoanForm.tsx
-│       │   │   ├── LoanTable.tsx
-│       │   │   ├── LoanCard.tsx
-│       │   │   |── Calculator.tsx
-│       │   │   ├── ApplicationWizard.tsx          # Multi-step loan application
-│       │   │   ├── CollateralManager.tsx          # Collateral tracking
-│       │   │   ├── RiskCalculator.tsx             # Risk assessment
-│       │   │   ├── ApprovalWorkflow.tsx           # Approval process steps
-│       │   │   ├── DisbursementTracker.tsx        # Disbursement status
-│       │   │   └── LoanRestructuring.tsx          # Loan modification
+│       │   |   ├── component1.tsx        
+│       │   |   ├── component2.tsx          
+│       │   |   └── component_n.tsx       
 │       │   ├── auth/                 
-│       │   │   ├── PasswordStrength.tsx            # Password strength indicator
-│       │   │   ├── TwoFactorSetup.tsx              # 2FA QR code & setup
-│       │   │   ├── SecurityQuestions.tsx           # Security questions setup
-│       │   │   ├── SessionManager.tsx              # Active sessions
-│       │   │   └── PasswordResetForm.tsx           # Password reset form component
+│       │   |   ├── component1.tsx        
+│       │   |   ├── component2.tsx          
+│       │   |   └── component_n.tsx         
 |       |   ├── admin/
-|       |   |   ├── UserPermissions.tsx            # Permission matrix editor
-|       |   |   ├── RoleManager.tsx                # Drag & drop role permissions
-|       |   |   ├── SystemHealth.tsx               # System monitoring dashboard
-|       |   |   ├── DataExport.tsx                 # Export data controls
-|       |   |   ├── AuditLogViewer.tsx             # Detailed audit log viewer
-|       |   |   └── BackupManager.tsx              # Backup/restore interface
+│       │   │   ├── folder1/
+│       │   │   │   ├── component1.tsx 
+│       │   │   │   ├── component2.tsx   
+│       │   │   │   └── component_n.tsx  
+│       │   │   ├── folder2/
+│       │   │   │   ├── component1.tsx 
+│       │   │   │   ├── component2.tsx   
+│       │   │   │   └── component_n.tsx    
+│       │   │   ├── folder3/
+│       │   │   │   ├── component1.tsx 
+│       │   │   │   ├── component2.tsx   
+│       │   │   │   └── component_n.tsx  
+│       │   │   └── folder4/
+│       │   │       ├── component1.tsx 
+│       │   │       ├── component2.tsx   
+│       │   │       └── component_n.tsx   
 │       │   ├── customers/
-│       │   │   ├── CustomerForm.tsx
-│       │   │   |── CustomerCard.tsx
-│       │   │   ├── CustomerDocuments.tsx          # Document upload/view
-│       │   │   ├── GuarantorManager.tsx           # Add/remove guarantors
-│       │   │   ├── CreditScore.tsx                # Credit score display
-│       │   │   ├── RiskAssessment.tsx             # Risk level calculator
-│       │   │   ├── EmploymentInfo.tsx             # Employment form
-│       │   │   ├── BlacklistForm.tsx              # Blacklist reason form
-│       │   │   └── KYCVerification.tsx            # KYC status tracker
+│       │   |   ├── CustomerTable.tsx         # Main customers table with pagination       
+│       │   |   ├── CustomerCard.tsx          # Compact customer card view
+│       │   |   ├── CustomerFilters.tsx       # Advanced filtering component
+│       │   |   ├── CustomerForm.tsx          # Create/edit form with validation
+│       │   |   ├── CustomerProfile.tsx       # Customer profile summary
+│       │   |   ├── EmploymentForm.tsx        # Employment information form
+│       │   |   ├── GuarantorForm.tsx         # Guarantor creation form
+│       │   |   ├── GuarantorsList.tsx        # Guarantors listing
+│       │   |   ├── CustomerStats.tsx         # Statistics cards
+│       │   |   ├── CustomerSearch.tsx        # Search component with types
+│       │   |   ├── DocumentUpload.tsx        # Document upload component
+│       │   |   ├── StatusBadge.tsx           # Customer status badge
+│       │   |   ├── RiskIndicator.tsx         # Visual risk level indicator
+│       │   |   └── ExportDialog.tsx          # Export options dialog
+|       |   |
 │       │   │── notifications/
-│       │   │   ├── NotificationBell.tsx          # Notification dropdown
-│       │   │   ├── SMSComposer.tsx               # SMS message composer
-│       │   │   ├── TemplateManager.tsx           # Message templates
-│       │   │   ├── BulkMessenger.tsx             # Bulk SMS sending
-│       │   │   └── NotificationSettings.tsx      # User notification prefs
+│       │   |   ├── component1.tsx        
+│       │   |   ├── component2.tsx          
+│       │   |   └── component_n.tsx
 │       │   │── payments/
-│       │   │   ├── PaymentForm.tsx
-│       │   │   |── MpesaPayment.tsx
-│       │   │   ├── PaymentSchedule.tsx            # Interactive schedule
-│       │   │   ├── LatePaymentCalculator.tsx      # Penalty calculator
-│       │   │   ├── MpesaCallbackHandler.tsx       # Mpesa response handler
-│       │   │   ├── ReceiptGenerator.tsx           # Payment receipt
-│       │   │   └── PaymentAllocation.tsx          # How payment is allocated
-│       │   └── search/                        # NEW
-│       │           ├── GlobalSearch.tsx
-│       │           ├── AdvancedFilter.tsx
-│       │           ├── SavedSearches.tsx
-│       │           └── QuickFilters.tsx
+│       │   |   ├── component1.tsx        
+│       │   |   ├── component2.tsx          
+│       │   |   └── component_n.tsx
+│       │   └── staff_settings/                        # NEW
+│       │           ├── component1.tsx
+│       │           ├── component2.tsx
+│       │           └── component_n.tsx
 │       ├── pages/
-│       │   ├── Dashboard.tsx
+│       │   ├── Dashboard.tsx                 #(overview of all pages)
 │       │   ├── Login.tsx
 │       │   ├── NotFound.tsx
 │       │   ├── Unauthorized.tsx
 |       |   ├── ActivityLog.tsx
-|       |   ├── Maintenance.tsx                 # Maintenance mode page
+|       |   ├── Maintenance.tsx                # Maintenance mode page
 │       │   ├── docs/                          # ADD THIS DIRECTORY
 │       │   │   ├── ApiDocumentation.tsx       # API docs with Swagger UI
 │       │   │   ├── UserGuide.tsx              # User manual
@@ -477,41 +473,39 @@ super_legit_advance/
 |       |   |       └── List.tsx 
 │       │   ├── loans/
 │       │   │   ├── routes.tsx
-│       │   │   ├── List.tsx
-│       │   │   ├── Create.tsx
-│       │   │   ├── Detail.tsx
-│       │   │   └── Calculator.tsx
+│       │   │   ├── page1.tsx
+│       │   │   ├── page2.tsx
+│       │   │   └── maybe_page_n.tsx
 │       │   ├── customers/
-│       │   │   ├── routes.tsx
-│       │   │   ├── List.tsx
-│       │   │   ├── Create.tsx
-│       │   │   |── Detail.tsx
-│       │   │   ├── Blacklist.tsx           # Blacklisted customers
-│       │   │   ├── Guarantors.tsx          # Guarantor management
-│       │   │   ├── EmploymentInfo.tsx      # Employment details
-│       │   │   └── Documents.tsx           # Customer documents
+│       │   │   ├── routes.tsx                # Customer routes configuration
+│       │   │   ├── List.tsx                  # Customer list page with search/filters
+│       │   │   ├── Create.tsx                # Create new customer
+│       │   │   ├── Edit.tsx                  # Edit existing customer
+│       │   │   ├── Detail.tsx                # Customer details view
+│       │   │   ├── Employment.tsx            # Employment information page
+│       │   │   ├── Guarantors.tsx            # Manage guarantors
+│       │   │   ├── Import.tsx                # Bulk import customers
+│       │   │   ├── Analytics.tsx             # Customer analytics dashboard
+│       │   │   └── Activity.tsx              # Customer activity/audit log
 │       │   ├── repayments/
 │       │   │   ├── routes.tsx
-│       │   │   ├── List.tsx
-│       │   │   ├── Schedule.tsx
-│       │   │   └── Payment.tsx
+│       │   │   ├── page1.tsx
+│       │   │   ├── page2.tsx
+│       │   │   └── maybe_page_n.tsx
 │       │   ├── reports/
 │       │   │   ├── routes.tsx
-│       │   │   ├── Overview.tsx
-│       │   │   ├── LoansReport.tsx
-│       │   │   ├── CustomerReport.tsx      # Customer statistics
-│       │   │   ├── CollectionReport.tsx    # Collections performance
-│       │   │   ├── DelinquencyReport.tsx   # Delinquent loans report
-│       │   │   |── PerformanceReport.tsx   # Staff performance metrics
-│       │   │   └── PaymentsReport.tsx
+│       │   │   ├── page1.tsx
+│       │   │   ├── page2.tsx
+│       │   │   └── maybe_page_n.tsx
 │       │   ├── notifications/
 │       │   │   ├── routes.tsx
-│       │   │   ├── List.tsx
-│       │   │   └── SendSMS.tsx
-│       │   └── settings/
+│       │   │   ├── page1.tsx
+│       │   │   ├── page2.tsx
+│       │   │   └── maybe_page_n.tsx
+│       │   └── staff_settings/
 │       │       ├── routes.tsx
 │       │       ├── Profile.tsx
-│       │       └── System.tsx
+│       │       └── maybe_page_n.tsx
 │       ├── hooks/
 │       │   ├── useAuth.ts
 │       │   ├── useMediaQuery.ts

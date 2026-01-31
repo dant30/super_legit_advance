@@ -25,7 +25,7 @@ interface MenuItem {
   icon: React.ReactNode
   path: string
   exact?: boolean
-  subItems?: { title: string; path: string; badge?: number }[]
+  subItems?: Array<{ title: string; path: string; badge?: number }>
   badge?: number
 }
 
@@ -40,7 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
   const isAdmin = user?.is_superuser || user?.is_staff
 
-  // Fetch dashboard stats (simplified)
+  // Fetch dashboard stats
   const { data: stats } = useQuery({
     queryKey: ['dashboardStats'],
     queryFn: async () => {
@@ -51,7 +51,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         ])
         return {
           ...repaymentsResp.data,
-          pending_loans: loansResp.data.pending_count || 0
+          pending_loans: loansResp.data.pending_count || 0,
+          blacklisted_customers: loansResp.data.blacklisted_count || 0
         }
       } catch (error) {
         return {
@@ -67,28 +68,35 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     staleTime: 1000 * 60 * 5,
   })
 
-  // Menu configuration
+  // ===== MENU CONFIGURATION =====
   const menuItems: MenuItem[] = [
+    // Dashboard
     {
       title: 'Dashboard',
       icon: <Home className="h-5 w-5" />,
       path: '/',
       exact: true,
     },
+
+    // ===== CUSTOMERS =====
     {
       title: 'Customers',
       icon: <Users className="h-5 w-5" />,
       path: '/customers',
       subItems: [
         { title: 'All Customers', path: '/customers' },
-        { title: 'Add Customer', path: '/customers/create' },
+        { title: 'Create Customer', path: '/customers/create' },
         { 
           title: 'Blacklisted', 
-          path: '/customers?status=blacklisted', 
+          path: '/customers?status=BLACKLISTED', 
           badge: stats?.blacklisted_customers || 0 
         },
+        { title: 'Analytics', path: '/customers/analytics' },
+        { title: 'Import', path: '/customers/import' },
       ],
     },
+
+    // ===== LOANS =====
     {
       title: 'Loans',
       icon: <CreditCard className="h-5 w-5" />,
@@ -107,6 +115,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         { title: 'Calculator', path: '/loans/calculator' },
       ],
     },
+
+    // ===== REPAYMENTS =====
     {
       title: 'Repayments',
       icon: <DollarSign className="h-5 w-5" />,
@@ -123,6 +133,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         },
       ],
     },
+
+    // ===== REPORTS =====
     {
       title: 'Reports',
       icon: <BarChart3 className="h-5 w-5" />,
@@ -132,8 +144,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         { title: 'Loans Report', path: '/reports/loans' },
         { title: 'Payments Report', path: '/reports/payments' },
         { title: 'Customer Report', path: '/reports/customers' },
+        { title: 'Collection Report', path: '/reports/collection' },
       ],
     },
+
+    // ===== M-PESA =====
     {
       title: 'M-Pesa',
       icon: <Smartphone className="h-5 w-5" />,
@@ -141,27 +156,32 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       subItems: [
         { title: 'Transactions', path: '/mpesa/transactions' },
         { title: 'STK Push', path: '/mpesa/stk-push' },
+        { title: 'Settings', path: '/mpesa/settings' },
       ],
     },
+
+    // ===== ADMIN SECTION =====
     ...(isAdmin ? [
       {
         title: 'Admin',
         icon: <Shield className="h-5 w-5" />,
         path: '/admin',
         subItems: [
-          { title: 'Staff', path: '/admin/staff' },
-          { title: 'Roles', path: '/admin/roles' },
-          { title: 'Audit Log', path: '/audit' },
+          { title: 'Staff Management', path: '/admin/staff' },
+          { title: 'Roles & Permissions', path: '/admin/roles' },
+          { title: 'Audit Log', path: '/admin/audit' },
+          { title: 'System Health', path: '/admin/health' },
         ],
       },
       {
-        title: 'System',
+        title: 'Settings',
         icon: <Settings className="h-5 w-5" />,
         path: '/settings',
         subItems: [
-          { title: 'General', path: '/settings/general' },
+          { title: 'General Settings', path: '/settings/general' },
           { title: 'Loan Settings', path: '/settings/loans' },
           { title: 'Payment Settings', path: '/settings/payments' },
+          { title: 'System Configuration', path: '/settings/system' },
         ],
       },
     ] : []),
@@ -171,13 +191,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   useEffect(() => {
     const currentPath = location.pathname
     const parentItem = menuItems.find(item => 
-      item.subItems?.some(subItem => subItem.path === currentPath) ||
-      item.path === currentPath
+      item.subItems?.some(subItem => subItem.path === currentPath || currentPath.startsWith(item.path + '/')) ||
+      (item.exact ? item.path === currentPath : currentPath.startsWith(item.path))
     )
+    
     if (parentItem && !expandedItems.includes(parentItem.path)) {
       setExpandedItems(prev => [...prev, parentItem.path])
     }
-  }, [location.pathname, menuItems, expandedItems])
+  }, [location.pathname])
 
   const toggleExpand = (path: string) => {
     setExpandedItems(prev =>
@@ -240,11 +261,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
             <div key={item.path}>
               {item.subItems ? (
                 <>
+                  {/* Parent Item with Submenu */}
                   <button
                     onClick={() => toggleExpand(item.path)}
                     className={clsx(
                       "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                      "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50"
+                      expandedItems.includes(item.path)
+                        ? "bg-gray-100 dark:bg-slate-700/50 text-gray-900 dark:text-white"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50"
                     )}
                   >
                     <div className="flex items-center gap-3">
@@ -252,22 +276,21 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                         {item.icon}
                       </span>
                       <span>{item.title}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
                       {(item.badge ?? 0) > 0 && (
                         <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-full">
                           {item.badge}
                         </span>
                       )}
-                      <ChevronDown 
-                        className={clsx(
-                          "h-4 w-4 transition-transform duration-200",
-                          expandedItems.includes(item.path) && "rotate-180"
-                        )} 
-                      />
                     </div>
+                    <ChevronDown 
+                      className={clsx(
+                        "h-4 w-4 transition-transform duration-200",
+                        expandedItems.includes(item.path) && "rotate-180"
+                      )} 
+                    />
                   </button>
 
+                  {/* Submenu Items */}
                   {expandedItems.includes(item.path) && (
                     <div className="ml-9 mt-1 space-y-1">
                       {item.subItems.map((subItem) => (
@@ -277,21 +300,19 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                           onClick={handleClick}
                           className={({ isActive }) =>
                             clsx(
-                              "block px-3 py-2 text-sm rounded-lg transition-colors",
+                              "flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors",
                               isActive
                                 ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium"
-                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-700/50"
+                                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700/30"
                             )
                           }
                         >
-                          <div className="flex items-center justify-between">
-                            <span>{subItem.title}</span>
-                            {(subItem.badge ?? 0) > 0 && (
-                              <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-full">
-                                {subItem.badge}
-                              </span>
-                            )}
-                          </div>
+                          <span>{subItem.title}</span>
+                          {(subItem.badge ?? 0) > 0 && (
+                            <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-full">
+                              {subItem.badge}
+                            </span>
+                          )}
                         </NavLink>
                       ))}
                     </div>
@@ -302,12 +323,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                   to={item.path}
                   end={item.exact}
                   onClick={handleClick}
-                  className={({ isActive }) =>
+                  className={({ isActive }: { isActive: boolean }) =>
                     clsx(
-                      "flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      'flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                       isActive
-                        ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50"
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50'
                     )
                   }
                 >
@@ -316,12 +337,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                       {item.icon}
                     </span>
                     <span>{item.title}</span>
+                    {(item.badge ?? 0) > 0 && (
+                      <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-full">
+                        {item.badge}
+                      </span>
+                    )}
                   </div>
-                  {(item.badge ?? 0) > 0 && (
-                    <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-full">
-                      {item.badge}
-                    </span>
-                  )}
                 </NavLink>
               )}
             </div>

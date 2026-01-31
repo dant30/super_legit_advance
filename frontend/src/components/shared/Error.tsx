@@ -17,7 +17,7 @@ export interface ErrorProps extends Omit<FallbackProps, 'error'> {
   className?: string
 }
 
-const Error: React.FC<ErrorProps> = ({
+export const Error: React.FC<ErrorProps> = ({
   title = 'Something went wrong',
   message,
   error,
@@ -93,4 +93,4 @@ const Error: React.FC<ErrorProps> = ({
   return content
 }
 
-export default Error
+//export default Error

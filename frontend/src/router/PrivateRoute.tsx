@@ -2,27 +2,30 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/store/store'
-import Loading from '@/components/shared/Loading'
+import { Loading } from '@/components/shared/Loading'
 
-export default function PrivateRoute() {
+/**
+ * 🔐 PrivateRoute
+ * Waits for auth to resolve before allowing access.
+ * Shows full-screen loader while checking auth.
+ */
+const PrivateRoute = () => {
   const { isAuthenticated, isLoading } = useSelector(
     (state: RootState) => state.auth
   )
 
-  // Auth still being resolved
+  // ⏳ Auth is still being resolved
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loading size="lg" />
-      </div>
-    )
+    return <Loading fullScreen size="xl" text="Checking authentication..." />
   }
 
-  // Auth resolved but user not logged in
+  // 🔒 Auth resolved but user not logged in
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
 
-  // Authenticated → allow access
+  // ✅ Authenticated → allow access
   return <Outlet />
 }
+
+export default PrivateRoute

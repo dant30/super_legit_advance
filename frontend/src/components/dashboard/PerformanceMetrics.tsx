@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import axiosInstance from '@/lib/axios'
 import { Card } from '@/components/ui/Card'
 import { BarChart3, TrendingUp, TrendingDown } from 'lucide-react'
-import Loading from '@/components/shared/Loading'
+import { Loading } from '@/components/shared/Loading'
 
 interface PerformanceData {
   approval_rate: number

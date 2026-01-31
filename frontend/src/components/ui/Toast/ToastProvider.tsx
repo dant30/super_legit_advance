@@ -8,12 +8,12 @@ const generateId = (): string => {
 
 type ToastInput = Omit<Partial<ToastProps>, 'id' | 'onClose'> & { message: string }
 
-interface ToastContextValue {
+export interface ToastContextValue {
   addToast: (t: ToastInput) => string
   removeToast: (id: string) => void
 }
 
-const ToastContext = createContext<ToastContextValue | undefined>(undefined)
+export const ToastContext = createContext<ToastContextValue | undefined>(undefined)
 
 export const useToast = () => {
   const ctx = useContext(ToastContext)

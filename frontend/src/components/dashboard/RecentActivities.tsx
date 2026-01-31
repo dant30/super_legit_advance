@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import axiosInstance from '@/lib/axios'
 import { Card } from '@/components/ui/Card'
 import { Clock, CheckCircle2, AlertCircle, DollarSign } from 'lucide-react'
-import Loading from '@/components/shared/Loading'
+import { Loading } from '@/components/shared/Loading'
 
 interface Activity {
   id: number

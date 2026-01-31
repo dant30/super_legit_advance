@@ -12,7 +12,7 @@ interface BreadcrumbsProps {
   className?: string
 }
 
-const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items = [], className = '' }) => {
+export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items = [], className = '' }) => {
   const location = useLocation()
 
   // Generate breadcrumbs from pathname if items not provided
@@ -56,5 +56,3 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items = [], className = '' })
     </nav>
   )
 }
-
-export default Breadcrumbs

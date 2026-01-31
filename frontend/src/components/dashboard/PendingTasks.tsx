@@ -4,7 +4,7 @@ import axiosInstance from '@/lib/axios'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { CheckCircle2, Clock, AlertCircle, ArrowRight } from 'lucide-react'
-import Loading from '@/components/shared/Loading'
+import { Loading } from '@/components/shared/Loading'
 
 interface Task {
   id: number

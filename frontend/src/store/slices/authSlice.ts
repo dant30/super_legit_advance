@@ -295,7 +295,9 @@ const authSlice = createSlice({
         if (action.payload) {
           state.user = action.payload
           state.isAuthenticated = true
-          state.error = null
+        } else {
+          state.user = null
+          state.isAuthenticated = false
         }
       })
       .addCase(checkAuth.rejected, (state) => {

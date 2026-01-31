@@ -1,3 +1,4 @@
+// frontend/src/components/customers/CustomerStats.tsx
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import axiosInstance from '@/lib/axios'
@@ -19,7 +20,7 @@ interface CustomerStatsData {
   }>
 }
 
-const CustomerStats: React.FC = () => {
+export const CustomerStats: React.FC = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['customerStats'],
     queryFn: async (): Promise<CustomerStatsData> => {
@@ -108,4 +109,4 @@ const CustomerStats: React.FC = () => {
   )
 }
 
-export default CustomerStats
+//export default CustomerStats

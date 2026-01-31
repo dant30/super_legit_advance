@@ -1,5 +1,4 @@
 // fronten/src/main.tsx
-// frontend/src/main.tsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 
@@ -29,13 +28,14 @@ import { HelmetProvider } from 'react-helmet-async'
    Notifications
 -------------------------------- */
 import { Toaster, ToastOptions } from 'react-hot-toast'
+import ToastProvider from '@/components/ui/Toast/ToastProvider'
 
 /* -----------------------------
    App & Store
 -------------------------------- */
 import App from './App'
 import { store } from '@/store/store'
-import ErrorFallback from '@/components/shared/Error'
+import { Error as ErrorFallback } from '@/components/shared/Error'
 
 /* -----------------------------
    Global Styles (ORDER MATTERS)
@@ -43,30 +43,50 @@ import ErrorFallback from '@/components/shared/Error'
 import '@styles/tailwind.css'
 
 /* ======================================================
-   React Query Client
+   React Query Client (HMR-safe)
 ====================================================== */
-export const queryClient = new QueryClient({
-  queryCache: new QueryCache({
-    onError: (error) => {
-      if (import.meta.env.DEV) {
-        console.error('[React Query Error]', error)
-      }
-      // TODO: send to monitoring service in production
+let queryClient: QueryClient
+
+if (import.meta.hot) {
+  queryClient = import.meta.hot.data.queryClient || new QueryClient({
+    queryCache: new QueryCache({
+      onError: (error) => {
+        if (import.meta.env.DEV) console.error('[React Query Error]', error)
+      },
+    }),
+    defaultOptions: {
+      queries: {
+        staleTime: 5 * 60 * 1000,  // 5 minutes
+        gcTime: 10 * 60 * 1000,    // 10 minutes
+        retry: 1,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+      },
+      mutations: { retry: 1 },
     },
-  }),
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 min
-      gcTime: 10 * 60 * 1000,  // Changed from cacheTime
-      retry: 1,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
+  })
+  import.meta.hot.data.queryClient = queryClient
+} else {
+  queryClient = new QueryClient({
+    queryCache: new QueryCache({
+      onError: (error) => {
+        if (import.meta.env.DEV) console.error('[React Query Error]', error)
+      },
+    }),
+    defaultOptions: {
+      queries: {
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        retry: 1,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+      },
+      mutations: { retry: 1 },
     },
-    mutations: {
-      retry: 1,
-    },
-  },
-})
+  })
+}
+
+export { queryClient }
 
 /* ======================================================
    Global Error Capture
@@ -90,13 +110,13 @@ if (typeof window !== 'undefined') {
 }
 
 /* ======================================================
-   Brand Toast Options
+   Toast Options
 ====================================================== */
 const toastOptions: ToastOptions = {
   duration: 5000,
   style: {
-    background: '#1f2937', // neutral-800
-    color: '#f9fafb', // neutral-50
+    background: '#1f2937',
+    color: '#f9fafb',
     fontFamily: 'Inter, system-ui, sans-serif',
     fontWeight: 500,
   },
@@ -109,14 +129,16 @@ const toastOptions: ToastOptions = {
 const Providers: React.FC<React.PropsWithChildren> = ({ children }) => (
   <ErrorBoundary
     FallbackComponent={ErrorFallback}
-    onError={(error, info) =>
-      console.error('[ErrorBoundary]', error, info)
-    }
+    onError={(error, info) => console.error('[ErrorBoundary]', error, info)}
     onReset={() => window.location.reload()}
   >
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <HelmetProvider>{children}</HelmetProvider>
+        <HelmetProvider>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </HelmetProvider>
       </QueryClientProvider>
     </Provider>
   </ErrorBoundary>
@@ -125,7 +147,9 @@ const Providers: React.FC<React.PropsWithChildren> = ({ children }) => (
 /* ======================================================
    Render App
 ====================================================== */
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const root = ReactDOM.createRoot(document.getElementById('root')!)
+
+root.render(
   <React.StrictMode>
     <Providers>
       <BrowserRouter>

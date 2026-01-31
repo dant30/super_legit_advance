@@ -5,53 +5,69 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Helmet } from 'react-helmet-async'
 import { AnimatePresence } from 'framer-motion'
 
-import { RootState } from '@/store/store'
+import type { AppDispatch, RootState } from '@/store/store'
 import { checkAuth } from '@/store/slices/authSlice'
 
 import Layout from '@/components/layout/Layout'
-import Loading from '@/components/shared/Loading'
+import { Loading } from '@/components/shared/Loading'
 import PrivateRoute from '@/router/PrivateRoute'
 import ThemeInitializer from '@/components/ui/Theme/ThemeInitializer'
 
-import { publicRoutes, protectedRoutes, errorRoutes, AppRoute } from '@/router/routes'
+import {
+  publicRoutes,
+  protectedRoutes,
+  errorRoutes,
+  AppRoute,
+} from '@/router/routes'
 
-// 🔹 Recursive route mapper
-const renderRoutes = (routes: AppRoute[]): JSX.Element[] =>
-  routes.map((r) =>
-    r.children ? (
-      <Route path={r.path} element={r.element ?? <Outlet />} key={r.path}>
-        {renderRoutes(r.children)}
+// 🔁 Recursive route mapper (stable keys)
+const renderRoutes = (
+  routes: AppRoute[],
+  parentKey = ''
+): JSX.Element[] =>
+  routes.map((r, index) => {
+    const routeKey =
+      r.path ??
+      (r.index ? `${parentKey}-index-${index}` : `${parentKey}-route-${index}`)
+
+    return r.children ? (
+      <Route
+        key={routeKey}
+        path={r.path}
+        element={r.element ?? <Outlet />}
+      >
+        {renderRoutes(r.children, routeKey)}
       </Route>
     ) : (
       <Route
+        key={routeKey}
         path={r.path}
         element={r.element}
         index={r.index}
-        key={r.path}
       />
     )
-  )
+  })
 
 function App() {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<AppDispatch>()
   const location = useLocation()
+
   const { isLoading, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   )
 
-  // 🔐 Auth check
+  // 🔐 AUTH BOOTSTRAP (runs once on app load)
   useEffect(() => {
-    dispatch(checkAuth() as any)
+    dispatch(checkAuth())
   }, [dispatch])
 
-  // 📊 Analytics
+  // 📊 Analytics (route-based)
   useEffect(() => {
     if (
       import.meta.env.VITE_ENABLE_ANALYTICS &&
       import.meta.env.VITE_GOOGLE_ANALYTICS_ID
     ) {
       import('react-ga4').then((ReactGA) => {
-        // Properly type the module
         const ga = ReactGA as any
         ga.initialize(import.meta.env.VITE_GOOGLE_ANALYTICS_ID)
         ga.send('pageview', {
@@ -61,6 +77,7 @@ function App() {
     }
   }, [location])
 
+  // ⏳ HARD GATE: auth state still resolving
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -73,7 +90,10 @@ function App() {
     <>
       <Helmet>
         <title>Super Legit Advance</title>
-        <meta name="description" content="Advanced loan management system" />
+        <meta
+          name="description"
+          content="Advanced loan management system"
+        />
       </Helmet>
 
       <ThemeInitializer />
@@ -87,21 +107,28 @@ function App() {
           }
         >
           <Routes location={location} key={location.pathname}>
-            {/* 🌍 Public */}
+            {/* 🌍 Public routes */}
             {renderRoutes(publicRoutes)}
 
-            {/* 🔒 Protected */}
+            {/* 🔒 Protected routes */}
             <Route path="/" element={<PrivateRoute />}>
-              <Route element={<Layout />}>{renderRoutes(protectedRoutes)}</Route>
+              <Route element={<Layout />}>
+                {renderRoutes(protectedRoutes)}
+              </Route>
             </Route>
 
-            {/* 🚨 Errors */}
+            {/* 🚨 Error routes */}
             {renderRoutes(errorRoutes)}
 
-            {/* Catch-all */}
+            {/* 🧹 Catch-all */}
             <Route
               path="*"
-              element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />}
+              element={
+                <Navigate
+                  to={isAuthenticated ? '/' : '/login'}
+                  replace
+                />
+              }
             />
           </Routes>
         </Suspense>
