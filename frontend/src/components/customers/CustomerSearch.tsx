@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { SearchType } from '@/types/customers'
 
-interface CustomerSearchProps {
+export interface CustomerSearchProps {
   onSearch: (query: string, type?: SearchType) => void
   placeholder?: string
 }

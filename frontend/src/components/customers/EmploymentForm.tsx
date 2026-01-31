@@ -15,7 +15,7 @@ import {
 } from '@/types/customers'
 import type { EmploymentCreateData } from '@/types/customers'
 
-const employmentSchema = z.object({
+export const employmentSchema = z.object({
   employment_type: z.enum(['EMPLOYED', 'SELF_EMPLOYED', 'UNEMPLOYED', 'STUDENT', 'RETIRED']),
   sector: z.string().min(1, 'Sector is required'),
   occupation: z.string().min(1, 'Occupation is required'),
@@ -67,7 +67,7 @@ interface EmploymentFormProps {
   onCancel: () => void
 }
 
-const EmploymentForm: React.FC<EmploymentFormProps> = ({
+export const EmploymentForm: React.FC<EmploymentFormProps> = ({
   initialData,
   onSubmit,
   onCancel
@@ -364,4 +364,4 @@ const EmploymentForm: React.FC<EmploymentFormProps> = ({
   )
 }
 
-export default EmploymentForm
+// export default EmploymentForm

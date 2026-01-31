@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useToast } from '@/components/ui/Toast/useToast'
 
-interface DocumentUploadProps {
+export interface DocumentUploadProps {
   customerId: string
   existingDocuments: {
     id_document?: string
@@ -14,7 +14,7 @@ interface DocumentUploadProps {
   onUploadComplete?: () => void
 }
 
-const DocumentUpload: React.FC<DocumentUploadProps> = ({
+export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   customerId,
   existingDocuments,
   onUploadComplete
@@ -212,4 +212,4 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   )
 }
 
-export default DocumentUpload
+// export default DocumentUpload

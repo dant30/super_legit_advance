@@ -18,7 +18,7 @@ import { Customer } from '@/types/customers'
 import { getStatusColor, formatPhoneNumber } from '@/types/customers'
 import clsx from 'clsx'
 
-interface CustomerCardProps {
+export interface CustomerCardProps {
   customer: Customer
   onEdit?: (customer: Customer) => void
   onBlacklist?: (customer: Customer) => void
@@ -27,7 +27,7 @@ interface CustomerCardProps {
   showActions?: boolean
 }
 
-const CustomerCard: React.FC<CustomerCardProps> = ({
+export const CustomerCard: React.FC<CustomerCardProps> = ({
   customer,
   onEdit,
   onBlacklist,
@@ -225,4 +225,4 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
   )
 }
 
-export default CustomerCard
+// export default CustomerCard

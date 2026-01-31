@@ -3,7 +3,7 @@ import React from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Tooltip } from '@/components/ui/Tooltip'
 
-interface RiskIndicatorProps {
+export interface RiskIndicatorProps {
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'
   showLabel?: boolean
   showTooltip?: boolean

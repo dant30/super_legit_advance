@@ -6,7 +6,7 @@ import { Tooltip } from '@/components/ui/Tooltip'
 import { formatPhoneNumber } from '@/types/customers'
 import type { Guarantor } from '@/types/customers'
 
-interface GuarantorsListProps {
+export interface GuarantorsListProps {
   guarantors: Guarantor[]
   onEdit?: (guarantor: Guarantor) => void
   onDelete?: (guarantor: Guarantor) => void
@@ -15,7 +15,7 @@ interface GuarantorsListProps {
   showActions?: boolean
 }
 
-const GuarantorsList: React.FC<GuarantorsListProps> = ({
+export const GuarantorsList: React.FC<GuarantorsListProps> = ({
   guarantors,
   onEdit,
   onDelete,
@@ -145,4 +145,4 @@ const GuarantorsList: React.FC<GuarantorsListProps> = ({
   )
 }
 
-export default GuarantorsList
+// export default GuarantorsList

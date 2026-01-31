@@ -35,7 +35,7 @@ const guarantorSchema = z.object({
   notes: z.string().optional()
 })
 
-interface GuarantorFormProps {
+export interface GuarantorFormProps {
   initialData?: Partial<GuarantorCreateData>
   onSubmit: (data: GuarantorCreateData) => Promise<void>
   onCancel: () => void
@@ -43,7 +43,7 @@ interface GuarantorFormProps {
   loading?: boolean
 }
 
-const GuarantorForm: React.FC<GuarantorFormProps> = ({
+export const GuarantorForm: React.FC<GuarantorFormProps> = ({
   initialData,
   onSubmit,
   onCancel,
@@ -313,4 +313,4 @@ const GuarantorForm: React.FC<GuarantorFormProps> = ({
   )
 }
 
-export default GuarantorForm
+// export default GuarantorForm

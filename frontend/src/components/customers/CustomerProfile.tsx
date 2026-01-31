@@ -6,11 +6,11 @@ import { RiskIndicator } from './RiskIndicator'
 import { formatPhoneNumber, calculateAge } from '@/types/customers'
 import type { CustomerDetailResponse } from '@/types/customers'
 
-interface CustomerProfileProps {
+export interface CustomerProfileProps {
   customer: CustomerDetailResponse
 }
 
-const CustomerProfile: React.FC<CustomerProfileProps> = ({ customer }) => {
+export const CustomerProfile: React.FC<CustomerProfileProps> = ({ customer }) => {
   return (
     <div className="space-y-6">
       {/* Basic Info */}
@@ -199,4 +199,4 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ customer }) => {
   )
 }
 
-export default CustomerProfile
+// export default CustomerProfile

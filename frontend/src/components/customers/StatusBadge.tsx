@@ -3,7 +3,7 @@ import React from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { getStatusColor } from '@/types/customers'
 
-interface StatusBadgeProps {
+export interface StatusBadgeProps {
   status: string
 }
 
