@@ -123,6 +123,8 @@ interface UseCustomersReturn {
   clearSelectedGuarantor: () => void
   setFilters: (filters: any) => void
   setCustomerPage: (page: number) => void
+  isLoading: boolean
+  error: string | null
 }
 
 export const useCustomers = (): UseCustomersReturn => {
@@ -320,7 +322,6 @@ export const useCustomers = (): UseCustomersReturn => {
 
   /* ===== UTILITY ===== */
 
-  // Clear local error + Redux error
   const clearError = useCallback(() => {
     setError(null)
     dispatch(clearCustomersError())
@@ -386,6 +387,7 @@ export const useCustomers = (): UseCustomersReturn => {
     clearSelectedGuarantor: () => dispatch(clearSelectedGuarantor()),
     setFilters: (filters: any) => dispatch(setFilters(filters)),
     setCustomerPage: (page: number) => dispatch(setCustomerPage(page)),
+    
     // Local helpers
     clearError,
     isLoading,

@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import { useCustomers } from '@/hooks/useCustomers'
 import { CustomerForm } from '@/components/customers/CustomerForm'
 import { Breadcrumbs } from '@/components/shared/Breadcrumbs'
-import { Card } from '@/components/ui/Card'
 import { useToast } from '@/components/ui/Toast/useToast'
 import type { CustomerFormData } from '@/types/customers'
 

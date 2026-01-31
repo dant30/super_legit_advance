@@ -151,7 +151,7 @@ const Login: React.FC = () => {
             Super Legit Advance
           </h1>
           <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            Loan Management System
+            Management System
           </p>
         </div>
 

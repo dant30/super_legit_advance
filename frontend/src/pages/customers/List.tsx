@@ -14,8 +14,7 @@ import { Loading } from '@/components/shared/Loading'
 import { Error } from '@/components/shared/Error'
 import { Breadcrumbs } from '@/components/shared/Breadcrumbs'
 import { Pagination } from '@/components/shared/Pagination'
-import { useToast } from '@/components/ui/Toast/useToast'
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 import type { Customer, CustomerListParams } from '@/types/customers'
 
 const CustomerList: React.FC = () => {
@@ -40,7 +39,6 @@ const CustomerList: React.FC = () => {
   })
   const [stats, setStats] = useState<any>(null)
   const [showExportDialog, setShowExportDialog] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
 
   useEffect(() => {
@@ -50,9 +48,7 @@ const CustomerList: React.FC = () => {
 
   const loadCustomers = async () => {
     try {
-      console.log('Loading customers with filters:', filters)
-      const result = await fetchCustomers(filters)
-      console.log('Customers loaded:', result)
+      await fetchCustomers(filters)
     } catch (error: any) {
       console.error('Failed to load customers:', error)
       toast.error(error.message || 'Failed to load customers')
@@ -62,9 +58,8 @@ const CustomerList: React.FC = () => {
   const loadStats = async () => {
     try {
       const result = await getCustomerStats()
-      console.log('Stats loaded:', result)
-      if (result?.payload) {
-        setStats(result.payload)
+      if (result) {
+        setStats(result)
       }
     } catch (error: any) {
       console.error('Failed to load stats:', error)
@@ -72,7 +67,6 @@ const CustomerList: React.FC = () => {
   }
 
   const handleSearch = async (query: string, type?: string) => {
-    setSearchQuery(query)
     if (query.trim()) {
       setSearchLoading(true)
       try {
@@ -149,9 +143,7 @@ const CustomerList: React.FC = () => {
     { label: 'Customers', href: '/customers' }
   ]
 
-  // ✅ FIXED: Ensure customers is an array
   const customersList = Array.isArray(customers) ? customers : []
-  
   const totalItems = customersPagination?.total || 0
   const totalPages = customersPagination?.total_pages || 1
   const currentPage = customersPagination?.page || 1
@@ -222,7 +214,6 @@ const CustomerList: React.FC = () => {
             )}
 
             <div className="px-4">
-              {/* ✅ FIXED: Explicitly pass customers array */}
               <CustomerTable
                 customers={customersList}
                 loading={customersLoading || searchLoading}

@@ -1,5 +1,5 @@
+// frontend/src/components/ui/RadioGroup/RadioGroupItem.tsx
 import React from 'react'
-import { Circle } from 'lucide-react'
 
 interface RadioGroupItemProps {
   value: string
@@ -30,3 +30,5 @@ export const RadioGroupItem = React.forwardRef<HTMLInputElement, RadioGroupItemP
 )
 
 RadioGroupItem.displayName = 'RadioGroupItem'
+
+export default RadioGroupItem

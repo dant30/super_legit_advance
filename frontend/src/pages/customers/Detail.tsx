@@ -13,9 +13,8 @@ import { Loading } from '@/components/shared/Loading'
 import { Error } from '@/components/shared/Error'
 import { Breadcrumbs } from '@/components/shared/Breadcrumbs'
 import { useToast } from '@/components/ui/Toast/useToast'
-import type { CustomerDetailResponse } from '@/types/customers'
 
-const CustomerDetail: React.FC = () => {
+export const CustomerDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { toast } = useToast()

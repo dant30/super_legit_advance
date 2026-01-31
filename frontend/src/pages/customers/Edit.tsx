@@ -7,7 +7,7 @@ import { Breadcrumbs } from '@/components/shared/Breadcrumbs'
 import { Loading } from '@/components/shared/Loading'
 import { Error } from '@/components/shared/Error'
 import { useToast } from '@/components/ui/Toast/useToast'
-import type { Customer, CustomerUpdateData } from '@/types/customers'
+import type { CustomerUpdateData } from '@/types/customers'
 
 const CustomerEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>()

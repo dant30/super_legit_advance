@@ -3,7 +3,7 @@ import React from 'react'
 import { Card } from '@/components/ui/Card'
 import { StatusBadge } from './StatusBadge'
 import { RiskIndicator } from './RiskIndicator'
-import { formatPhoneNumber, calculateAge } from '@/types/customers'
+import { formatPhoneNumber } from '@/types/customers'
 import type { CustomerDetailResponse } from '@/types/customers'
 
 export interface CustomerProfileProps {
@@ -199,4 +199,4 @@ export const CustomerProfile: React.FC<CustomerProfileProps> = ({ customer }) =>
   )
 }
 
-// export default CustomerProfile
+export default CustomerProfile

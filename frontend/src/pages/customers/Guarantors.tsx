@@ -11,20 +11,19 @@ import { Modal } from '@/components/ui/Modal'
 import { Loading } from '@/components/shared/Loading'
 import { Error } from '@/components/shared/Error'
 import { Breadcrumbs } from '@/components/shared/Breadcrumbs'
-import { useToast } from '@/components/ui/Toast/useToast'
-import type { Guarantor, GuarantorCreateData } from '@/types/customers'
+import { toast } from 'react-hot-toast'
+import type { GuarantorCreateData } from '@/types/customers'
 
 const GuarantorsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { toast } = useToast()
   const { isAdmin } = useAuth()
   const {
     guarantors,
     guarantorsLoading,
     guarantorsError,
     selectedGuarantor,
-    fetchGuarantors,
+    getGuarantors,
     createGuarantor,
     updateGuarantor,
     deleteGuarantor,
@@ -47,7 +46,7 @@ const GuarantorsPage: React.FC = () => {
 
   const loadGuarantors = async () => {
     try {
-      await fetchGuarantors(id!)
+      await getGuarantors(id!)
     } catch (error) {
       console.error('Failed to load guarantors:', error)
     }
@@ -57,54 +56,38 @@ const GuarantorsPage: React.FC = () => {
     if (!id) return
 
     try {
-      await createGuarantor({ customerId: id, data })
-      toast({
-        title: 'Success',
-        description: 'Guarantor added successfully'
-      })
+      await createGuarantor(id, data)
+      toast.success('Guarantor added successfully')
       setShowAddModal(false)
+      loadGuarantors()
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to add guarantor',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Failed to add guarantor')
     }
   }
 
   const handleEditGuarantor = async (guarantorId: string, data: Partial<GuarantorCreateData>) => {
     try {
-      await updateGuarantor({ id: guarantorId, data })
-      toast({
-        title: 'Success',
-        description: 'Guarantor updated successfully'
-      })
+      await updateGuarantor(guarantorId, data)
+      toast.success('Guarantor updated successfully')
       setShowEditModal(false)
       setSelectedGuarantorId(null)
+      loadGuarantors()
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update guarantor',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Failed to update guarantor')
     }
   }
 
-  const handleDeleteGuarantor = async (guarantorId: string) => {
+  const handleDeleteGuarantor = async (guarantor: any) => {
+    const guarantorId = typeof guarantor === 'string' ? guarantor : guarantor.id
+    
     if (!window.confirm('Are you sure you want to delete this guarantor?')) return
 
     try {
       await deleteGuarantor(guarantorId)
-      toast({
-        title: 'Success',
-        description: 'Guarantor deleted successfully'
-      })
+      toast.success('Guarantor deleted successfully')
+      loadGuarantors()
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete guarantor',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Failed to delete guarantor')
     }
   }
 
@@ -112,27 +95,17 @@ const GuarantorsPage: React.FC = () => {
     if (!selectedGuarantorId) return
 
     try {
-      await verifyGuarantor({
-        id: selectedGuarantorId,
-        action: verificationAction,
-        notes: verificationNotes
-      })
+      await verifyGuarantor(selectedGuarantorId, verificationAction, verificationNotes)
       
-      toast({
-        title: 'Success',
-        description: `Guarantor ${verificationAction === 'verify' ? 'verified' : 'rejected'} successfully`
-      })
+      toast.success(`Guarantor ${verificationAction === 'verify' ? 'verified' : 'rejected'} successfully`)
       
       setShowVerifyModal(false)
       setSelectedGuarantorId(null)
       setVerificationAction('verify')
       setVerificationNotes('')
+      loadGuarantors()
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to process verification',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Failed to process verification')
     }
   }
 
@@ -157,8 +130,7 @@ const GuarantorsPage: React.FC = () => {
     return (
       <Error
         message={guarantorsError}
-        onRetry={loadGuarantors}
-        onDismiss={clearGuarantorsError}
+        retry={loadGuarantors}
         actionText="Back to Customer"
         onAction={() => navigate(`/customers/${id}`)}
       />
@@ -187,7 +159,6 @@ const GuarantorsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Active Guarantors */}
       <Card className="mb-8">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
@@ -217,7 +188,7 @@ const GuarantorsPage: React.FC = () => {
                 setSelectedGuarantorId(guarantor.id)
                 setShowEditModal(true)
               }}
-              onDelete={handleDeleteGuarantor}
+              onDelete={(guarantor) => handleDeleteGuarantor(guarantor.id)}
               onVerify={(guarantor) => handleOpenVerifyModal(guarantor.id, 'verify')}
               onReject={(guarantor) => handleOpenVerifyModal(guarantor.id, 'reject')}
             />
@@ -225,7 +196,6 @@ const GuarantorsPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* Inactive Guarantors */}
       {inactiveGuarantors.length > 0 && (
         <Card>
           <div className="p-6">
@@ -236,19 +206,17 @@ const GuarantorsPage: React.FC = () => {
                 setSelectedGuarantorId(guarantor.id)
                 setShowEditModal(true)
               }}
-              onDelete={handleDeleteGuarantor}
+              onDelete={(guarantor) => handleDeleteGuarantor(guarantor.id)}
               showActions={false}
             />
           </div>
         </Card>
       )}
 
-      {/* Add Guarantor Modal */}
       <Modal
-        open={showAddModal}
-        onOpenChange={setShowAddModal}
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
         title="Add New Guarantor"
-        size="lg"
       >
         <GuarantorForm
           mode="create"
@@ -257,12 +225,10 @@ const GuarantorsPage: React.FC = () => {
         />
       </Modal>
 
-      {/* Edit Guarantor Modal */}
       <Modal
-        open={showEditModal}
-        onOpenChange={setShowEditModal}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
         title="Edit Guarantor"
-        size="lg"
       >
         {selectedGuarantorId && selectedGuarantor && (
           <GuarantorForm
@@ -277,10 +243,9 @@ const GuarantorsPage: React.FC = () => {
         )}
       </Modal>
 
-      {/* Verification Modal */}
       <Modal
-        open={showVerifyModal}
-        onOpenChange={setShowVerifyModal}
+        isOpen={showVerifyModal}
+        onClose={() => setShowVerifyModal(false)}
         title={`${verificationAction === 'verify' ? 'Verify' : 'Reject'} Guarantor`}
       >
         <div className="space-y-4">
@@ -307,7 +272,7 @@ const GuarantorsPage: React.FC = () => {
               Cancel
             </Button>
             <Button
-              variant={verificationAction === 'verify' ? 'default' : 'destructive'}
+              variant={verificationAction === 'verify' ? 'default' : 'danger'}
               onClick={handleVerifySubmit}
             >
               {verificationAction === 'verify' ? 'Verify' : 'Reject'} Guarantor

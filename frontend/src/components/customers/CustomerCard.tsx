@@ -3,19 +3,9 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
-import { 
-  ChevronRight, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  CreditCard,
-  AlertCircle,
-  CheckCircle2,
-  Clock
-} from 'lucide-react'
+import { ChevronRight, Phone, Mail, MapPin, AlertCircle, CheckCircle2, Clock } from 'lucide-react'
 import { Customer } from '@/types/customers'
-import { getStatusColor, formatPhoneNumber } from '@/types/customers'
+import { formatPhoneNumber } from '@/types/customers'
 import clsx from 'clsx'
 
 export interface CustomerCardProps {
@@ -225,4 +215,4 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
   )
 }
 
-// export default CustomerCard
+export default CustomerCard

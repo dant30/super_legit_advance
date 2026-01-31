@@ -32,7 +32,7 @@ export interface FileUploadProps {
   error?: string
 }
 
-const FileUpload: React.FC<FileUploadProps> = ({
+export const FileUpload: React.FC<FileUploadProps> = ({
   acceptedTypes = ['image/*', '.pdf', '.doc', '.docx', '.xls', '.xlsx'],
   maxSize = 10,
   maxFiles = 5,
@@ -278,4 +278,4 @@ const FileUpload: React.FC<FileUploadProps> = ({
   )
 }
 
-export default FileUpload
+// export default FileUpload

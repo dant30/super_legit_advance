@@ -4,11 +4,10 @@ import { useNavigate } from 'react-router-dom'
 import { useCustomers } from '@/hooks/useCustomers'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Table } from '@/components/ui/Table'
 import { Loading } from '@/components/shared/Loading'
 import { Breadcrumbs } from '@/components/shared/Breadcrumbs'
 import { FileUpload } from '@/components/shared/FileUpload'
-import { useToast } from '@/components/ui/Toast/useToast'
+import { toast } from 'react-hot-toast'
 import Papa from 'papaparse'
 
 interface ImportError {
@@ -22,7 +21,6 @@ interface ColumnMapping {
 
 const CustomerImport: React.FC = () => {
   const navigate = useNavigate()
-  const { toast } = useToast()
   const { importCustomers } = useCustomers()
 
   const [step, setStep] = useState<'upload' | 'map' | 'review' | 'complete'>('upload')
@@ -78,14 +76,8 @@ const CustomerImport: React.FC = () => {
     
     if (selectedFile.name.endsWith('.csv')) {
       parseCSV(selectedFile)
-    } else if (selectedFile.name.endsWith('.xlsx') || selectedFile.name.endsWith('.xls')) {
-      parseExcel(selectedFile)
     } else {
-      toast({
-        title: 'Invalid File',
-        description: 'Please upload a CSV or Excel file',
-        variant: 'destructive'
-      })
+      toast.error('Please upload a CSV file')
     }
   }
 
@@ -96,11 +88,7 @@ const CustomerImport: React.FC = () => {
       skipEmptyLines: true,
       complete: (results) => {
         if (results.errors.length > 0) {
-          toast({
-            title: 'Parse Error',
-            description: 'Failed to parse CSV file',
-            variant: 'destructive'
-          })
+          toast.error('Failed to parse CSV file')
           return
         }
         
@@ -110,30 +98,15 @@ const CustomerImport: React.FC = () => {
         setLoading(false)
       },
       error: (error) => {
-        toast({
-          title: 'Parse Error',
-          description: error.message,
-          variant: 'destructive'
-        })
+        toast.error(error.message)
         setLoading(false)
       }
-    })
-  }
-
-  const parseExcel = async (file: File) => {
-    // For Excel parsing, you would typically use a library like xlsx
-    // This is a simplified implementation
-    toast({
-      title: 'Excel Support',
-      description: 'Excel parsing requires additional setup. Please use CSV for now.',
-      variant: 'destructive'
     })
   }
 
   const handleColumnMapping = () => {
     const newErrors: ImportError[] = []
     
-    // Validate required fields are mapped
     requiredFields.forEach(field => {
       if (!columnMapping[field]) {
         newErrors.push({
@@ -143,19 +116,17 @@ const CustomerImport: React.FC = () => {
       }
     })
 
-    // Validate data rows
     data.forEach((row, index) => {
       requiredFields.forEach(field => {
         const mappedColumn = columnMapping[field]
         if (mappedColumn && !row[mappedColumn]) {
           newErrors.push({
-            row: index + 2, // +2 for header row and 1-based indexing
+            row: index + 2,
             message: `Row ${index + 2}: "${fieldLabels[field]}" is required but empty`
           })
         }
       })
 
-      // Validate phone number format
       if (columnMapping.phone_number && row[columnMapping.phone_number]) {
         const phone = row[columnMapping.phone_number].toString()
         if (!phone.match(/^(\+254|0|254)\d{9}$/)) {
@@ -166,7 +137,6 @@ const CustomerImport: React.FC = () => {
         }
       }
 
-      // Validate date format
       if (columnMapping.date_of_birth && row[columnMapping.date_of_birth]) {
         const date = new Date(row[columnMapping.date_of_birth])
         if (isNaN(date.getTime())) {
@@ -183,11 +153,7 @@ const CustomerImport: React.FC = () => {
     if (newErrors.length === 0) {
       setStep('review')
     } else {
-      toast({
-        title: 'Validation Errors',
-        description: `Found ${newErrors.length} validation errors`,
-        variant: 'destructive'
-      })
+      toast.error(`Found ${newErrors.length} validation errors`)
     }
   }
 
@@ -207,17 +173,9 @@ const CustomerImport: React.FC = () => {
       })
       
       setStep('complete')
-      
-      toast({
-        title: 'Import Complete',
-        description: `Successfully imported ${result.imported_count} customers`
-      })
+      toast.success(`Successfully imported ${result.imported_count} customers`)
     } catch (error: any) {
-      toast({
-        title: 'Import Failed',
-        description: error.message || 'Failed to import customers',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Failed to import customers')
     } finally {
       setLoading(false)
     }
@@ -252,19 +210,19 @@ const CustomerImport: React.FC = () => {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Customer Data</h3>
               <p className="text-gray-500 mb-6">
-                Upload a CSV or Excel file containing customer information
+                Upload a CSV file containing customer information
               </p>
               
               <div className="max-w-md mx-auto">
                 <FileUpload
-                  accept=".csv,.xlsx,.xls"
+                  accept=".csv"
                   onFileSelect={handleFileSelect}
                   disabled={loading}
                 />
                 <div className="mt-4 text-sm text-gray-500">
                   <p className="font-medium">File Requirements:</p>
                   <ul className="mt-2 space-y-1">
-                    <li>• CSV or Excel format</li>
+                    <li>• CSV format only</li>
                     <li>• Include required fields: First Name, Last Name, Phone, ID Number</li>
                     <li>• Maximum file size: 10MB</li>
                     <li>• Use proper date formats (YYYY-MM-DD)</li>
@@ -287,16 +245,16 @@ const CustomerImport: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       System Field
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Required
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       File Column
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Sample Data
                     </th>
                   </tr>
@@ -365,24 +323,39 @@ const CustomerImport: React.FC = () => {
                 </p>
               </div>
 
-              <div className="overflow-x-auto max-h-96">
-                <Table
-                  columns={[
-                    { header: '#', accessorKey: 'index' },
-                    ...Object.keys(columnMapping)
-                      .filter(field => columnMapping[field])
-                      .map(field => ({
-                        header: fieldLabels[field],
-                        accessorKey: columnMapping[field]
-                      }))
-                  ]}
-                  data={data.slice(0, 10).map((row, index) => ({
-                    index: index + 1,
-                    ...row
-                  }))}
-                />
+              <div className="overflow-x-auto max-h-96 border rounded-md">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">#</th>
+                      {Object.keys(columnMapping)
+                        .filter(field => columnMapping[field])
+                        .map(field => (
+                          <th key={field} className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                            {fieldLabels[field]}
+                          </th>
+                        ))
+                      }
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    {data.slice(0, 10).map((row, index) => (
+                      <tr key={index}>
+                        <td className="px-4 py-3 text-sm">{index + 1}</td>
+                        {Object.keys(columnMapping)
+                          .filter(field => columnMapping[field])
+                          .map(field => (
+                            <td key={field} className="px-4 py-3 text-sm">
+                              {row[columnMapping[field]] ? String(row[columnMapping[field]]) : '-'}
+                            </td>
+                          ))
+                        }
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
                 {data.length > 10 && (
-                  <p className="text-sm text-gray-500 mt-2 text-center">
+                  <p className="text-sm text-gray-500 mt-2 text-center p-4 border-t">
                     Showing first 10 of {data.length} records
                   </p>
                 )}
@@ -406,7 +379,7 @@ const CustomerImport: React.FC = () => {
                 </div>
                 <div className="text-center p-4 bg-yellow-50 rounded-lg">
                   <div className="text-2xl font-bold text-yellow-700">
-                    0
+                    {errors.length}
                   </div>
                   <div className="text-sm text-yellow-600">Validation Errors</div>
                 </div>
@@ -489,7 +462,7 @@ const CustomerImport: React.FC = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200 bg-white">
-                            {importResult.errors.map((error, index) => (
+                            {importResult.errors.slice(0, 20).map((error, index) => (
                               <tr key={index}>
                                 <td className="px-4 py-2 text-sm">Row {error.row}</td>
                                 <td className="px-4 py-2 text-sm text-red-600">{error.message}</td>
@@ -497,6 +470,11 @@ const CustomerImport: React.FC = () => {
                             ))}
                           </tbody>
                         </table>
+                        {importResult.errors.length > 20 && (
+                          <p className="text-sm text-gray-500 p-2 text-center border-t">
+                            Showing first 20 of {importResult.errors.length} errors
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -527,12 +505,11 @@ const CustomerImport: React.FC = () => {
         <div className="mt-4">
           <h1 className="text-3xl font-bold text-gray-900">Import Customers</h1>
           <p className="text-gray-600 mt-2">
-            Bulk import customers from CSV or Excel files
+            Bulk import customers from CSV files
           </p>
         </div>
       </div>
 
-      {/* Progress Steps */}
       <div className="mb-8">
         <div className="flex items-center justify-center">
           {['upload', 'map', 'review', 'complete'].map((s, index) => (

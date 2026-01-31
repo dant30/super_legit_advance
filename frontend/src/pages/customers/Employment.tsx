@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Loading } from '@/components/shared/Loading'
 import { Error } from '@/components/shared/Error'
 import { Breadcrumbs } from '@/components/shared/Breadcrumbs'
-import { useToast } from '@/components/ui/Toast/useToast'
+import { toast } from 'react-hot-toast'
 import { FileUpload } from '@/components/shared/FileUpload'
 import { PAYMENT_FREQUENCY_OPTIONS, SECTOR_OPTIONS, EMPLOYMENT_TYPE_OPTIONS } from '@/types/customers'
 import type { Employment, EmploymentCreateData } from '@/types/customers'
@@ -18,13 +18,12 @@ import type { Employment, EmploymentCreateData } from '@/types/customers'
 const EmploymentPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { toast } = useToast()
   const { isAdmin } = useAuth()
   const {
     employment,
     employmentLoading,
     employmentError,
-    fetchEmployment,
+    getEmployment,
     updateEmployment,
     clearEmploymentError
   } = useCustomers()
@@ -40,7 +39,7 @@ const EmploymentPage: React.FC = () => {
 
   const loadEmployment = async () => {
     try {
-      await fetchEmployment(id!)
+      await getEmployment(id!)
     } catch (error) {
       console.error('Failed to load employment:', error)
     }
@@ -50,18 +49,11 @@ const EmploymentPage: React.FC = () => {
     if (!id) return
 
     try {
-      await updateEmployment({ customerId: id, data })
-      toast({
-        title: 'Success',
-        description: 'Employment information updated'
-      })
+      await updateEmployment(id, data)
+      toast.success('Employment information updated')
       setMode('view')
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update employment',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Failed to update employment')
     }
   }
 
@@ -72,25 +64,15 @@ const EmploymentPage: React.FC = () => {
     if (!notes) return
 
     try {
-      await updateEmployment({
-        customerId: id,
-        data: {
-          is_verified: true,
-          verification_date: new Date().toISOString(),
-          verification_method: 'MANUAL',
-          verification_notes: notes
-        }
+      await updateEmployment(id, {
+        is_verified: true,
+        verification_date: new Date().toISOString(),
+        verification_method: 'MANUAL',
+        verification_notes: notes
       })
-      toast({
-        title: 'Success',
-        description: 'Employment verified successfully'
-      })
+      toast.success('Employment verified successfully')
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to verify employment',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Failed to verify employment')
     }
   }
 
@@ -102,21 +84,11 @@ const EmploymentPage: React.FC = () => {
       const formData = new FormData()
       formData.append(type, file)
       
-      await updateEmployment({
-        customerId: id,
-        data: formData as any
-      })
+      await updateEmployment(id, formData as any)
       
-      toast({
-        title: 'Success',
-        description: 'Document uploaded successfully'
-      })
+      toast.success('Document uploaded successfully')
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to upload document',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Failed to upload document')
     } finally {
       setUploading(false)
     }
@@ -137,25 +109,63 @@ const EmploymentPage: React.FC = () => {
     return (
       <Error
         message={employmentError}
-        onRetry={loadEmployment}
-        onDismiss={clearEmploymentError}
+        retry={loadEmployment}
         actionText="Back to Customer"
         onAction={() => navigate(`/customers/${id}`)}
       />
     )
   }
 
-  const employmentData = employment || {
+  // Create proper fallback employment data
+  const employmentData: Employment = employment || {
+    id: '',
     customer: id!,
-    employment_type: 'UNEMPLOYED' as const,
+    employment_type: 'UNEMPLOYED',
     sector: 'OTHER',
     occupation: '',
     monthly_income: 0,
     other_income: 0,
+    total_monthly_income: 0,
     payment_frequency: 'MONTHLY',
     number_of_employees: 0,
-    is_verified: false
+    is_verified: false,
+    years_of_service: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    employer_name: undefined,
+    employer_address: undefined,
+    employer_phone: undefined,
+    employer_email: undefined,
+    job_title: undefined,
+    department: undefined,
+    employee_number: undefined,
+    date_employed: undefined,
+    next_pay_date: undefined,
+    business_name: undefined,
+    business_type: undefined,
+    business_registration: undefined,
+    business_start_date: undefined,
+    verification_date: undefined,
+    verification_method: undefined,
+    verification_notes: undefined,
+    employment_letter: undefined,
+    pay_slips: undefined,
+    business_permit: undefined,
+    notes: undefined
   }
+
+  // Use optional chaining to safely access properties
+  const verificationDate = employmentData.verification_date 
+    ? new Date(employmentData.verification_date).toLocaleDateString()
+    : null
+
+  const dateEmployed = employmentData.date_employed 
+    ? new Date(employmentData.date_employed).toLocaleDateString()
+    : null
+
+  const businessStartDate = employmentData.business_start_date 
+    ? new Date(employmentData.business_start_date).toLocaleDateString()
+    : null
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -198,7 +208,6 @@ const EmploymentPage: React.FC = () => {
 
       {mode === 'view' ? (
         <div className="space-y-6">
-          {/* Verification Status */}
           <Card className="p-6">
             <div className="flex justify-between items-center">
               <div>
@@ -207,9 +216,9 @@ const EmploymentPage: React.FC = () => {
                   <Badge variant={employmentData.is_verified ? "success" : "warning"}>
                     {employmentData.is_verified ? 'Verified' : 'Not Verified'}
                   </Badge>
-                  {employmentData.verification_date && (
+                  {verificationDate && (
                     <p className="text-sm text-gray-500 mt-1">
-                      Verified on {new Date(employmentData.verification_date).toLocaleDateString()}
+                      Verified on {verificationDate}
                     </p>
                   )}
                 </div>
@@ -229,7 +238,6 @@ const EmploymentPage: React.FC = () => {
             )}
           </Card>
 
-          {/* Employment Details */}
           <Card className="p-6">
             <h3 className="text-lg font-medium mb-4">Employment Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -279,7 +287,6 @@ const EmploymentPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Employer/Business Details */}
             {(employmentData.employer_name || employmentData.business_name) && (
               <div className="mt-6 pt-6 border-t">
                 <h4 className="font-medium mb-4">
@@ -306,12 +313,10 @@ const EmploymentPage: React.FC = () => {
                           <p className="font-medium mt-1">{employmentData.number_of_employees}</p>
                         </div>
                       )}
-                      {employmentData.business_start_date && (
+                      {businessStartDate && (
                         <div>
                           <label className="block text-sm text-gray-500">Business Start Date</label>
-                          <p className="font-medium mt-1">
-                            {new Date(employmentData.business_start_date).toLocaleDateString()}
-                          </p>
+                          <p className="font-medium mt-1">{businessStartDate}</p>
                         </div>
                       )}
                     </>
@@ -335,12 +340,10 @@ const EmploymentPage: React.FC = () => {
                           <p className="font-medium mt-1">{employmentData.department}</p>
                         </div>
                       )}
-                      {employmentData.date_employed && (
+                      {dateEmployed && (
                         <div>
                           <label className="block text-sm text-gray-500">Date Employed</label>
-                          <p className="font-medium mt-1">
-                            {new Date(employmentData.date_employed).toLocaleDateString()}
-                          </p>
+                          <p className="font-medium mt-1">{dateEmployed}</p>
                         </div>
                       )}
                     </>
@@ -350,7 +353,6 @@ const EmploymentPage: React.FC = () => {
             )}
           </Card>
 
-          {/* Documents */}
           <Card className="p-6">
             <h3 className="text-lg font-medium mb-4">Documents</h3>
             <div className="space-y-4">
@@ -374,9 +376,7 @@ const EmploymentPage: React.FC = () => {
                       </div>
                     ) : (
                       <FileUpload
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        maxSize={5 * 1024 * 1024} // 5MB
-                        onFileSelect={(file) => handleDocumentUpload(file, 'employment_letter')}
+                        onChange={(file: File) => handleDocumentUpload(file, 'employment_letter')}
                         disabled={uploading}
                       />
                     )}
@@ -400,9 +400,7 @@ const EmploymentPage: React.FC = () => {
                       </div>
                     ) : (
                       <FileUpload
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        maxSize={5 * 1024 * 1024}
-                        onFileSelect={(file) => handleDocumentUpload(file, 'pay_slips')}
+                        onChange={(file: File) => handleDocumentUpload(file, 'pay_slips')}
                         disabled={uploading}
                       />
                     )}
@@ -427,9 +425,7 @@ const EmploymentPage: React.FC = () => {
                         </div>
                       ) : (
                         <FileUpload
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          maxSize={5 * 1024 * 1024}
-                          onFileSelect={(file) => handleDocumentUpload(file, 'business_permit')}
+                          onChange={(file: File) => handleDocumentUpload(file, 'business_permit')}
                           disabled={uploading}
                         />
                       )}

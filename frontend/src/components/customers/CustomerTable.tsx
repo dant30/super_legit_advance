@@ -2,13 +2,11 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Table } from '@/components/ui/Table'
-import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { StatusBadge } from './StatusBadge'
 import { RiskIndicator } from './RiskIndicator'
 import { formatPhoneNumber } from '@/lib/utils/formatters'
-import { getStatusColor, getRiskLevelColor } from '@/types/customers'
 import type { Customer } from '@/types/customers'
 
 export interface CustomerTableProps {
@@ -171,4 +169,4 @@ export const CustomerTable: React.FC<CustomerTableProps> = ({
   )
 }
 
-//export default CustomerTable
+export default CustomerTable
