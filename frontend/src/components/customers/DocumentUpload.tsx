@@ -58,6 +58,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     maxSizeMB = 5
   ) => {
     const [file, setFile] = useState<File | null>(null)
+    const fileInputId = `file-${type}-${customerId}` // ✅ Unique ID for each customer
 
     return (
       <Card className="p-4">
@@ -69,6 +70,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-blue-600 hover:text-blue-800"
+              aria-label={`View current ${title}`}
             >
               View Current
             </a>
@@ -81,7 +83,8 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => document.getElementById(`file-${type}`)?.click()}
+              onClick={() => document.getElementById(fileInputId)?.click()}
+              aria-label={`Replace ${title}`}
             >
               Replace Document
             </Button>
@@ -89,10 +92,11 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         ) : (
           <div className="text-center py-4">
             <input
-              id={`file-${type}`}
+              id={fileInputId}
               type="file"
               accept={accept}
               className="hidden"
+              aria-label={`Select ${title} file`} // ✅ Accessibility fix
               onChange={(e) => {
                 const selectedFile = e.target.files?.[0]
                 if (selectedFile) {
@@ -112,13 +116,20 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
             {!file ? (
               <div>
                 <div className="mb-4">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg 
+                    className="mx-auto h-12 w-12 text-gray-400" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                 </div>
                 <Button
                   variant="outline"
-                  onClick={() => document.getElementById(`file-${type}`)?.click()}
+                  onClick={() => document.getElementById(fileInputId)?.click()}
+                  aria-label={`Choose ${title} file`}
                 >
                   Choose File
                 </Button>
@@ -131,7 +142,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
                   <div className="flex items-center space-x-3">
                     <div className="h-8 w-8 bg-blue-100 rounded flex items-center justify-center">
-                      <span className="text-blue-600 text-sm">📄</span>
+                      <span className="text-blue-600 text-sm" aria-hidden="true">📄</span>
                     </div>
                     <div className="text-left">
                       <div className="text-sm font-medium">{file.name}</div>
@@ -143,8 +154,9 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                   <button
                     onClick={() => setFile(null)}
                     className="text-red-500 hover:text-red-700"
+                    aria-label={`Remove ${file.name}`}
                   >
-                    ✕
+                    <span aria-hidden="true">✕</span>
                   </button>
                 </div>
                 <div className="flex space-x-2">
@@ -159,6 +171,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                     size="sm"
                     onClick={() => handleFileUpload(file, type)}
                     disabled={uploading}
+                    aria-label={uploading ? `Uploading ${file.name}...` : `Upload ${file.name}`}
                   >
                     {uploading ? 'Uploading...' : 'Upload'}
                   </Button>

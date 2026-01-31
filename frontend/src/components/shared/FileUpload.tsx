@@ -1,3 +1,4 @@
+// frontend/src/components/shared/FileUpload.tsx
 import React, { useState, useRef, useCallback } from 'react'
 import {
   Upload,
@@ -18,6 +19,7 @@ export interface UploadedFile {
 }
 
 export interface FileUploadProps {
+  accept?: string // Add this line - matches HTML input accept attribute
   acceptedTypes?: string[]
   maxSize?: number // MB
   maxFiles?: number
@@ -25,6 +27,7 @@ export interface FileUploadProps {
   disabled?: boolean
   label?: string
   onFilesChange?: (files: UploadedFile[]) => void
+  onFileSelect?: (file: File | null) => void // Add this - you're using onFileSelect in GuarantorForm
   onFileUpload?: (file: File) => Promise<void>
   showPreview?: boolean
   className?: string
@@ -33,6 +36,7 @@ export interface FileUploadProps {
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({
+  accept, // Add this
   acceptedTypes = ['image/*', '.pdf', '.doc', '.docx', '.xls', '.xlsx'],
   maxSize = 10,
   maxFiles = 5,
@@ -40,6 +44,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   disabled = false,
   label = 'Upload files',
   onFilesChange,
+  onFileSelect, // Add this
   onFileUpload,
   showPreview = true,
   className,
@@ -51,17 +56,28 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Determine which accept string to use
+  const getAcceptString = () => {
+    if (accept) return accept
+    return acceptedTypes.join(',')
+  }
+
   const validateFile = (file: File): string | undefined => {
     const maxSizeBytes = maxSize * 1024 * 1024
+    
+    // Use accept prop if provided, otherwise use acceptedTypes
+    const typesToCheck = accept ? 
+      accept.split(',').map(t => t.trim()) : 
+      acceptedTypes
 
-    const isAccepted = acceptedTypes.some((type) =>
+    const isAccepted = typesToCheck.some((type) =>
       type.endsWith('/*')
         ? file.type.startsWith(type.replace('/*', ''))
-        : file.type === type || file.name.toLowerCase().endsWith(type)
+        : file.type === type || file.name.toLowerCase().endsWith(type.toLowerCase())
     )
 
     if (!isAccepted) {
-      return `File type not allowed`
+      return `File type not allowed. Accepted: ${typesToCheck.join(', ')}`
     }
 
     if (file.size > maxSizeBytes) {
@@ -99,8 +115,20 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
       const updated = multiple ? [...files, ...mapped] : mapped
       setFiles(updated)
+      
+      // Call onFilesChange if provided
       onFilesChange?.(updated)
+      
+      // Call onFileSelect with the first file (or null if multiple not allowed)
+      if (onFileSelect) {
+        if (incoming.length > 0) {
+          onFileSelect(incoming[0])
+        } else {
+          onFileSelect(null)
+        }
+      }
 
+      // Handle auto-upload if onFileUpload is provided
       if (onFileUpload && !mapped.some(f => f.error)) {
         setUploading(true)
         Promise.all(mapped.filter(f => !f.error).map((f) => uploadFile(f)))
@@ -108,7 +136,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           .finally(() => setUploading(false))
       }
     },
-    [files, multiple, maxFiles, disabled, onFilesChange, onFileUpload]
+    [files, multiple, maxFiles, disabled, onFilesChange, onFileUpload, onFileSelect, accept, acceptedTypes, maxSize]
   )
 
   const uploadFile = async (fileItem: UploadedFile) => {
@@ -141,7 +169,28 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
     const updated = files.filter((f) => f.id !== id)
     setFiles(updated)
+    
+    // Call callbacks after removal
     onFilesChange?.(updated)
+    if (onFileSelect) {
+      if (updated.length > 0) {
+        onFileSelect(updated[0].file)
+      } else {
+        onFileSelect(null)
+      }
+    }
+  }
+
+  // Clear all files
+  const clearFiles = () => {
+    files.forEach((f) => {
+      if (f.previewUrl) {
+        URL.revokeObjectURL(f.previewUrl)
+      }
+    })
+    setFiles([])
+    onFilesChange?.([])
+    onFileSelect?.(null)
   }
 
   return (
@@ -151,7 +200,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         type="file"
         hidden
         multiple={multiple}
-        accept={acceptedTypes.join(',')}
+        accept={getAcceptString()}
         disabled={disabled || uploading}
         onChange={(e) => handleFiles(e.target.files)}
         aria-label={label}
@@ -192,8 +241,13 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         <Upload className="mx-auto mb-3 h-8 w-8 text-gray-400 dark:text-gray-500" />
         <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</p>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          {`Max ${maxSize}MB • ${acceptedTypes.length} file types`}
+          {`Max ${maxSize}MB • ${accept || acceptedTypes.length} file types`}
         </p>
+        {files.length > 0 && !multiple && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Current file: {files[0]?.file.name}
+          </p>
+        )}
       </div>
 
       {files.length > 0 && (
@@ -215,6 +269,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                   src={f.previewUrl}
                   alt={f.file.name}
                   className="h-16 w-16 rounded object-cover flex-shrink-0"
+                  onLoad={() => {
+                    // Clean up object URL after image loads if it's no longer needed
+                    if (f.uploaded || f.error) {
+                      URL.revokeObjectURL(f.previewUrl!)
+                    }
+                  }}
                 />
               ) : (
                 <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 dark:bg-gray-800 flex-shrink-0">
@@ -240,6 +300,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                     onClick={() => removeFile(f.id)}
                     className="flex-shrink-0 p-1 text-gray-400 dark:text-gray-500 hover:text-danger-500 dark:hover:text-danger-400 transition-colors"
                     aria-label={`Remove ${f.file.name}`}
+                    disabled={uploading}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -255,16 +316,41 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                 )}
 
                 {!f.error && !f.uploaded && f.progress !== undefined && (
-                  <div className="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                    <div
-                      className="bg-primary-600 h-1.5 rounded-full transition-all duration-300"
-                      style={{ width: `${f.progress}%` }}
-                    />
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                      <div
+                        className="bg-primary-600 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${f.progress}%` }}
+                      />
+                    </div>
+                    {f.progress > 0 && f.progress < 100 && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Uploading: {f.progress}%
+                      </p>
+                    )}
                   </div>
+                )}
+
+                {f.uploaded && (
+                  <p className="text-xs text-success-600 dark:text-success-400 mt-2">
+                    ✓ Upload complete
+                  </p>
                 )}
               </div>
             </div>
           ))}
+          
+          {files.length > 1 && (
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={clearFiles}
+                className="text-sm text-gray-500 hover:text-danger-600 dark:text-gray-400 dark:hover:text-danger-400 transition-colors"
+                disabled={uploading}
+              >
+                Clear all files
+              </button>
+            </div>
+          )}
         </div>
       )}
 

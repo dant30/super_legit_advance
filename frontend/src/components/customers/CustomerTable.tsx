@@ -1,6 +1,6 @@
 // frontend/src/components/customers/CustomerTable.tsx
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+//import { useNavigate } from 'react-router-dom' declared but its value is never read
 import { Table } from '@/components/ui/Table'
 import { Button } from '@/components/ui/Button'
 import { Tooltip } from '@/components/ui/Tooltip'
@@ -24,9 +24,9 @@ export const CustomerTable: React.FC<CustomerTableProps> = ({
   onViewDetail,
   onEdit,
   onBlacklist,
-  onDelete
+  //onDelete 'onDelete' is declared but its value is never read.
 }) => {
-  const navigate = useNavigate()
+  //const navigate = useNavigate()  declared but its value is never read
 
   const columns = [
     {

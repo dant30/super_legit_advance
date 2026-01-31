@@ -51,7 +51,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
         <Select
           options={searchTypeOptions}
           value={searchType}
-          onChange={(value) => setSearchType(value as SearchType)}
+          onValueChange={(value) => setSearchType(value as SearchType)}
         />
       </div>
       <Button onClick={handleSearch}>

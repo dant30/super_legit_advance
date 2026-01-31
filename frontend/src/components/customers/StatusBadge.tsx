@@ -1,6 +1,7 @@
 // frontend/src/components/customers/StatusBadge.tsx
+// frontend/src/components/customers/StatusBadge.tsx
 import React from 'react'
-import { Badge } from '@/components/ui/Badge'
+import { Badge, BadgeVariant } from '@/components/ui/Badge'
 import { getStatusColor } from '@/types/customers'
 
 export interface StatusBadgeProps {
@@ -8,7 +9,7 @@ export interface StatusBadgeProps {
 }
 
 type BadgeConfig = {
-  variant: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral'
+  variant: BadgeVariant
   tone?: 'subtle' | 'solid' | 'outline'
 }
 
@@ -22,17 +23,18 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
     DECEASED: 'Deceased',
   }
 
+  // Map the color from getStatusColor to actual BadgeVariant values
   const badgeMap: Record<string, BadgeConfig> = {
-    success: { variant: 'success', tone: 'subtle' },
-    warning: { variant: 'warning', tone: 'outline' },
-    error: { variant: 'danger', tone: 'solid' },
-    default: { variant: 'neutral', tone: 'subtle' },
+    success: { variant: 'success' },
+    warning: { variant: 'warning' },
+    error: { variant: 'danger' },
+    default: { variant: 'secondary' }, // Use 'secondary' instead of 'neutral'
   }
 
   const badge = badgeMap[color] ?? badgeMap.default
 
   return (
-    <Badge variant={badge.variant} tone={badge.tone}>
+    <Badge variant={badge.variant}>
       {statusLabels[status] ?? status}
     </Badge>
   )

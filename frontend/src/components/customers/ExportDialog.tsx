@@ -48,7 +48,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
   return (
     <Modal
       open={open}
-      onOpenChange={onOpenChange}
+      onClose={() => onOpenChange(false)}
       title="Export Customers"
       size="lg"
     >
@@ -109,7 +109,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
               <Select
                 options={CUSTOMER_STATUS_OPTIONS}
                 value={filters.status}
-                onChange={(value) => handleFilterChange('status', value)}
+                onValueChange={(value) => handleFilterChange('status', value)}
                 placeholder="All Statuses"
               />
             </div>
@@ -118,7 +118,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
               <Select
                 options={GENDER_OPTIONS}
                 value={filters.gender}
-                onChange={(value) => handleFilterChange('gender', value)}
+                onValueChange={(value) => handleFilterChange('gender', value)}
                 placeholder="All Genders"
               />
             </div>
@@ -127,7 +127,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
               <Select
                 options={RISK_LEVEL_OPTIONS}
                 value={filters.risk_level}
-                onChange={(value) => handleFilterChange('risk_level', value)}
+                onValueChange={(value) => handleFilterChange('risk_level', value)}
                 placeholder="All Risk Levels"
               />
             </div>
