@@ -1,5 +1,5 @@
 // frontend/src/components/customers/CustomerForm.tsx
-import React, { useState } from 'react'
+import React, { useState, ChangeEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -16,6 +16,12 @@ import {
   NATIONALITY_OPTIONS
 } from '@/types/customers'
 import type { CustomerFormData } from '@/types/customers'
+
+// Extended type to include validation fields
+type CustomerFormExtended = CustomerFormData & {
+  confirm_phone_number?: string
+  confirm_email?: string
+}
 
 const customerSchema = z.object({
   first_name: z.string().min(1, 'First name is required').max(100),
@@ -84,7 +90,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
     formState: { errors, isDirty },
     watch,
     setValue
-  } = useForm<CustomerFormData>({
+  } = useForm<CustomerFormExtended>({
     resolver: zodResolver(customerSchema),
     defaultValues: initialData || {
       nationality: 'Kenyan',
@@ -95,14 +101,21 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
   })
 
   // FIX: Handle Select onChange properly
-  const handleGenderChange = (value: string) => {
-    setValue('gender', value as 'M' | 'F' | 'O')
+  const handleSelectChange = (field: keyof CustomerFormExtended) => (value: string) => {
+    setValue(field, value as any)
+  }
+
+  // FIX: Handle event-based onChange for Select component
+  const handleSelectEventChange = (field: keyof CustomerFormExtended) => (e: ChangeEvent<HTMLSelectElement>) => {
+    setValue(field, e.target.value as any)
   }
 
   const createUserAccount = watch('create_user_account')
 
-  const handleFormSubmit = async (data: CustomerFormData) => {
-    await onSubmit(data)
+  const handleFormSubmit = async (data: CustomerFormExtended) => {
+    // Remove validation fields before submitting
+    const { confirm_phone_number, confirm_email, ...submitData } = data
+    await onSubmit(submitData as CustomerFormData)
   }
 
   return (
@@ -165,7 +178,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                 <Select
                   options={GENDER_OPTIONS}
                   value={watch('gender')}
-                  onChange={handleGenderChange}
+                  onChange={handleSelectEventChange('gender')}
                   error={errors.gender?.message}
                 />
               </div>
@@ -176,7 +189,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                 <Select
                   options={MARITAL_STATUS_OPTIONS}
                   value={watch('marital_status') || ''}
-                  onChange={(value) => setValue('marital_status', value as any)}
+                  onChange={handleSelectEventChange('marital_status')}
                   error={errors.marital_status?.message}
                 />
               </div>
@@ -192,7 +205,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                 <Select
                   options={ID_TYPE_OPTIONS}
                   value={watch('id_type')}
-                  onChange={(value) => setValue('id_type', value as any)}
+                  onChange={handleSelectEventChange('id_type')}
                   error={errors.id_type?.message}
                 />
               </div>
@@ -222,7 +235,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                 <Select
                   options={NATIONALITY_OPTIONS}
                   value={watch('nationality') || 'Kenyan'}
-                  onChange={(value) => setValue('nationality', value)}
+                  onChange={handleSelectEventChange('nationality')}
                 />
               </div>
             </div>
@@ -247,7 +260,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                 <Input
                   {...register('confirm_phone_number')}
                   placeholder="+254712345678"
-                  error={errors.confirm_phone_number?.message}
+                  error={(errors as any).confirm_phone_number?.message}
                 />
               </div>
               <div>
@@ -269,7 +282,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                   type="email"
                   {...register('confirm_email')}
                   placeholder="john@example.com"
-                  error={errors.confirm_email?.message}
+                  error={(errors as any).confirm_email?.message}
                 />
               </div>
             </div>
@@ -425,4 +438,4 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
   )
 }
 
-// export default CustomerForm
+export default CustomerForm

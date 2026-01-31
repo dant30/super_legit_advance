@@ -1,5 +1,5 @@
 // frontend/src/components/customers/EmploymentForm.tsx
-import React from 'react'
+import React, { useState } from 'react'  // ✅ Added useState
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Select } from '@/components/ui/Select'
-import { Tabs } from '@/components/ui/Tabs'
+import { TabsControlled } from '@/components/ui/Tabs'  // ✅ Use TabsControlled
 import {
   EMPLOYMENT_TYPE_OPTIONS,
   SECTOR_OPTIONS,
@@ -109,8 +109,8 @@ export const EmploymentForm: React.FC<EmploymentFormProps> = ({
             </label>
             <Select
               options={EMPLOYMENT_TYPE_OPTIONS}
-              value={employmentType}
-              onChange={(value) => setValue('employment_type', value as any)}
+              value={employmentType || ''}
+              onValueChange={(value: string) => setValue('employment_type', value as any)}
               error={errors.employment_type?.message}
             />
           </div>
@@ -122,7 +122,7 @@ export const EmploymentForm: React.FC<EmploymentFormProps> = ({
             <Select
               options={SECTOR_OPTIONS}
               value={watch('sector') || ''}
-              onChange={(value) => setValue('sector', value)}
+              onValueChange={(value: string) => setValue('sector', value)}
               error={errors.sector?.message}
             />
           </div>
@@ -178,7 +178,7 @@ export const EmploymentForm: React.FC<EmploymentFormProps> = ({
               <Select
                 options={PAYMENT_FREQUENCY_OPTIONS}
                 value={watch('payment_frequency') || 'MONTHLY'}
-                onChange={(value) => setValue('payment_frequency', value)}
+                onValueChange={(value: string) => setValue('payment_frequency', value)}
               />
             </div>
             <div>
@@ -341,7 +341,11 @@ export const EmploymentForm: React.FC<EmploymentFormProps> = ({
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
       <Card className="p-6">
-        <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+        <TabsControlled 
+          tabs={tabs} 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+        />
         
         <div className="flex justify-end space-x-3 mt-6 pt-6 border-t">
           <Button
@@ -364,4 +368,4 @@ export const EmploymentForm: React.FC<EmploymentFormProps> = ({
   )
 }
 
-// export default EmploymentForm
+export default EmploymentForm

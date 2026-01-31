@@ -1,12 +1,37 @@
 // frontend/src/components/ui/Tabs/Tabs.tsx
-import React, { createContext, useContext, useState } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useId,
+  useState,
+  ReactElement,
+} from 'react'
 import { cn } from '@/lib/utils/cn'
 
-/* ----------------------------- Types ----------------------------- */
+/* ============================ Types ============================ */
 
 export type TabsVariant = 'underline' | 'pills' | 'cards'
 export type TabsSize = 'sm' | 'md' | 'lg'
 export type TabsOrientation = 'horizontal' | 'vertical'
+
+interface TabsContextType {
+  activeTab: string
+  setActiveTab: (value: string) => void
+  variant: TabsVariant
+  size: TabsSize
+  orientation: TabsOrientation
+  baseId: string
+}
+
+const TabsContext = createContext<TabsContextType | null>(null)
+
+const useTabs = () => {
+  const ctx = useContext(TabsContext)
+  if (!ctx) throw new Error('Tabs components must be used within <Tabs />')
+  return ctx
+}
+
+/* ============================ Root ============================ */
 
 export interface TabsProps {
   defaultValue?: string
@@ -15,68 +40,9 @@ export interface TabsProps {
   variant?: TabsVariant
   size?: TabsSize
   orientation?: TabsOrientation
+  className?: string
   children: React.ReactNode
-  className?: string
 }
-
-export interface TabsListProps {
-  children: React.ReactNode
-  className?: string
-  fullWidth?: boolean
-}
-
-export interface TabsTriggerProps {
-  value: string
-  children: React.ReactNode
-  className?: string
-  disabled?: boolean
-  icon?: React.ReactNode
-}
-
-export interface TabsContentProps {
-  value: string
-  children: React.ReactNode
-  className?: string
-  forceMount?: boolean
-}
-
-interface TabItem {
-  id: string
-  label: string
-  content: React.ReactNode
-}
-
-export interface TabsControlledProps {
-  tabs: TabItem[]
-  activeTab: string
-  onTabChange: (tabId: string) => void
-  variant?: TabsVariant
-  size?: TabsSize
-  orientation?: TabsOrientation
-  className?: string
-}
-
-/* ----------------------------- Context ----------------------------- */
-
-interface TabsContextType {
-  activeTab: string
-  setActiveTab: (id: string) => void
-  variant: TabsVariant
-  size: TabsSize
-  orientation: TabsOrientation
-}
-
-const TabsContext = createContext<TabsContextType | null>(null)
-
-const useTabs = () => {
-  const ctx = useContext(TabsContext)
-  if (!ctx) {
-    throw new Error('Tabs components must be used inside <Tabs />')
-  }
-  return ctx
-}
-
-/* ------------------------------ Root ------------------------------- */
 
 export const Tabs: React.FC<TabsProps> = ({
   defaultValue,
@@ -85,72 +51,42 @@ export const Tabs: React.FC<TabsProps> = ({
   variant = 'underline',
   size = 'md',
   orientation = 'horizontal',
-  children,
   className,
+  children,
 }) => {
-  const isControlled = value !== undefined
-  const [internalValue, setInternalValue] = useState(defaultValue ?? '')
-
-  const activeTab = isControlled ? value! : internalValue
+  const [internal, setInternal] = useState(defaultValue ?? '')
+  const controlled = value !== undefined
+  const activeTab = controlled ? value! : internal
+  const baseId = useId()
 
   const setActiveTab = (val: string) => {
-    if (!isControlled) setInternalValue(val)
+    if (!controlled) setInternal(val)
     onValueChange?.(val)
   }
 
   return (
     <TabsContext.Provider
-      value={{ activeTab, setActiveTab, variant, size, orientation }}
+      value={{ activeTab, setActiveTab, variant, size, orientation, baseId }}
     >
       <div className={cn('w-full', className)}>{children}</div>
     </TabsContext.Provider>
   )
 }
 
-/* -------------------------- Controlled Wrapper -------------------- */
+/* ============================ List ============================ */
 
-export const TabsControlled: React.FC<TabsControlledProps> = ({
-  tabs,
-  activeTab,
-  onTabChange,
-  variant = 'underline',
-  size = 'md',
-  orientation = 'horizontal',
-  className,
-}) => {
-  return (
-    <Tabs
-      value={activeTab}
-      onValueChange={onTabChange}
-      variant={variant}
-      size={size}
-      orientation={orientation}
-      className={className}
-    >
-      <TabsList fullWidth>
-        {tabs.map((tab) => (
-          <TabsTrigger key={tab.id} value={tab.id}>
-            {tab.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      {tabs.map((tab) => (
-        <TabsContent key={tab.id} value={tab.id}>
-          {tab.content}
-        </TabsContent>
-      ))}
-    </Tabs>
-  )
+export interface TabsListProps {
+  children: ReactElement<typeof TabsTrigger>[]
+  className?: string
+  fullWidth?: boolean
 }
-
-/* ----------------------------- List -------------------------------- */
 
 export const TabsList: React.FC<TabsListProps> = ({
   children,
   className,
   fullWidth,
 }) => {
-  const { variant, orientation } = useTabs()
+  const { orientation, variant } = useTabs()
 
   return (
     <div
@@ -159,10 +95,8 @@ export const TabsList: React.FC<TabsListProps> = ({
       className={cn(
         'flex',
         orientation === 'vertical' && 'flex-col',
-        variant === 'underline' &&
-          'border-b border-gray-200 dark:border-gray-700',
-        variant === 'pills' &&
-          'gap-1 rounded-lg bg-gray-100 dark:bg-gray-800 p-1',
+        variant === 'underline' && 'border-b border-gray-200 dark:border-gray-700',
+        variant === 'pills' && 'gap-1 rounded-lg bg-gray-100 dark:bg-gray-800 p-1',
         variant === 'cards' && 'gap-2',
         fullWidth && 'w-full',
         className
@@ -173,7 +107,15 @@ export const TabsList: React.FC<TabsListProps> = ({
   )
 }
 
-/* ---------------------------- Trigger ------------------------------ */
+/* ============================ Trigger ============================ */
+
+export interface TabsTriggerProps {
+  value: string
+  children: React.ReactNode
+  className?: string
+  disabled?: boolean
+  icon?: React.ReactNode
+}
 
 export const TabsTrigger: React.FC<TabsTriggerProps> = ({
   value,
@@ -182,8 +124,11 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
   disabled,
   icon,
 }) => {
-  const { activeTab, setActiveTab, variant, size } = useTabs()
+  const { activeTab, setActiveTab, variant, size, baseId } = useTabs()
   const isActive = activeTab === value
+
+  const tabId = `${baseId}-tab-${value}`
+  const panelId = `${baseId}-panel-${value}`
 
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-xs',
@@ -214,9 +159,12 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
 
   return (
     <button
-      type="button"
+      id={tabId}
       role="tab"
+      type="button"
       aria-selected={isActive}
+      aria-controls={panelId}
+      tabIndex={isActive ? 0 : -1}
       disabled={disabled}
       onClick={() => !disabled && setActiveTab(value)}
       className={cn(
@@ -233,7 +181,14 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
   )
 }
 
-/* ---------------------------- Content ------------------------------ */
+/* ============================ Content ============================ */
+
+export interface TabsContentProps {
+  value: string
+  children: React.ReactNode
+  className?: string
+  forceMount?: boolean
+}
 
 export const TabsContent: React.FC<TabsContentProps> = ({
   value,
@@ -241,18 +196,24 @@ export const TabsContent: React.FC<TabsContentProps> = ({
   className,
   forceMount = false,
 }) => {
-  const { activeTab } = useTabs()
+  const { activeTab, baseId } = useTabs()
   const isActive = activeTab === value
+
+  const tabId = `${baseId}-tab-${value}`
+  const panelId = `${baseId}-panel-${value}`
 
   if (!isActive && !forceMount) return null
 
   return (
     <div
+      id={panelId}
       role="tabpanel"
-      aria-hidden={!isActive}
-      className={cn(isActive ? 'block' : 'hidden', className)}
+      aria-labelledby={tabId}
+      hidden={!isActive}
+      className={cn('mt-4', className)}
     >
       {children}
     </div>
   )
 }
+
