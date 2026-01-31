@@ -122,11 +122,31 @@ export interface Guarantor {
  * API Response Types
  * ===================================================== */
 
-export interface CustomerListResponse {
-  results: Customer[]
-  count: number
+export interface PaginationInfo {
+  page: number
+  page_size: number
+  total: number
+  total_pages: number
   next: string | null
   previous: string | null
+}
+
+export interface ApiResponse<T> {
+  success?: boolean
+  data?: T[]
+  pagination?: PaginationInfo
+  results?: T[]
+  count?: number
+  next?: string | null
+  previous?: string | null
+  page?: number
+  page_size?: number
+  total_pages?: number
+}
+
+/* Customer list response now supports both legacy and new API shapes */
+export interface CustomerListResponse extends ApiResponse<Customer> {
+  // Can add customer-specific properties if needed
 }
 
 export interface CustomerDetailResponse extends Customer {

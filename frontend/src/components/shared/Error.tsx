@@ -4,30 +4,106 @@ import { AlertCircle, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { Button } from '@/components/ui/Button'
 
+/* -------------------------------------------------------------------------- */
+/*                                    Types                                   */
+/* -------------------------------------------------------------------------- */
+
 export type ErrorVariant = 'default' | 'danger' | 'warning' | 'info'
 
 export interface ErrorProps {
-  /** Error title */
   title?: string
-  /** Error message */
   message?: string
-  /** Error variant */
   variant?: ErrorVariant
-  /** Show full screen */
   fullScreen?: boolean
-  /** Retry function */
   retry?: () => void
-  /** Retry button text */
   retryText?: string
-  /** Additional action button */
   actionText?: string
-  /** Additional action handler */
   onAction?: () => void
-  /** Additional className */
   className?: string
-  /** Show icon */
   showIcon?: boolean
 }
+
+/**
+ * MUST match react-error-boundary FallbackComponent props
+ */
+export interface FallbackProps {
+  error: unknown
+  resetErrorBoundary: (...args: unknown[]) => void
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              Type Guard Utils                              */
+/* -------------------------------------------------------------------------- */
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+const hasStringProp = (
+  obj: Record<string, unknown>,
+  key: string
+): obj is Record<string, string> =>
+  typeof obj[key] === 'string'
+
+/* -------------------------------------------------------------------------- */
+/*                         Error Message Extraction                            */
+/* -------------------------------------------------------------------------- */
+
+const getErrorMessage = (error: unknown): string => {
+  // Direct string thrown
+  if (typeof error === 'string') {
+    return error
+  }
+
+  // Standard Error-like object
+  if (isObject(error) && hasStringProp(error, 'message')) {
+    return error.message
+  }
+
+  // Axios / API style errors
+  if (isObject(error) && isObject(error.response)) {
+    const response = error.response
+
+    if (isObject(response.data)) {
+      const data = response.data
+
+      if (hasStringProp(data, 'detail')) return data.detail
+      if (hasStringProp(data, 'message')) return data.message
+      if (hasStringProp(data, 'error')) return data.error
+    }
+  }
+
+  // Fallback: try to stringify
+  try {
+    return JSON.stringify(error)
+  } catch {
+    return 'An unexpected error occurred'
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                        Error Boundary Fallback                              */
+/* -------------------------------------------------------------------------- */
+
+export const ErrorFallback: React.FC<FallbackProps> = ({
+  error,
+  resetErrorBoundary,
+}) => {
+  return (
+    <Error
+      title="Something went wrong"
+      message={getErrorMessage(error)}
+      variant="danger"
+      fullScreen
+      retry={() => resetErrorBoundary()}
+      retryText="Try again"
+      showIcon
+    />
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              Main Component                                 */
+/* -------------------------------------------------------------------------- */
 
 export const Error: React.FC<ErrorProps> = ({
   title = 'Something went wrong',
@@ -71,9 +147,9 @@ export const Error: React.FC<ErrorProps> = ({
             aria-hidden="true"
           />
         )}
-        
+
         <h3 className="text-lg font-semibold mb-2">{title}</h3>
-        
+
         <p className="text-sm opacity-90 mb-6 max-w-md">{message}</p>
 
         <div className="flex gap-3">
@@ -87,13 +163,9 @@ export const Error: React.FC<ErrorProps> = ({
               {retryText}
             </Button>
           )}
-          
+
           {actionText && onAction && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onAction}
-            >
+            <Button variant="outline" size="sm" onClick={onAction}>
               {actionText}
             </Button>
           )}

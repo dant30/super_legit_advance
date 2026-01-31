@@ -1,5 +1,4 @@
 // fronten/src/main.tsx
-// frontend/src/main.tsx - FIXED VERSION
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Provider } from 'react-redux'
@@ -10,8 +9,8 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { HelmetProvider } from 'react-helmet-async'
 import App from './App'
 import { store } from '@/store/store'
-import { Error as ErrorFallback } from '@/components/shared/Error'
-import { ToastProvider } from '@/components/ui/Toast/ToastProvider' // <-- USE YOUR CUSTOM PROVIDER
+import { ErrorFallback } from '@/components/shared/Error' // <-- Changed import
+import { ToastProvider } from '@/components/ui/Toast/ToastProvider'
 import '@styles/tailwind.css'
 
 // ======================================================
@@ -20,7 +19,6 @@ import '@styles/tailwind.css'
 let queryClient: QueryClient
 
 if (import.meta.hot) {
-  // Reuse QueryClient during HMR
   queryClient = import.meta.hot.data.queryClient || new QueryClient({
     queryCache: new QueryCache({
       onError: (error) => {
@@ -31,8 +29,8 @@ if (import.meta.hot) {
     }),
     defaultOptions: {
       queries: {
-        staleTime: 5 * 60 * 1000,  // 5 minutes
-        gcTime: 10 * 60 * 1000,    // 10 minutes
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
         retry: 1,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
@@ -91,12 +89,19 @@ if (typeof window !== 'undefined') {
   })
 }
 
+// Add React Query DevTools to window for debugging
+declare global {
+  interface Window {
+    __REACT_QUERY_DEVTOOLS__?: typeof ReactQueryDevtools
+  }
+}
+
 // ======================================================
-// Providers - USING YOUR CUSTOM TOAST PROVIDER
+// Providers
 // ======================================================
 const Providers: React.FC<React.PropsWithChildren> = ({ children }) => (
   <ErrorBoundary
-    FallbackComponent={ErrorFallback}
+    FallbackComponent={ErrorFallback} // <-- Use the new wrapper
     onError={(error, info) => {
       console.error('[ErrorBoundary]', error, info.componentStack)
     }}
@@ -105,7 +110,7 @@ const Providers: React.FC<React.PropsWithChildren> = ({ children }) => (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <HelmetProvider>
-          <ToastProvider> {/* ← THIS IS THE FIX */}
+          <ToastProvider>
             <BrowserRouter>
               {children}
             </BrowserRouter>

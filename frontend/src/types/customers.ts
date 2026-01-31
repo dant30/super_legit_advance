@@ -156,7 +156,7 @@ export interface CustomerStatsResponse {
   }
 }
 
-// ===== FORM DATA TYPES =====
+/* ===== FORM DATA TYPES ===== */
 export interface CustomerFormData {
   first_name: string
   last_name: string
@@ -183,6 +183,9 @@ export interface CustomerFormData {
   create_user_account?: boolean
   user_password?: string
 }
+
+/* Alias to align with other modules that import CustomerCreateData from the API types */
+export type CustomerCreateData = CustomerFormData
 
 export interface EmploymentFormData {
   employment_type: 'EMPLOYED' | 'SELF_EMPLOYED' | 'UNEMPLOYED' | 'STUDENT' | 'RETIRED'
