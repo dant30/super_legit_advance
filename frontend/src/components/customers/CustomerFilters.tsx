@@ -7,26 +7,25 @@ import { Button } from '@/components/ui/Button'
 import {
   GENDER_OPTIONS,
   CUSTOMER_STATUS_OPTIONS,
-  RISK_LEVEL_OPTIONS,
-  MARITAL_STATUS_OPTIONS
+  RISK_LEVEL_OPTIONS
 } from '@/types/customers'
-import type { CustomerListParams } from '@/types/customers'
+import type { CustomerFilters as FilterType } from '@/types/customers'
 
-interface CustomerFiltersProps {
-  filters: CustomerListParams
-  onFilterChange: (filters: Partial<CustomerListParams>) => void
+export interface CustomerFiltersProps {
+  filters: Partial<FilterType>
+  onFilterChange: (filters: Partial<FilterType>) => void
 }
 
 export const CustomerFilters: React.FC<CustomerFiltersProps> = ({
   filters,
   onFilterChange
 }) => {
-  const handleInputChange = (key: keyof CustomerListParams, value: any) => {
+  const handleInputChange = (key: keyof FilterType, value: any) => {
     onFilterChange({ [key]: value })
   }
 
-  const handleCheckboxChange = (key: keyof CustomerListParams, checked: boolean) => {
-    onFilterChange({ [key]: checked })
+  const handleCheckboxChange = (key: keyof FilterType, checked: boolean) => {
+    onFilterChange({ [key]: checked ? true : undefined })
   }
 
   const clearFilters = () => {
@@ -46,7 +45,7 @@ export const CustomerFilters: React.FC<CustomerFiltersProps> = ({
   }
 
   const hasActiveFilters = Object.keys(filters).some(
-    key => filters[key as keyof CustomerListParams] !== undefined && 
+    key => filters[key as keyof FilterType] !== undefined && 
            !['page', 'page_size', 'ordering'].includes(key)
   )
 
@@ -136,21 +135,21 @@ export const CustomerFilters: React.FC<CustomerFiltersProps> = ({
         <Checkbox
           label="Active Customers"
           checked={filters.active === true}
-          onChange={(checked) => handleCheckboxChange('active', checked)}
+          onCheckedChange={(checked) => handleCheckboxChange('active', checked as boolean)}
         />
         <Checkbox
           label="Blacklisted Customers"
           checked={filters.blacklisted === true}
-          onChange={(checked) => handleCheckboxChange('blacklisted', checked)}
+          onCheckedChange={(checked) => handleCheckboxChange('blacklisted', checked as boolean)}
         />
         <Checkbox
           label="Customers with Loans"
           checked={filters.has_loans === true}
-          onChange={(checked) => handleCheckboxChange('has_loans', checked)}
+          onCheckedChange={(checked) => handleCheckboxChange('has_loans', checked as boolean)}
         />
       </div>
     </div>
   )
 }
 
-//export default CustomerFilters
+// export default CustomerFilters

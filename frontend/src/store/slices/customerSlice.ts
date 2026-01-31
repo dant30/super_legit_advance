@@ -363,13 +363,14 @@ const customerSlice = createSlice({
       })
       .addCase(fetchCustomers.fulfilled, (state, action) => {
         state.customersLoading = false
-        // ✅ FIXED: Handle the response structure
         state.customers = action.payload.results || []
         state.customersPagination = {
-          page: action.payload.pagination?.current_page || 1,
-          page_size: action.payload.pagination?.per_page || 20,
+          page: action.payload.page || 1,
+          page_size: action.payload.page_size || 20,
           total: action.payload.count || 0,
-          total_pages: action.payload.pagination?.total_pages || 1,
+          total_pages: Math.ceil(
+            (action.payload.count || 0) / (action.payload.page_size || 20)
+          ),
         }
       })
       .addCase(fetchCustomers.rejected, (state, action) => {

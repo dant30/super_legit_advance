@@ -14,22 +14,25 @@ export interface SelectProps
   error?: string
   helperText?: string
   options: SelectOption[]
+  placeholder?: string
   variant?: 'default' | 'filled'
   uiSize?: 'sm' | 'md' | 'lg'
 }
 
-const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
+export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   (
     {
       label,
       error,
       helperText,
       options,
+      placeholder = 'Select an option',
       variant = 'default',
       uiSize = 'md',
       className,
       disabled,
       required,
+      value,
       ...selectProps
     },
     ref
@@ -62,6 +65,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             disabled={disabled}
             required={required}
+            value={value}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             className={clsx(
@@ -80,7 +84,10 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             )}
             {...selectProps}
           >
-            <option value="">Select an option</option>
+            <option value="" disabled>
+              {placeholder}
+            </option>
+
             {options.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}

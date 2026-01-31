@@ -1,82 +1,102 @@
 // frontend/src/components/shared/Error.tsx
-// frontend/src/components/shared/Error.tsx
 import React from 'react'
-import { AlertCircle } from 'lucide-react'
-import clsx from 'clsx'
-import type { FallbackProps } from 'react-error-boundary'
+import { AlertCircle, RefreshCw } from 'lucide-react'
+import { cn } from '@/lib/utils/cn'
+import { Button } from '@/components/ui/Button'
 
-type ErrorVariant = 'default' | 'danger' | 'warning' | 'info'
+export type ErrorVariant = 'default' | 'danger' | 'warning' | 'info'
 
-export interface ErrorProps extends Omit<FallbackProps, 'error'> {
-  error: unknown
+export interface ErrorProps {
+  /** Error title */
   title?: string
+  /** Error message */
   message?: string
+  /** Error variant */
   variant?: ErrorVariant
+  /** Show full screen */
   fullScreen?: boolean
+  /** Retry function */
   retry?: () => void
+  /** Retry button text */
+  retryText?: string
+  /** Additional action button */
+  actionText?: string
+  /** Additional action handler */
+  onAction?: () => void
+  /** Additional className */
   className?: string
+  /** Show icon */
+  showIcon?: boolean
 }
 
 export const Error: React.FC<ErrorProps> = ({
   title = 'Something went wrong',
-  message,
-  error,
-  resetErrorBoundary,
-  retry,
+  message = 'An unexpected error occurred. Please try again.',
   variant = 'danger',
-  fullScreen = true,
-  className = '',
+  fullScreen = false,
+  retry,
+  retryText = 'Try again',
+  actionText,
+  onAction,
+  className,
+  showIcon = true,
 }) => {
-  const resolvedMessage =
-    message ??
-    (error && typeof error === 'object' && 'message' in error
-      ? String((error as any).message)
-      : typeof error === 'string'
-      ? error
-      : 'An unexpected error occurred.')
-
-  const handleRetry = retry ?? resetErrorBoundary
-
   const variants: Record<ErrorVariant, string> = {
     default:
       'bg-gray-50 border-gray-200 text-gray-800 dark:bg-gray-900/50 dark:border-gray-800 dark:text-gray-200',
     danger:
-      'bg-danger-50 border-danger-200 text-danger-800 dark:bg-danger-900/20 dark:border-danger-800 dark:text-danger-200',
+      'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200',
     warning:
-      'bg-warning-50 border-warning-200 text-warning-800 dark:bg-warning-900/20 dark:border-warning-800 dark:text-warning-200',
+      'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-200',
     info:
       'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-200',
   }
 
   const iconColors: Record<ErrorVariant, string> = {
     default: 'text-gray-600 dark:text-gray-400',
-    danger: 'text-danger-600 dark:text-danger-400',
-    warning: 'text-warning-600 dark:text-warning-400',
-    info: 'text-primary-600 dark:text-primary-400',
+    danger: 'text-red-600 dark:text-red-400',
+    warning: 'text-yellow-600 dark:text-yellow-400',
+    info: 'text-blue-600 dark:text-blue-400',
   }
 
   const content = (
     <div
-      className={clsx('rounded-lg border p-4', variants[variant], className)}
+      className={cn('rounded-lg border p-6', variants[variant], className)}
       role="alert"
     >
-      <div className="flex items-start gap-3">
-        <AlertCircle
-          className={clsx(
-            'h-5 w-5 flex-shrink-0 mt-0.5',
-            iconColors[variant]
-          )}
-        />
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-medium">{title}</h3>
-          <p className="text-sm mt-1 opacity-90">{resolvedMessage}</p>
+      <div className="flex flex-col items-center text-center">
+        {showIcon && (
+          <AlertCircle
+            className={cn('h-12 w-12 mb-4', iconColors[variant])}
+            aria-hidden="true"
+          />
+        )}
+        
+        <h3 className="text-lg font-semibold mb-2">{title}</h3>
+        
+        <p className="text-sm opacity-90 mb-6 max-w-md">{message}</p>
 
-          <button
-            onClick={handleRetry}
-            className="mt-3 text-sm font-medium hover:underline"
-          >
-            Try again
-          </button>
+        <div className="flex gap-3">
+          {retry && (
+            <Button
+              variant={variant === 'danger' ? 'danger' : 'primary'}
+              size="sm"
+              onClick={retry}
+              icon={<RefreshCw className="h-4 w-4" />}
+            >
+              {retryText}
+            </Button>
+          )}
+          
+          {actionText && onAction && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onAction}
+            >
+              {actionText}
+            </Button>
+          )}
         </div>
       </div>
     </div>
@@ -92,5 +112,3 @@ export const Error: React.FC<ErrorProps> = ({
 
   return content
 }
-
-//export default Error

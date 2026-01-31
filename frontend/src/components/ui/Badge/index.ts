@@ -1,2 +1,3 @@
-export { default as Badge } from './Badge'
-export type { BadgeProps } from './Badge'
+// frontend/src/components/ui/Badge/index.ts
+export { Badge } from './Badge'
+export type { BadgeProps, BadgeVariant, BadgeSize } from './Badge'

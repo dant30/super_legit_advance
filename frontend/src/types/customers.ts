@@ -44,6 +44,11 @@ export interface Customer {
   user?: string
   created_by?: string
   updated_by?: string
+
+  // Added document fields
+  id_document?: string
+  passport_photo?: string
+  signature?: string
 }
 
 // ===== EMPLOYMENT TYPES =====
@@ -395,3 +400,8 @@ export const getVerificationStatusColor = (status: string): string => {
       return 'default'
   }
 }
+
+// Ensure these helper / alias types exist
+export type CustomerUpdateData = Partial<CustomerCreateData>
+export type EmploymentCreateData = EmploymentFormData
+export type GuarantorCreateData = GuarantorFormData

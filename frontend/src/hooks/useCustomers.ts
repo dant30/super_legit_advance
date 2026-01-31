@@ -1,6 +1,5 @@
 // frontend/src/hooks/useCustomers.ts
-// frontend/src/hooks/useCustomers.ts
-import { useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState, AppDispatch } from '@/store/store'
 import {
@@ -32,6 +31,7 @@ import {
   setFilters,
   setCustomerPage,
 } from '@/store/slices/customerSlice'
+import { customerAPI } from '@/lib/api/customers'
 import type {
   Customer,
   CustomerDetailResponse,
@@ -127,6 +127,8 @@ interface UseCustomersReturn {
 
 export const useCustomers = (): UseCustomersReturn => {
   const dispatch = useDispatch<AppDispatch>()
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Get state from Redux store
   const {
@@ -220,16 +222,38 @@ export const useCustomers = (): UseCustomersReturn => {
 
   const exportCustomers = useCallback(
     async (format: 'excel' | 'csv', filters?: any): Promise<Blob> => {
-      // You'll need to implement this or use the customerAPI directly
-      throw new Error('Not implemented')
+      setIsLoading(true)
+      setError(null)
+      try {
+        const response = await customerAPI.exportCustomers(format, filters)
+        setIsLoading(false)
+        return response
+      } catch (err: any) {
+        setIsLoading(false)
+        const errorMessage =
+          err.response?.data?.detail || err.message || 'Failed to export customers'
+        setError(errorMessage)
+        throw new Error(errorMessage)
+      }
     },
     []
   )
 
   const importCustomers = useCallback(
     async (file: File): Promise<any> => {
-      // You'll need to implement this or use the customerAPI directly
-      throw new Error('Not implemented')
+      setIsLoading(true)
+      setError(null)
+      try {
+        const response = await customerAPI.importCustomers(file)
+        setIsLoading(false)
+        return response
+      } catch (err: any) {
+        setIsLoading(false)
+        const errorMessage =
+          err.response?.data?.detail || err.message || 'Failed to import customers'
+        setError(errorMessage)
+        throw new Error(errorMessage)
+      }
     },
     []
   )
@@ -296,7 +320,9 @@ export const useCustomers = (): UseCustomersReturn => {
 
   /* ===== UTILITY ===== */
 
+  // Clear local error + Redux error
   const clearError = useCallback(() => {
+    setError(null)
     dispatch(clearCustomersError())
   }, [dispatch])
 
@@ -360,5 +386,9 @@ export const useCustomers = (): UseCustomersReturn => {
     clearSelectedGuarantor: () => dispatch(clearSelectedGuarantor()),
     setFilters: (filters: any) => dispatch(setFilters(filters)),
     setCustomerPage: (page: number) => dispatch(setCustomerPage(page)),
+    // Local helpers
+    clearError,
+    isLoading,
+    error,
   }
 }
