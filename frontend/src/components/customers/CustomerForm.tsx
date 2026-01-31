@@ -62,7 +62,7 @@ const customerSchema = z.object({
   }
 )
 
-interface CustomerFormProps {
+export interface CustomerFormProps {
   initialData?: Partial<CustomerFormData>
   onSubmit: (data: CustomerFormData) => Promise<void>
   onCancel: () => void
@@ -70,7 +70,7 @@ interface CustomerFormProps {
   loading?: boolean
 }
 
-const CustomerForm: React.FC<CustomerFormProps> = ({
+export const CustomerForm: React.FC<CustomerFormProps> = ({
   initialData,
   onSubmit,
   onCancel,
@@ -435,4 +435,4 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
   )
 }
 
-export default CustomerForm
+// export default CustomerForm
