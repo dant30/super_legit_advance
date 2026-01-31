@@ -1,57 +1,32 @@
 // fronten/src/main.tsx
+// frontend/src/main.tsx - FIXED VERSION
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-
-/* -----------------------------
-   Core Providers
--------------------------------- */
 import { Provider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
-
-/* -----------------------------
-   React Query
--------------------------------- */
-import {
-  QueryClient,
-  QueryClientProvider,
-  QueryCache,
-} from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-
-/* -----------------------------
-   Error Handling & Meta
--------------------------------- */
 import { ErrorBoundary } from 'react-error-boundary'
 import { HelmetProvider } from 'react-helmet-async'
-
-/* -----------------------------
-   Notifications
--------------------------------- */
-import { Toaster, ToastOptions } from 'react-hot-toast'
-import ToastProvider from '@/components/ui/Toast/ToastProvider'
-
-/* -----------------------------
-   App & Store
--------------------------------- */
 import App from './App'
 import { store } from '@/store/store'
 import { Error as ErrorFallback } from '@/components/shared/Error'
-
-/* -----------------------------
-   Global Styles (ORDER MATTERS)
--------------------------------- */
+import { ToastProvider } from '@/components/ui/Toast/ToastProvider' // <-- USE YOUR CUSTOM PROVIDER
 import '@styles/tailwind.css'
 
-/* ======================================================
-   React Query Client (HMR-safe)
-====================================================== */
+// ======================================================
+// HMR-safe QueryClient
+// ======================================================
 let queryClient: QueryClient
 
 if (import.meta.hot) {
+  // Reuse QueryClient during HMR
   queryClient = import.meta.hot.data.queryClient || new QueryClient({
     queryCache: new QueryCache({
       onError: (error) => {
-        if (import.meta.env.DEV) console.error('[React Query Error]', error)
+        if (import.meta.env.DEV) {
+          console.error('[React Query Error]', error)
+        }
       },
     }),
     defaultOptions: {
@@ -62,15 +37,20 @@ if (import.meta.hot) {
         refetchOnWindowFocus: false,
         refetchOnMount: false,
       },
-      mutations: { retry: 1 },
+      mutations: {
+        retry: 1,
+      },
     },
   })
+  
   import.meta.hot.data.queryClient = queryClient
 } else {
   queryClient = new QueryClient({
     queryCache: new QueryCache({
       onError: (error) => {
-        if (import.meta.env.DEV) console.error('[React Query Error]', error)
+        if (import.meta.env.DEV) {
+          console.error('[React Query Error]', error)
+        }
       },
     }),
     defaultOptions: {
@@ -81,16 +61,18 @@ if (import.meta.hot) {
         refetchOnWindowFocus: false,
         refetchOnMount: false,
       },
-      mutations: { retry: 1 },
+      mutations: {
+        retry: 1,
+      },
     },
   })
 }
 
 export { queryClient }
 
-/* ======================================================
-   Global Error Capture
-====================================================== */
+// ======================================================
+// Global Error Capture
+// ======================================================
 if (typeof window !== 'undefined') {
   const onUnhandledRejection = (e: PromiseRejectionEvent) => {
     console.error('[Unhandled Promise Rejection]', e.reason)
@@ -109,58 +91,61 @@ if (typeof window !== 'undefined') {
   })
 }
 
-/* ======================================================
-   Toast Options
-====================================================== */
-const toastOptions: ToastOptions = {
-  duration: 5000,
-  style: {
-    background: '#1f2937',
-    color: '#f9fafb',
-    fontFamily: 'Inter, system-ui, sans-serif',
-    fontWeight: 500,
-  },
-  className: 'dark:!bg-slate-800 dark:!text-slate-50',
-}
-
-/* ======================================================
-   Providers Wrapper
-====================================================== */
+// ======================================================
+// Providers - USING YOUR CUSTOM TOAST PROVIDER
+// ======================================================
 const Providers: React.FC<React.PropsWithChildren> = ({ children }) => (
   <ErrorBoundary
     FallbackComponent={ErrorFallback}
-    onError={(error, info) => console.error('[ErrorBoundary]', error, info)}
+    onError={(error, info) => {
+      console.error('[ErrorBoundary]', error, info.componentStack)
+    }}
     onReset={() => window.location.reload()}
   >
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <HelmetProvider>
-          <ToastProvider>
-            {children}
+          <ToastProvider> {/* ← THIS IS THE FIX */}
+            <BrowserRouter>
+              {children}
+            </BrowserRouter>
           </ToastProvider>
         </HelmetProvider>
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
     </Provider>
   </ErrorBoundary>
 )
 
-/* ======================================================
-   Render App
-====================================================== */
-const root = ReactDOM.createRoot(document.getElementById('root')!)
+// ======================================================
+// Render Application
+// ======================================================
+const rootElement = document.getElementById('root')
+if (!rootElement) {
+  throw new Error('Failed to find the root element')
+}
+
+const root = ReactDOM.createRoot(rootElement)
 
 root.render(
   <React.StrictMode>
     <Providers>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-
-      <Toaster position="top-right" toastOptions={toastOptions} />
-
-      {import.meta.env.DEV && (
-        <ReactQueryDevtools initialIsOpen={false} />
-      )}
+      <App />
     </Providers>
   </React.StrictMode>
 )
+
+// ======================================================
+// Development-only enhancements
+// ======================================================
+if (import.meta.env.DEV) {
+  // Add React Query DevTools to window for debugging
+  window.__REACT_QUERY_DEVTOOLS__ = ReactQueryDevtools
+  
+  // Enable React Query DevTools by default in development
+  console.info('React Query DevTools enabled in development')
+  
+  // Log environment info
+  console.info(`Environment: ${import.meta.env.MODE}`)
+  console.info(`API URL: ${import.meta.env.VITE_API_URL}`)
+}

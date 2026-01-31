@@ -1,5 +1,4 @@
 // frontend/src/components/customers/CustomerTable.tsx
-// frontend/src/components/customers/CustomerTable.tsx
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Table } from '@/components/ui/Table'

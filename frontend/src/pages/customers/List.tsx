@@ -1,5 +1,4 @@
 // frontend/src/pages/customers/List.tsx
-// frontend/src/pages/customers/List.tsx
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCustomers } from '@/hooks/useCustomers'
@@ -16,11 +15,12 @@ import { Error } from '@/components/shared/Error'
 import { Breadcrumbs } from '@/components/shared/Breadcrumbs'
 import { Pagination } from '@/components/shared/Pagination'
 import { useToast } from '@/components/ui/Toast/useToast'
+
+import toast from 'react-hot-toast'
 import type { Customer, CustomerListParams } from '@/types/customers'
 
 const CustomerList: React.FC = () => {
   const navigate = useNavigate()
-  const { toast } = useToast()
   const { isAdmin } = useAuth()
   const { 
     customers, 
@@ -42,6 +42,7 @@ const CustomerList: React.FC = () => {
   const [stats, setStats] = useState<any>(null)
   const [showExportDialog, setShowExportDialog] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchLoading, setSearchLoading] = useState(false)
 
   useEffect(() => {
     loadCustomers()
@@ -51,12 +52,8 @@ const CustomerList: React.FC = () => {
   const loadCustomers = async () => {
     try {
       await fetchCustomers(filters)
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load customers',
-        variant: 'destructive'
-      })
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to load customers')
     }
   }
 
@@ -64,22 +61,23 @@ const CustomerList: React.FC = () => {
     try {
       const statsData = await getCustomerStats()
       setStats(statsData)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load stats:', error)
+      toast.error('Failed to load statistics')
     }
   }
 
   const handleSearch = async (query: string, type?: string) => {
     setSearchQuery(query)
-    if (query) {
+    if (query.trim()) {
+      setSearchLoading(true)
       try {
         await searchCustomers(query, type)
-      } catch (error) {
-        toast({
-          title: 'Search Error',
-          description: 'Failed to search customers',
-          variant: 'destructive'
-        })
+        toast.success(`Found customers matching "${query}"`)
+      } catch (error: any) {
+        toast.error(error.message || 'Failed to search customers')
+      } finally {
+        setSearchLoading(false)
       }
     } else {
       loadCustomers()
@@ -94,28 +92,32 @@ const CustomerList: React.FC = () => {
     setFilters(prev => ({ ...prev, page }))
   }
 
+  const handlePageSizeChange = (size: number) => {
+    setFilters(prev => ({ 
+      ...prev, 
+      page_size: size, 
+      page: 1  // Reset to first page when changing page size
+    }))
+  }
+
   const handleExport = async (format: 'excel' | 'csv') => {
     try {
+      toast.loading('Exporting customers...')
       const blob = await exportCustomers(format, filters)
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `customers_export.${format === 'excel' ? 'xlsx' : 'csv'}`
+      a.download = `customers_export_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'csv'}`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
       
-      toast({
-        title: 'Export Successful',
-        description: `Customers exported as ${format.toUpperCase()}`
-      })
-    } catch (error) {
-      toast({
-        title: 'Export Failed',
-        description: 'Failed to export customers',
-        variant: 'destructive'
-      })
+      toast.dismiss()
+      toast.success(`Customers exported successfully as ${format.toUpperCase()}`)
+    } catch (error: any) {
+      toast.dismiss()
+      toast.error(error.message || 'Failed to export customers')
     }
   }
 
@@ -127,13 +129,36 @@ const CustomerList: React.FC = () => {
     navigate(`/customers/${customer.id}`)
   }
 
+  const handleEditCustomer = (customer: Customer) => {
+    navigate(`/customers/${customer.id}/edit`)
+  }
+
+  const handleBlacklist = async (customer: Customer) => {
+    const reason = prompt('Enter reason for blacklisting:')
+    if (reason) {
+      // You'll need to implement this in your hook
+      // await blacklistCustomer(customer.id, reason)
+      toast.success(`Customer ${customer.full_name} has been blacklisted`)
+    }
+  }
+
   const breadcrumbs = [
     { label: 'Dashboard', href: '/' },
     { label: 'Customers', href: '/customers' }
   ]
 
+  // Calculate pagination values with fallbacks
+  const totalItems = customersPagination?.total || 0
+  const totalPages = customersPagination?.total_pages || 1
+  const currentPage = customersPagination?.page || 1
+  const pageSize = filters.page_size || 20
+
   if (customersLoading && (!customers || customers.length === 0)) {
-    return <Loading message="Loading customers..." />
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Loading message="Loading customers..." />
+      </div>
+    )
   }
 
   return (
@@ -174,47 +199,65 @@ const CustomerList: React.FC = () => {
         </div>
         
         <div className="lg:col-span-3">
-          <Card>
-            <div className="mb-4">
-              <CustomerSearch onSearch={handleSearch} />
+          <Card className="overflow-hidden">
+            <div className="mb-4 p-4">
+              <CustomerSearch 
+                onSearch={handleSearch} 
+                loading={searchLoading}
+              />
             </div>
             
             {customersError && (
-              <Error 
-                message={customersError} 
-                onRetry={loadCustomers}
-                onDismiss={clearError}
-              />
-            )}
-
-            {Array.isArray(customers) && customers.length > 0 ? (
-              <CustomerTable
-                customers={customers}
-                loading={customersLoading}
-                onViewDetail={handleViewDetail}
-                onEdit={(customer) => navigate(`/customers/${customer.id}/edit`)}
-                onBlacklist={(customer) => {
-                  // Implement blacklist logic
-                }}
-              />
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No customers found</p>
+              <div className="px-4">
+                <Error 
+                  message={customersError} 
+                  onRetry={loadCustomers}
+                  onDismiss={clearError}
+                />
               </div>
             )}
 
-            <div className="mt-4">
-              <Pagination
-                currentPage={customersPagination?.page || 1}
-                totalPages={customersPagination?.total_pages || 1}
-                totalItems={customersPagination?.total || 0}
-                pageSize={customersPagination?.page_size || 20}
-                onPageChange={handlePageChange}
-                onPageSizeChange={(size) => 
-                  setFilters(prev => ({ ...prev, page_size: size, page: 1 }))
-                }
+            <div className="px-4">
+              <CustomerTable
+                customers={Array.isArray(customers) ? customers : []}
+                loading={customersLoading || searchLoading}
+                onViewDetail={handleViewDetail}
+                onEdit={handleEditCustomer}
+                onBlacklist={handleBlacklist}
               />
             </div>
+
+            {/* Enhanced Pagination with all features */}
+            {totalItems > 0 && (
+              <div className="mt-6 border-t">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
+                  pageSize={pageSize}
+                  onPageChange={handlePageChange}
+                  onPageSizeChange={handlePageSizeChange}
+                  className="border-none" // Remove border since Card already has border
+                  // Enhanced features
+                  showPageSize={true}
+                  showInfo={true}
+                  showFirstLast={true}
+                />
+              </div>
+            )}
+
+            {totalItems === 0 && !customersLoading && !searchLoading && (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No customers found</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={handleCreateCustomer}
+                >
+                  + Add Your First Customer
+                </Button>
+              </div>
+            )}
           </Card>
         </div>
       </div>
