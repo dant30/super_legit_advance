@@ -348,7 +348,8 @@ super_legit_advance/
 │       │   │   ├── EmptyState.tsx
 │       │   │   ├── ConfirmDialog.tsx
 │       │   │   ├── Pagination.tsx
-│       │   │   ├── Breadcrumbs.tsx            
+│       │   │   ├── Breadcrumbs.tsx
+│       │   │   ├── ProgressBar.tsx            
 │       │   │   └── FileUpload.tsx
 │       │   ├── dashboard/
 │       │   |   ├── component1.tsx        

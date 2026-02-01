@@ -8,6 +8,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { ProgressBar } from '@/components/shared/ProgressBar' // Import ProgressBar
 
 export interface UploadedFile {
   id: string
@@ -19,7 +20,7 @@ export interface UploadedFile {
 }
 
 export interface FileUploadProps {
-  accept?: string // Add this line - matches HTML input accept attribute
+  accept?: string
   acceptedTypes?: string[]
   maxSize?: number // MB
   maxFiles?: number
@@ -27,7 +28,7 @@ export interface FileUploadProps {
   disabled?: boolean
   label?: string
   onFilesChange?: (files: UploadedFile[]) => void
-  onFileSelect?: (file: File | null) => void // Add this - you're using onFileSelect in GuarantorForm
+  onFileSelect?: (file: File | null) => void
   onFileUpload?: (file: File) => Promise<void>
   showPreview?: boolean
   className?: string
@@ -36,7 +37,7 @@ export interface FileUploadProps {
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({
-  accept, // Add this
+  accept,
   acceptedTypes = ['image/*', '.pdf', '.doc', '.docx', '.xls', '.xlsx'],
   maxSize = 10,
   maxFiles = 5,
@@ -44,7 +45,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   disabled = false,
   label = 'Upload files',
   onFilesChange,
-  onFileSelect, // Add this
+  onFileSelect,
   onFileUpload,
   showPreview = true,
   className,
@@ -56,7 +57,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Determine which accept string to use
   const getAcceptString = () => {
     if (accept) return accept
     return acceptedTypes.join(',')
@@ -65,7 +65,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   const validateFile = (file: File): string | undefined => {
     const maxSizeBytes = maxSize * 1024 * 1024
     
-    // Use accept prop if provided, otherwise use acceptedTypes
     const typesToCheck = accept ? 
       accept.split(',').map(t => t.trim()) : 
       acceptedTypes
@@ -116,10 +115,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       const updated = multiple ? [...files, ...mapped] : mapped
       setFiles(updated)
       
-      // Call onFilesChange if provided
       onFilesChange?.(updated)
       
-      // Call onFileSelect with the first file (or null if multiple not allowed)
       if (onFileSelect) {
         if (incoming.length > 0) {
           onFileSelect(incoming[0])
@@ -128,7 +125,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         }
       }
 
-      // Handle auto-upload if onFileUpload is provided
       if (onFileUpload && !mapped.some(f => f.error)) {
         setUploading(true)
         Promise.all(mapped.filter(f => !f.error).map((f) => uploadFile(f)))
@@ -170,7 +166,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     const updated = files.filter((f) => f.id !== id)
     setFiles(updated)
     
-    // Call callbacks after removal
     onFilesChange?.(updated)
     if (onFileSelect) {
       if (updated.length > 0) {
@@ -181,7 +176,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     }
   }
 
-  // Clear all files
   const clearFiles = () => {
     files.forEach((f) => {
       if (f.previewUrl) {
@@ -270,7 +264,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                   alt={f.file.name}
                   className="h-16 w-16 rounded object-cover flex-shrink-0"
                   onLoad={() => {
-                    // Clean up object URL after image loads if it's no longer needed
                     if (f.uploaded || f.error) {
                       URL.revokeObjectURL(f.previewUrl!)
                     }
@@ -317,12 +310,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
                 {!f.error && !f.uploaded && f.progress !== undefined && (
                   <div className="mt-2">
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                      <div
-                        className="bg-primary-600 h-1.5 rounded-full transition-all duration-300"
-                        style={{ width: `${f.progress}%` }}
-                      />
-                    </div>
+                    {/* Change from progress={f.progress} to value={f.progress} */}
+                    <ProgressBar value={f.progress} />
                     {f.progress > 0 && f.progress < 100 && (
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         Uploading: {f.progress}%
