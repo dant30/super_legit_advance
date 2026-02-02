@@ -11,3 +11,4 @@ export * from './useReports';
 export * from './useCustomers';
 export * from './useMpesa';
 export * from './useApi';
+export * from './useAdmin';

@@ -278,4 +278,8 @@ frontend/
         ├── ThemeContext.jsx      # Theme context (dark/light mode)
         ├── ToastContext.jsx      # Toast notifications context
         ├── NotificationContext.jsx 
+        ├── MpesaContext.jsx
+        ├── CustomerContext.jsx
+        ├── ReportContext.jsx
+        ├── AuditContext.jsx    
         └── index.js
