@@ -1,393 +1,79 @@
-// frontend/src/lib/api/notifications.ts
-import axiosInstance from '@/lib/axios'
+// frontend/src/api/notifications.js
+import axiosInstance from './axios'
 
 /* =====================================================
- * Core Types
+ * Constants
  * ===================================================== */
 
-export type NotificationChannel = 'SMS' | 'EMAIL' | 'PUSH' | 'IN_APP' | 'WHATSAPP'
-export type NotificationPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-export type NotificationStatus = 'PENDING' | 'SENT' | 'FAILED' | 'DELIVERED' | 'READ' | 'ARCHIVED'
-export type NotificationType = 
-  | 'LOAN_APPROVED'
-  | 'LOAN_REJECTED'
-  | 'LOAN_DISBURSED'
-  | 'PAYMENT_REMINDER'
-  | 'PAYMENT_RECEIVED'
-  | 'PAYMENT_OVERDUE'
-  | 'ACCOUNT_UPDATE'
-  | 'SYSTEM_ALERT'
-  | 'MARKETING'
-  | 'OTHER'
-
-export type TemplateType = 'SMS' | 'EMAIL' | 'PUSH' | 'WHATSAPP'
-export type TemplateCategory = 'LOAN' | 'PAYMENT' | 'ACCOUNT' | 'MARKETING' | 'ALERT' | 'OTHER'
-export type TemplateLanguage = 'EN' | 'SW'
-
-export type SMSProvider = 'AFRICASTALKING' | 'TWILIO' | 'NEXMO' | 'INFOBIP' | 'BULKSMS' | 'OTHER'
-export type SMSStatus = 'PENDING' | 'SENT' | 'DELIVERED' | 'FAILED' | 'REJECTED' | 'UNDELIVERED'
-
-/* =====================================================
- * Recipient & Sender Types
- * ===================================================== */
-
-export interface NotificationRecipient {
-  id?: number
-  name: string
-  phone?: string
-  email?: string
-  username?: string
-  is_staff?: boolean
-  is_customer?: boolean
+export const NOTIFICATION_CHANNELS = {
+  SMS: 'SMS',
+  EMAIL: 'EMAIL',
+  PUSH: 'PUSH',
+  IN_APP: 'IN_APP',
+  WHATSAPP: 'WHATSAPP'
 }
 
-export interface NotificationSender {
-  id: number
-  name: string
-  email: string
-  phone?: string
-  is_staff: boolean
+export const NOTIFICATION_PRIORITIES = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  URGENT: 'URGENT'
 }
 
-/* =====================================================
- * Notification Types
- * ===================================================== */
-
-export interface Notification {
-  id: number
-  notification_type: NotificationType
-  notification_type_display: string
-  channel: NotificationChannel
-  channel_display: string
-  priority: NotificationPriority
-  priority_display: string
-  title: string
-  message: string
-  recipient: number | null
-  recipient_info: NotificationRecipient
-  recipient_name: string
-  recipient_phone: string
-  recipient_email: string
-  sender: number | null
-  sender_info: NotificationSender | null
-  sender_name: string
-  status: NotificationStatus
-  status_display: string
-  scheduled_for?: string
-  sent_at?: string
-  delivered_at?: string
-  read_at?: string
-  delivery_attempts: number
-  delivery_error: string
-  external_id: string
-  cost: number
-  related_object_type?: string
-  related_object_id?: string
-  related_object_info?: Record<string, any>
-  template?: number
-  template_info?: {
-    id: number
-    name: string
-    type: TemplateType
-    category: TemplateCategory
-  }
-  metadata: Record<string, any>
-  created_at: string
-  updated_at: string
+export const NOTIFICATION_STATUSES = {
+  PENDING: 'PENDING',
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+  DELIVERED: 'DELIVERED',
+  READ: 'READ',
+  ARCHIVED: 'ARCHIVED'
 }
 
-export interface NotificationListResponse {
-  count: number
-  next: string | null
-  previous: string | null
-  results: Notification[]
+export const NOTIFICATION_TYPES = {
+  LOAN_APPROVED: 'LOAN_APPROVED',
+  LOAN_REJECTED: 'LOAN_REJECTED',
+  LOAN_DISBURSED: 'LOAN_DISBURSED',
+  PAYMENT_REMINDER: 'PAYMENT_REMINDER',
+  PAYMENT_RECEIVED: 'PAYMENT_RECEIVED',
+  PAYMENT_OVERDUE: 'PAYMENT_OVERDUE',
+  ACCOUNT_UPDATE: 'ACCOUNT_UPDATE',
+  SYSTEM_ALERT: 'SYSTEM_ALERT',
+  MARKETING: 'MARKETING',
+  OTHER: 'OTHER'
 }
 
-/* =====================================================
- * Template Types
- * ===================================================== */
-
-export interface Template {
-  id: number
-  name: string
-  template_type: TemplateType
-  template_type_display: string
-  category: TemplateCategory
-  category_display: string
-  language: TemplateLanguage
-  language_display: string
-  subject: string
-  content: string
-  variables: string[]
-  is_active: boolean
-  character_limit: number
-  usage_count: number
-  last_used?: string
-  description: string
-  sample_data: Record<string, any>
-  sample_render?: string
-  stats?: {
-    total_used: number
-    notifications_count: number
-    success_rate: number
-    last_used?: string
-  }
-  created_at: string
-  updated_at: string
+export const TEMPLATE_TYPES = {
+  SMS: 'SMS',
+  EMAIL: 'EMAIL',
+  PUSH: 'PUSH',
+  WHATSAPP: 'WHATSAPP'
 }
 
-export interface TemplateListResponse {
-  count: number
-  next: string | null
-  previous: string | null
-  results: Template[]
+export const TEMPLATE_CATEGORIES = {
+  LOAN: 'LOAN',
+  PAYMENT: 'PAYMENT',
+  ACCOUNT: 'ACCOUNT',
+  MARKETING: 'MARKETING',
+  ALERT: 'ALERT',
+  OTHER: 'OTHER'
 }
 
-/* =====================================================
- * SMS Log Types
- * ===================================================== */
-
-export interface SMSLog {
-  id: number
-  phone_number: string
-  message: string
-  message_id: string
-  provider: SMSProvider
-  provider_display: string
-  status: SMSStatus
-  status_display: string
-  status_message: string
-  units: number
-  cost: number
-  sent_at?: string
-  delivered_at?: string
-  network_code: string
-  network_name: string
-  notification_id: number
-  notification_type: NotificationType
-  notification_type_display: string
-  recipient_name: string
-  delivery_time?: number
-  created_at: string
-  updated_at?: string
+export const SMS_PROVIDERS = {
+  AFRICASTALKING: 'AFRICASTALKING',
+  TWILIO: 'TWILIO',
+  NEXMO: 'NEXMO',
+  INFOBIP: 'INFOBIP',
+  BULKSMS: 'BULKSMS',
+  OTHER: 'OTHER'
 }
 
-export interface SMSLogListResponse {
-  count: number
-  next: string | null
-  previous: string | null
-  results: SMSLog[]
-}
-
-export interface SMSLogDetailResponse extends SMSLog {
-  notification_info?: Notification
-  stats?: {
-    message_length: number
-    units_used: number
-    cost: number
-    delivery_time?: number
-    provider: string
-    network: string
-  }
-}
-
-/* =====================================================
- * Statistics Types
- * ===================================================== */
-
-export interface NotificationStats {
-  overall: {
-    total_notifications: number
-    notifications_last_period: number
-    total_cost: number
-    average_cost: number
-  }
-  status_distribution: Array<{ status: string; count: number }>
-  channel_distribution: Array<{ channel: string; count: number }>
-  type_distribution: Array<{ notification_type: string; count: number }>
-  daily_stats: Array<{
-    date: string
-    total: number
-    sent: number
-    success_rate: number
-  }>
-  time_period_days: number
-}
-
-export interface SMSStats {
-  overall: {
-    total_sms: number
-    sms_last_period: number
-    total_cost: number
-    total_units: number
-    avg_cost_per_sms: number
-    delivery_rate: number
-    avg_delivery_time_seconds?: number
-  }
-  status_distribution: Array<{ status: string; count: number }>
-  provider_distribution: Array<{
-    provider: string
-    count: number
-    total_cost: number
-    total_units: number
-  }>
-  daily_stats: Array<{
-    date: string
-    total_sms: number
-    sent_sms: number
-    delivered_sms: number
-    failed_sms: number
-    delivery_rate: number
-    total_cost: number
-    total_units: number
-    avg_cost_per_sms: number
-  }>
-  time_period_days: number
-}
-
-/* =====================================================
- * Request/Response Payload Types
- * ===================================================== */
-
-export interface CreateNotificationPayload {
-  notification_type: NotificationType
-  channel: NotificationChannel
-  priority: NotificationPriority
-  title: string
-  message?: string
-  recipient?: number
-  recipient_name?: string
-  recipient_phone?: string
-  recipient_email?: string
-  scheduled_for?: string
-  related_object_type?: string
-  related_object_id?: string
-  metadata?: Record<string, any>
-  template_id?: number
-  template_context?: Record<string, any>
-}
-
-export interface BulkNotificationPayload {
-  template_id: number
-  recipients: Array<{
-    name: string
-    phone?: string
-    email?: string
-    recipient?: number
-  }>
-  context?: Record<string, any>
-}
-
-export interface TestNotificationPayload {
-  channel: NotificationChannel
-  recipient_phone?: string
-  recipient_email?: string
-  message: string
-}
-
-export interface SendNotificationPayload {
-  send_immediately?: boolean
-  retry_failed?: boolean
-}
-
-export interface CreateTemplatePayload {
-  name: string
-  template_type: TemplateType
-  category: TemplateCategory
-  language: TemplateLanguage
-  subject?: string
-  content: string
-  character_limit?: number
-  description?: string
-  sample_data?: Record<string, any>
-}
-
-export interface UpdateTemplatePayload {
-  name?: string
-  template_type?: TemplateType
-  category?: TemplateCategory
-  language?: TemplateLanguage
-  subject?: string
-  content?: string
-  is_active?: boolean
-  character_limit?: number
-  description?: string
-  sample_data?: Record<string, any>
-}
-
-export interface TemplatePreviewPayload {
-  context?: Record<string, any>
-}
-
-export interface TemplatePreviewResponse {
-  template_id: number
-  template_name: string
-  rendered_content: string
-  rendered_subject?: string
-  content_length: number
-  variables_used: string[]
-  variables_provided: string[]
-  character_limit?: number
-  within_limit: boolean
-}
-
-export interface SendBulkNotificationsResponse {
-  total: number
-  successful: number
-  failed: number
-  details: Array<{
-    recipient: Record<string, any>
-    status: 'success' | 'failed' | 'error'
-    notification_id?: number
-    error?: string
-  }>
-}
-
-/* =====================================================
- * API Query Parameters
- * ===================================================== */
-
-export interface NotificationFilters {
-  page?: number
-  page_size?: number
-  notification_type?: NotificationType
-  channel?: NotificationChannel
-  status?: NotificationStatus
-  priority?: NotificationPriority
-  recipient_id?: number
-  related_type?: string
-  related_id?: string
-  template_id?: number
-  delivered?: boolean
-  start_date?: string
-  end_date?: string
-  search?: string
-  ordering?: string
-}
-
-export interface TemplateFilters {
-  page?: number
-  page_size?: number
-  template_type?: TemplateType
-  category?: TemplateCategory
-  language?: TemplateLanguage
-  is_active?: boolean
-  search?: string
-  ordering?: string
-}
-
-export interface SMSLogFilters {
-  page?: number
-  page_size?: number
-  status?: SMSStatus
-  provider?: SMSProvider
-  phone_number?: string
-  start_date?: string
-  end_date?: string
-  min_cost?: number
-  max_cost?: number
-  search?: string
-  ordering?: string
+export const SMS_STATUSES = {
+  PENDING: 'PENDING',
+  SENT: 'SENT',
+  DELIVERED: 'DELIVERED',
+  FAILED: 'FAILED',
+  REJECTED: 'REJECTED',
+  UNDELIVERED: 'UNDELIVERED'
 }
 
 /* =====================================================
@@ -395,104 +81,109 @@ export interface SMSLogFilters {
  * ===================================================== */
 
 class NotificationsAPI {
-  private baseURL = '/notifications'
+  constructor() {
+    this.baseURL = '/notifications'
+  }
 
   /* ===== NOTIFICATIONS ===== */
 
-  async getNotifications(params?: NotificationFilters): Promise<NotificationListResponse> {
+  async getNotifications(params = {}) {
     try {
-      const response = await axiosInstance.get<NotificationListResponse>(
-        `${this.baseURL}/notifications/`,
-        { params }
-      )
+      const response = await axiosInstance.get(`${this.baseURL}/notifications/`, { params })
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async getNotification(id: number): Promise<Notification> {
+  async getNotification(id) {
     try {
-      const response = await axiosInstance.get<Notification>(
-        `${this.baseURL}/notifications/${id}/`
-      )
+      const response = await axiosInstance.get(`${this.baseURL}/notifications/${id}/`)
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async createNotification(data: CreateNotificationPayload): Promise<Notification> {
+  async createNotification(data) {
     try {
-      const response = await axiosInstance.post<Notification>(
-        `${this.baseURL}/notifications/`,
-        data
-      )
+      const response = await axiosInstance.post(`${this.baseURL}/notifications/`, data)
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async sendNotification(id: number, payload?: SendNotificationPayload): Promise<any> {
+  async sendNotification(id, payload = {}) {
     try {
       const response = await axiosInstance.post(
         `${this.baseURL}/notifications/${id}/send/`,
-        payload || {}
+        payload
       )
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async markAsRead(id: number): Promise<any> {
+  async markAsRead(id) {
     try {
       const response = await axiosInstance.patch(
         `${this.baseURL}/notifications/${id}/mark-read/`
       )
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async markAllAsRead(): Promise<any> {
+  async markAllAsRead() {
     try {
       const response = await axiosInstance.post(
         `${this.baseURL}/notifications/mark-all-read/`
       )
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async getStats(params?: { days?: number }): Promise<NotificationStats> {
+  async deleteNotification(id) {
     try {
-      const response = await axiosInstance.get<NotificationStats>(
+      const response = await axiosInstance.delete(
+        `${this.baseURL}/notifications/${id}/`
+      )
+      return response.data
+    } catch (error) {
+      throw this._handleError(error)
+    }
+  }
+
+  async getStats(params = {}) {
+    try {
+      const response = await axiosInstance.get(
         `${this.baseURL}/notifications/stats/`,
         { params }
       )
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async sendBulkNotifications(data: BulkNotificationPayload): Promise<SendBulkNotificationsResponse> {
+  async sendBulkNotifications(data) {
     try {
-      const response = await axiosInstance.post<SendBulkNotificationsResponse>(
+      const response = await axiosInstance.post(
         `${this.baseURL}/notifications/bulk-send/`,
         data
       )
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async sendTestNotification(data: TestNotificationPayload): Promise<any> {
+  async sendTestNotification(data) {
     try {
       const response = await axiosInstance.post(
         `${this.baseURL}/notifications/test/`,
@@ -500,124 +191,197 @@ class NotificationsAPI {
       )
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
   /* ===== TEMPLATES ===== */
 
-  async getTemplates(params?: TemplateFilters): Promise<TemplateListResponse> {
+  async getTemplates(params = {}) {
     try {
-      const response = await axiosInstance.get<TemplateListResponse>(
-        `${this.baseURL}/templates/`,
-        { params }
-      )
+      const response = await axiosInstance.get(`${this.baseURL}/templates/`, { params })
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async getTemplate(id: number): Promise<Template> {
+  async getTemplate(id) {
     try {
-      const response = await axiosInstance.get<Template>(
-        `${this.baseURL}/templates/${id}/`
-      )
+      const response = await axiosInstance.get(`${this.baseURL}/templates/${id}/`)
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async createTemplate(data: CreateTemplatePayload): Promise<Template> {
+  async createTemplate(data) {
     try {
-      const response = await axiosInstance.post<Template>(
+      const response = await axiosInstance.post(
         `${this.baseURL}/templates/create/`,
         data
       )
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async updateTemplate(id: number, data: UpdateTemplatePayload): Promise<Template> {
+  async updateTemplate(id, data) {
     try {
-      const response = await axiosInstance.patch<Template>(
+      const response = await axiosInstance.patch(
         `${this.baseURL}/templates/${id}/update/`,
         data
       )
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async previewTemplate(id: number, payload: TemplatePreviewPayload): Promise<TemplatePreviewResponse> {
+  async deleteTemplate(id) {
     try {
-      const response = await axiosInstance.post<TemplatePreviewResponse>(
-        `${this.baseURL}/templates/${id}/preview/`,
-        payload
+      const response = await axiosInstance.delete(
+        `${this.baseURL}/templates/${id}/`
       )
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async duplicateTemplate(id: number, newName: string): Promise<Template> {
+  async previewTemplate(id, context = {}) {
     try {
-      const response = await axiosInstance.post<Template>(
+      const response = await axiosInstance.post(
+        `${this.baseURL}/templates/${id}/preview/`,
+        { context }
+      )
+      return response.data
+    } catch (error) {
+      throw this._handleError(error)
+    }
+  }
+
+  async duplicateTemplate(id, newName) {
+    try {
+      const response = await axiosInstance.post(
         `${this.baseURL}/templates/${id}/duplicate/`,
         { new_name: newName }
       )
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
   /* ===== SMS LOGS ===== */
 
-  async getSMSLogs(params?: SMSLogFilters): Promise<SMSLogListResponse> {
+  async getSMSLogs(params = {}) {
     try {
-      const response = await axiosInstance.get<SMSLogListResponse>(
-        `${this.baseURL}/sms-logs/`,
-        { params }
-      )
+      const response = await axiosInstance.get(`${this.baseURL}/sms-logs/`, { params })
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async getSMSLog(id: number): Promise<SMSLogDetailResponse> {
+  async getSMSLog(id) {
     try {
-      const response = await axiosInstance.get<SMSLogDetailResponse>(
-        `${this.baseURL}/sms-logs/${id}/`
-      )
+      const response = await axiosInstance.get(`${this.baseURL}/sms-logs/${id}/`)
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
   }
 
-  async getSMSStats(params?: { days?: number }): Promise<SMSStats> {
+  async getSMSStats(params = {}) {
     try {
-      const response = await axiosInstance.get<SMSStats>(
+      const response = await axiosInstance.get(
         `${this.baseURL}/sms-logs/stats/`,
         { params }
       )
       return response.data
     } catch (error) {
-      throw error
+      throw this._handleError(error)
     }
+  }
+
+  /* ===== UTILITY METHODS ===== */
+
+  _handleError(error) {
+    console.error('Notifications API Error:', error)
+    
+    if (error.response) {
+      // Server responded with error
+      const message = error.response.data?.detail || 
+                     error.response.data?.message || 
+                     error.response.data?.error ||
+                     'An error occurred'
+      
+      return new Error(message)
+    } else if (error.request) {
+      // No response received
+      return new Error('No response from server. Please check your connection.')
+    } else {
+      // Request setup error
+      return new Error(error.message || 'An unexpected error occurred')
+    }
+  }
+
+  // Helper method to format notification data
+  formatNotificationData(data) {
+    return {
+      ...data,
+      created_at: data.created_at ? new Date(data.created_at) : null,
+      sent_at: data.sent_at ? new Date(data.sent_at) : null,
+      delivered_at: data.delivered_at ? new Date(data.delivered_at) : null,
+      read_at: data.read_at ? new Date(data.read_at) : null,
+    }
+  }
+
+  // Helper method to get notification display text
+  getNotificationTypeDisplay(type) {
+    const displayMap = {
+      [NOTIFICATION_TYPES.LOAN_APPROVED]: 'Loan Approved',
+      [NOTIFICATION_TYPES.LOAN_REJECTED]: 'Loan Rejected',
+      [NOTIFICATION_TYPES.LOAN_DISBURSED]: 'Loan Disbursed',
+      [NOTIFICATION_TYPES.PAYMENT_REMINDER]: 'Payment Reminder',
+      [NOTIFICATION_TYPES.PAYMENT_RECEIVED]: 'Payment Received',
+      [NOTIFICATION_TYPES.PAYMENT_OVERDUE]: 'Payment Overdue',
+      [NOTIFICATION_TYPES.ACCOUNT_UPDATE]: 'Account Update',
+      [NOTIFICATION_TYPES.SYSTEM_ALERT]: 'System Alert',
+      [NOTIFICATION_TYPES.MARKETING]: 'Marketing',
+      [NOTIFICATION_TYPES.OTHER]: 'Other',
+    }
+    return displayMap[type] || type
+  }
+
+  getNotificationStatusDisplay(status) {
+    const displayMap = {
+      [NOTIFICATION_STATUSES.PENDING]: 'Pending',
+      [NOTIFICATION_STATUSES.SENT]: 'Sent',
+      [NOTIFICATION_STATUSES.FAILED]: 'Failed',
+      [NOTIFICATION_STATUSES.DELIVERED]: 'Delivered',
+      [NOTIFICATION_STATUSES.READ]: 'Read',
+      [NOTIFICATION_STATUSES.ARCHIVED]: 'Archived',
+    }
+    return displayMap[status] || status
+  }
+
+  getNotificationPriorityDisplay(priority) {
+    const displayMap = {
+      [NOTIFICATION_PRIORITIES.LOW]: 'Low',
+      [NOTIFICATION_PRIORITIES.MEDIUM]: 'Medium',
+      [NOTIFICATION_PRIORITIES.HIGH]: 'High',
+      [NOTIFICATION_PRIORITIES.URGENT]: 'Urgent',
+    }
+    return displayMap[priority] || priority
   }
 }
 
 /* =====================================================
- * Export singleton and types
+ * Export singleton
  * ===================================================== */
 
 export const notificationsAPI = new NotificationsAPI()
-export type { NotificationsAPI }
+export default notificationsAPI

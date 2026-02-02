@@ -1,308 +1,353 @@
-// frontend/src/hooks/useNotifications.ts
-import { useCallback } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { RootState, AppDispatch } from '@/store/store'
-import {
-  fetchNotifications,
-  fetchStats,
-  fetchTemplates,
-  fetchSMSLogs,
-  fetchSMSStats,
-  clearError,
-  setCurrentPage,
-  addNotification,
-  markAsRead,
-} from '@/store/slices/notificationSlice'
-import { notificationsAPI } from '@/lib/api/notifications'
-import type {
-  Notification,
-  Template,
-  SMSLog,
-  NotificationStats,
-  SMSStats,
-  CreateNotificationPayload,
-  UpdateTemplatePayload,
-  CreateTemplatePayload,
-  BulkNotificationPayload,
-  TestNotificationPayload,
-  NotificationFilters,
-  TemplateFilters,
-  SMSLogFilters,
-} from '@/lib/api/notifications'
+// frontend/src/hooks/useNotifications.js
+import { useState, useCallback } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import notificationsAPI, {
+  NOTIFICATION_TYPES,
+  NOTIFICATION_CHANNELS,
+  NOTIFICATION_STATUSES,
+  NOTIFICATION_PRIORITIES,
+  TEMPLATE_TYPES,
+  TEMPLATE_CATEGORIES,
+  SMS_PROVIDERS,
+  SMS_STATUSES
+} from '@/api/notifications'
 
-interface UseNotificationsReturn {
-  // State
-  notifications: Notification[]
-  templates: Template[]
-  smsLogs: SMSLog[]
-  stats: NotificationStats | null
-  smsStats: SMSStats | null
-  loading: boolean
-  error: string | null
-  totalCount: number
-  currentPage: number
+/* =====================================================
+ * Query Keys
+ * ===================================================== */
 
-  // Redux actions
-  getNotifications: (params?: NotificationFilters) => void
-  getStats: (days?: number) => void
-  getTemplates: (params?: TemplateFilters) => void
-  getSMSLogs: (params?: SMSLogFilters) => void
-  getSMSStats: (days?: number) => void
-
-  // Direct API - Notifications
-  createNotification: (data: CreateNotificationPayload) => Promise<Notification>
-  sendNotification: (id: number) => Promise<any>
-  markNotificationAsRead: (id: number) => Promise<any>
-  markAllNotificationsAsRead: () => Promise<any>
-  getNotificationDetail: (id: number) => Promise<Notification>
-
-  // Direct API - Templates
-  createTemplate: (data: CreateTemplatePayload) => Promise<Template>
-  updateTemplate: (id: number, data: UpdateTemplatePayload) => Promise<Template>
-  getTemplateDetail: (id: number) => Promise<Template>
-  previewTemplate: (id: number, context: Record<string, any>) => Promise<any>
-  duplicateTemplate: (id: number, newName: string) => Promise<Template>
-
-  // Direct API - SMS Logs
-  getSMSLogDetail: (id: number) => Promise<SMSLog>
-
-  // Bulk operations
-  sendBulkNotifications: (data: BulkNotificationPayload) => Promise<any>
-  sendTestNotification: (data: TestNotificationPayload) => Promise<any>
-
-  // Utilities
-  clearNotificationError: () => void
-  setNotificationPage: (page: number) => void
+export const notificationKeys = {
+  all: ['notifications'],
+  lists: () => [...notificationKeys.all, 'list'],
+  list: (filters) => [...notificationKeys.lists(), filters],
+  details: () => [...notificationKeys.all, 'detail'],
+  detail: (id) => [...notificationKeys.details(), id],
+  stats: (params) => [...notificationKeys.all, 'stats', params],
+  
+  templates: {
+    all: ['templates'],
+    lists: () => [...notificationKeys.templates.all, 'list'],
+    list: (filters) => [...notificationKeys.templates.lists(), filters],
+    detail: (id) => [...notificationKeys.templates.all, 'detail', id],
+  },
+  
+  sms: {
+    all: ['sms-logs'],
+    lists: () => [...notificationKeys.sms.all, 'list'],
+    list: (filters) => [...notificationKeys.sms.lists(), filters],
+    detail: (id) => [...notificationKeys.sms.all, 'detail', id],
+    stats: (params) => [...notificationKeys.sms.all, 'stats', params],
+  },
 }
 
-export const useNotifications = (): UseNotificationsReturn => {
-  const dispatch = useDispatch<AppDispatch>()
-  const notificationState = useSelector((state: RootState) => state.notifications)
+/* =====================================================
+ * Constants Export
+ * ===================================================== */
 
-  /* ===== REDUX ACTIONS ===== */
+export {
+  NOTIFICATION_TYPES,
+  NOTIFICATION_CHANNELS,
+  NOTIFICATION_STATUSES,
+  NOTIFICATION_PRIORITIES,
+  TEMPLATE_TYPES,
+  TEMPLATE_CATEGORIES,
+  SMS_PROVIDERS,
+  SMS_STATUSES
+}
 
-  const getNotifications = useCallback(
-    (params?: NotificationFilters) => {
-      dispatch(fetchNotifications(params))
-    },
-    [dispatch]
-  )
+/* =====================================================
+ * Main Hook
+ * ===================================================== */
 
-  const getStats = useCallback(
-    (days: number = 30) => {
-      dispatch(fetchStats({ days }))
-    },
-    [dispatch]
-  )
+export const useNotifications = () => {
+  const queryClient = useQueryClient()
+  const [error, setError] = useState(null)
+  const [successMessage, setSuccessMessage] = useState(null)
 
-  const getTemplates = useCallback(
-    (params?: TemplateFilters) => {
-      dispatch(fetchTemplates(params))
-    },
-    [dispatch]
-  )
+  /* ===== HELPER FUNCTIONS ===== */
 
-  const getSMSLogs = useCallback(
-    (params?: SMSLogFilters) => {
-      dispatch(fetchSMSLogs(params))
-    },
-    [dispatch]
-  )
-
-  const getSMSStats = useCallback(
-    (days: number = 30) => {
-      dispatch(fetchSMSStats({ days }))
-    },
-    [dispatch]
-  )
-
-  /* ===== DIRECT API - NOTIFICATIONS ===== */
-
-  const createNotification = useCallback(async (data: CreateNotificationPayload) => {
-    try {
-      const notification = await notificationsAPI.createNotification(data)
-      dispatch(addNotification(notification))
-      return notification
-    } catch (error) {
-      throw error
-    }
-  }, [dispatch])
-
-  const sendNotification = useCallback(async (id: number) => {
-    try {
-      return await notificationsAPI.sendNotification(id)
-    } catch (error) {
-      throw error
-    }
+  const clearMessages = useCallback(() => {
+    setError(null)
+    setSuccessMessage(null)
   }, [])
 
-  const markNotificationAsRead = useCallback(async (id: number) => {
-    try {
-      const result = await notificationsAPI.markAsRead(id)
-      dispatch(markAsRead(id))
-      return result
-    } catch (error) {
-      throw error
-    }
-  }, [dispatch])
-
-  const markAllNotificationsAsRead = useCallback(async () => {
-    try {
-      return await notificationsAPI.markAllAsRead()
-    } catch (error) {
-      throw error
-    }
+  const handleError = useCallback((error) => {
+    const errorMessage = error?.message || 'An unexpected error occurred'
+    setError(errorMessage)
+    setTimeout(() => setError(null), 5000)
+    throw error
   }, [])
 
-  const getNotificationDetail = useCallback(async (id: number) => {
-    try {
-      return await notificationsAPI.getNotification(id)
-    } catch (error) {
-      throw error
-    }
+  const handleSuccess = useCallback((message) => {
+    setSuccessMessage(message)
+    setTimeout(() => setSuccessMessage(null), 3000)
   }, [])
 
-  /* ===== DIRECT API - TEMPLATES ===== */
+  /* ===== NOTIFICATIONS QUERIES ===== */
 
-  const createTemplate = useCallback(async (data: CreateTemplatePayload) => {
-    try {
-      return await notificationsAPI.createTemplate(data)
-    } catch (error) {
-      throw error
-    }
-  }, [])
+  const useGetNotifications = (filters = {}, options = {}) => {
+    return useQuery({
+      queryKey: notificationKeys.list(filters),
+      queryFn: () => notificationsAPI.getNotifications(filters),
+      onError: handleError,
+      ...options
+    })
+  }
 
-  const updateTemplate = useCallback(
-    async (id: number, data: UpdateTemplatePayload) => {
-      try {
-        return await notificationsAPI.updateTemplate(id, data)
-      } catch (error) {
-        throw error
-      }
+  const useGetNotification = (id, options = {}) => {
+    return useQuery({
+      queryKey: notificationKeys.detail(id),
+      queryFn: () => notificationsAPI.getNotification(id),
+      enabled: !!id,
+      onError: handleError,
+      ...options
+    })
+  }
+
+  const useGetNotificationStats = (params = {}, options = {}) => {
+    return useQuery({
+      queryKey: notificationKeys.stats(params),
+      queryFn: () => notificationsAPI.getStats(params),
+      onError: handleError,
+      ...options
+    })
+  }
+
+  /* ===== TEMPLATES QUERIES ===== */
+
+  const useGetTemplates = (filters = {}, options = {}) => {
+    return useQuery({
+      queryKey: notificationKeys.templates.list(filters),
+      queryFn: () => notificationsAPI.getTemplates(filters),
+      onError: handleError,
+      ...options
+    })
+  }
+
+  const useGetTemplate = (id, options = {}) => {
+    return useQuery({
+      queryKey: notificationKeys.templates.detail(id),
+      queryFn: () => notificationsAPI.getTemplate(id),
+      enabled: !!id,
+      onError: handleError,
+      ...options
+    })
+  }
+
+  /* ===== SMS LOGS QUERIES ===== */
+
+  const useGetSMSLogs = (filters = {}, options = {}) => {
+    return useQuery({
+      queryKey: notificationKeys.sms.list(filters),
+      queryFn: () => notificationsAPI.getSMSLogs(filters),
+      onError: handleError,
+      ...options
+    })
+  }
+
+  const useGetSMSLog = (id, options = {}) => {
+    return useQuery({
+      queryKey: notificationKeys.sms.detail(id),
+      queryFn: () => notificationsAPI.getSMSLog(id),
+      enabled: !!id,
+      onError: handleError,
+      ...options
+    })
+  }
+
+  const useGetSMSStats = (params = {}, options = {}) => {
+    return useQuery({
+      queryKey: notificationKeys.sms.stats(params),
+      queryFn: () => notificationsAPI.getSMSStats(params),
+      onError: handleError,
+      ...options
+    })
+  }
+
+  /* ===== NOTIFICATIONS MUTATIONS ===== */
+
+  const createNotificationMutation = useMutation({
+    mutationFn: (data) => notificationsAPI.createNotification(data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: notificationKeys.stats() })
+      handleSuccess('Notification created successfully')
+      return data
     },
-    []
-  )
+    onError: handleError
+  })
 
-  const getTemplateDetail = useCallback(async (id: number) => {
-    try {
-      return await notificationsAPI.getTemplate(id)
-    } catch (error) {
-      throw error
-    }
-  }, [])
-
-  const previewTemplate = useCallback(
-    async (id: number, context: Record<string, any>) => {
-      try {
-        return await notificationsAPI.previewTemplate(id, { context })
-      } catch (error) {
-        throw error
-      }
+  const sendNotificationMutation = useMutation({
+    mutationFn: ({ id, payload }) => notificationsAPI.sendNotification(id, payload),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.detail(variables.id) })
+      queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: notificationKeys.stats() })
+      handleSuccess('Notification sent successfully')
+      return data
     },
-    []
-  )
+    onError: handleError
+  })
 
-  const duplicateTemplate = useCallback(
-    async (id: number, newName: string) => {
-      try {
-        return await notificationsAPI.duplicateTemplate(id, newName)
-      } catch (error) {
-        throw error
-      }
+  const markAsReadMutation = useMutation({
+    mutationFn: (id) => notificationsAPI.markAsRead(id),
+    onSuccess: (data, id) => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.detail(id) })
+      queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
+      handleSuccess('Notification marked as read')
+      return data
     },
-    []
-  )
+    onError: handleError
+  })
 
-  /* ===== DIRECT API - SMS LOGS ===== */
-
-  const getSMSLogDetail = useCallback(async (id: number) => {
-    try {
-      return await notificationsAPI.getSMSLog(id)
-    } catch (error) {
-      throw error
-    }
-  }, [])
-
-  /* ===== BULK OPERATIONS ===== */
-
-  const sendBulkNotifications = useCallback(
-    async (data: BulkNotificationPayload) => {
-      try {
-        return await notificationsAPI.sendBulkNotifications(data)
-      } catch (error) {
-        throw error
-      }
+  const markAllAsReadMutation = useMutation({
+    mutationFn: () => notificationsAPI.markAllAsRead(),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
+      handleSuccess('All notifications marked as read')
+      return data
     },
-    []
-  )
+    onError: handleError
+  })
 
-  const sendTestNotification = useCallback(
-    async (data: TestNotificationPayload) => {
-      try {
-        return await notificationsAPI.sendTestNotification(data)
-      } catch (error) {
-        throw error
-      }
+  const deleteNotificationMutation = useMutation({
+    mutationFn: (id) => notificationsAPI.deleteNotification(id),
+    onSuccess: (data, id) => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: notificationKeys.stats() })
+      handleSuccess('Notification deleted successfully')
+      return data
     },
-    []
-  )
+    onError: handleError
+  })
 
-  /* ===== UTILITIES ===== */
-
-  const clearNotificationError = useCallback(() => {
-    dispatch(clearError())
-  }, [dispatch])
-
-  const setNotificationPage = useCallback(
-    (page: number) => {
-      dispatch(setCurrentPage(page))
+  const sendBulkNotificationsMutation = useMutation({
+    mutationFn: (data) => notificationsAPI.sendBulkNotifications(data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: notificationKeys.stats() })
+      queryClient.invalidateQueries({ queryKey: notificationKeys.sms.stats() })
+      handleSuccess(`Bulk notifications sent: ${data.successful} successful, ${data.failed} failed`)
+      return data
     },
-    [dispatch]
-  )
+    onError: handleError
+  })
+
+  const sendTestNotificationMutation = useMutation({
+    mutationFn: (data) => notificationsAPI.sendTestNotification(data),
+    onSuccess: (data) => {
+      handleSuccess('Test notification sent successfully')
+      return data
+    },
+    onError: handleError
+  })
+
+  /* ===== TEMPLATES MUTATIONS ===== */
+
+  const createTemplateMutation = useMutation({
+    mutationFn: (data) => notificationsAPI.createTemplate(data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.templates.lists() })
+      handleSuccess('Template created successfully')
+      return data
+    },
+    onError: handleError
+  })
+
+  const updateTemplateMutation = useMutation({
+    mutationFn: ({ id, data }) => notificationsAPI.updateTemplate(id, data),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.templates.detail(variables.id) })
+      queryClient.invalidateQueries({ queryKey: notificationKeys.templates.lists() })
+      handleSuccess('Template updated successfully')
+      return data
+    },
+    onError: handleError
+  })
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: (id) => notificationsAPI.deleteTemplate(id),
+    onSuccess: (data, id) => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.templates.lists() })
+      handleSuccess('Template deleted successfully')
+      return data
+    },
+    onError: handleError
+  })
+
+  const duplicateTemplateMutation = useMutation({
+    mutationFn: ({ id, newName }) => notificationsAPI.duplicateTemplate(id, newName),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.templates.lists() })
+      handleSuccess('Template duplicated successfully')
+      return data
+    },
+    onError: handleError
+  })
+
+  /* ===== COMBINED HOOK RETURN ===== */
 
   return {
     // State
-    notifications: notificationState.notifications,
-    templates: notificationState.templates,
-    smsLogs: notificationState.smsLogs,
-    stats: notificationState.stats,
-    smsStats: notificationState.smsStats,
-    loading: notificationState.loading,
-    error: notificationState.error,
-    totalCount: notificationState.totalCount,
-    currentPage: notificationState.currentPage,
+    error,
+    successMessage,
+    
+    // Clear functions
+    clearError: () => setError(null),
+    clearSuccess: () => setSuccessMessage(null),
+    clearMessages,
 
-    // Redux actions
-    getNotifications,
-    getStats,
-    getTemplates,
-    getSMSLogs,
-    getSMSStats,
+    // Constants
+    NOTIFICATION_TYPES,
+    NOTIFICATION_CHANNELS,
+    NOTIFICATION_STATUSES,
+    NOTIFICATION_PRIORITIES,
+    TEMPLATE_TYPES,
+    TEMPLATE_CATEGORIES,
+    SMS_PROVIDERS,
+    SMS_STATUSES,
 
-    // Direct API - Notifications
-    createNotification,
-    sendNotification,
-    markNotificationAsRead,
-    markAllNotificationsAsRead,
-    getNotificationDetail,
+    // Queries
+    useGetNotifications,
+    useGetNotification,
+    useGetNotificationStats,
+    useGetTemplates,
+    useGetTemplate,
+    useGetSMSLogs,
+    useGetSMSLog,
+    useGetSMSStats,
 
-    // Direct API - Templates
-    createTemplate,
-    updateTemplate,
-    getTemplateDetail,
-    previewTemplate,
-    duplicateTemplate,
+    // Notification Mutations
+    createNotification: createNotificationMutation.mutateAsync,
+    createNotificationIsLoading: createNotificationMutation.isPending,
+    sendNotification: sendNotificationMutation.mutateAsync,
+    sendNotificationIsLoading: sendNotificationMutation.isPending,
+    markAsRead: markAsReadMutation.mutateAsync,
+    markAsReadIsLoading: markAsReadMutation.isPending,
+    markAllAsRead: markAllAsReadMutation.mutateAsync,
+    markAllAsReadIsLoading: markAllAsReadMutation.isPending,
+    deleteNotification: deleteNotificationMutation.mutateAsync,
+    deleteNotificationIsLoading: deleteNotificationMutation.isPending,
+    sendBulkNotifications: sendBulkNotificationsMutation.mutateAsync,
+    sendBulkNotificationsIsLoading: sendBulkNotificationsMutation.isPending,
+    sendTestNotification: sendTestNotificationMutation.mutateAsync,
+    sendTestNotificationIsLoading: sendTestNotificationMutation.isPending,
 
-    // Direct API - SMS Logs
-    getSMSLogDetail,
+    // Template Mutations
+    createTemplate: createTemplateMutation.mutateAsync,
+    createTemplateIsLoading: createTemplateMutation.isPending,
+    updateTemplate: updateTemplateMutation.mutateAsync,
+    updateTemplateIsLoading: updateTemplateMutation.isPending,
+    deleteTemplate: deleteTemplateMutation.mutateAsync,
+    deleteTemplateIsLoading: deleteTemplateMutation.isPending,
+    duplicateTemplate: duplicateTemplateMutation.mutateAsync,
+    duplicateTemplateIsLoading: duplicateTemplateMutation.isPending,
 
-    // Bulk operations
-    sendBulkNotifications,
-    sendTestNotification,
-
-    // Utilities
-    clearNotificationError,
-    setNotificationPage,
+    // Helper methods from API
+    formatNotificationData: notificationsAPI.formatNotificationData,
+    getNotificationTypeDisplay: notificationsAPI.getNotificationTypeDisplay,
+    getNotificationStatusDisplay: notificationsAPI.getNotificationStatusDisplay,
+    getNotificationPriorityDisplay: notificationsAPI.getNotificationPriorityDisplay,
   }
 }
 
