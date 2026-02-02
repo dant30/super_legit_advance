@@ -261,296 +261,270 @@ super_legit_advance/
 │   │   ├── favicon.ico
 │   │   ├── logo.png
 │   │   └── manifest.json
-│   └── src/
-│       ├── main.tsx
-│       ├── App.tsx
-│       ├── App.css
-│       ├── vite-env.d.ts
-│       ├── lib/
-│       │   ├── api/
-│       │   │   ├── auth.ts
-│       │   │   ├── loans.ts
-│       │   │   ├── audit.ts
-│       │   │   ├── notification.ts
-│       │   │   ├── reports.ts
-│       │   │   ├── customers.ts
-│       │   │   ├── repayments.ts
-│       │   │   └── mpesa.ts
-│       │   ├── utils/
-│       │   │   ├── formatters.ts
-│       │   │   ├── theme.ts
-│       │   │   ├── reportUtils.ts
-│       │   │   ├── validators.ts
-│       │   │   ├── cn.ts
-│       │   │   └── constants.ts
-│       │   └── axios.ts
-│       ├── components/
-│       │   ├── layout/
-│       │   │   ├── Header.tsx
-│       │   │   ├── Sidebar.tsx
-│       │   │   ├── Footer.tsx
-│       │   │   └── Layout.tsx
-│       │   ├── ui/
-│       │   │   ├── Button/
-│       │   │   │   ├── Button.tsx
-│       │   │   │   └── index.ts
-│       │   │   ├── Card/
-│       │   │   │   ├── Card.tsx
-│       │   │   │   └── index.ts
-│       │   │   ├── Table/
-│       │   │   │   ├── Table.tsx
-│       │   │   │   └── index.ts
-│       │   │   ├── Input/
-│       │   │   │   ├── Input.tsx
-│       │   │   │   └── index.ts
-│       │   │   ├── Modal/
-│       │   │   │   ├── Modal.tsx
-│       │   │   │   └── index.ts
-│       │   │   ├── Checkbox/
-│       │   │   │   ├── Checkbox.tsx
-│       │   │   │   └── index.ts
-│       │   │   ├── Badge/
-│       │   │   │   ├── Badge.tsx
-│       │   │   │   └── index.ts
-│       │   │   ├── Alert/
-│       │   │   │   ├── Alert.tsx
-│       │   │   │   └── index.ts
-│       │   │   ├── Tooltip/
-│       │   │   │   ├── Tooltip.tsx
-│       │   │   │   └── index.ts
-│       │   │   ├── Toast/
-│       │   │   │   ├── Toast.tsx
-|       |   |   |   ├── ToastProvider.tsx
-│       │   │   │   ├── useToast.tsx
-│       │   │   │   └── index.ts
-│       │   │   ├── Tabs/
-│       │   │   │   ├── Tabs.tsx
-│       │   │   │   └── index.ts
-│       │   │   |── Accordion/
-│       │   │   |   ├── Accordion.tsx
-│       │   │   |   └── index.ts
-│       │   │   |── RadioGroup/
-│       │   │   |   ├── RadioGroup.tsx
-│       │   │   |   ├── RadioGroupItem.tsx
-│       │   │   |   └── index.ts
-│       │   │   |── Label/
-│       │   │   |   ├── Label.tsx
-│       │   │   |   └── index.ts
-│       │   │   ├── Theme/
-│       │   │   │   ├── ThemeInitializer.tsx
-│       │   │   │   └── index.ts
-│       │   │   └── Select/
-│       │   │        ├── Select.tsx
-│       │   │        └── index.ts
-│       │   ├── shared/
-│       │   │   ├── Loading.tsx
-│       │   │   ├── Error.tsx
-│       │   │   ├── EmptyState.tsx
-│       │   │   ├── ConfirmDialog.tsx
-│       │   │   ├── Pagination.tsx
-│       │   │   ├── Breadcrumbs.tsx
-│       │   │   ├── ProgressBar.tsx            
-│       │   │   └── FileUpload.tsx
-│       │   ├── dashboard/
-│       │   |   ├── component1.tsx        
-│       │   |   ├── component2.tsx          
-│       │   |   └── component_n.tsx
-│       │   ├── reports/
-│       │   │   ├── folder1/
-│       │   │   │   ├── component1.tsx 
-│       │   │   │   ├── component2.tsx   
-│       │   │   │   └── component_n.tsx  
-│       │   │   ├── folder2/
-│       │   │   │   ├── component1.tsx 
-│       │   │   │   ├── component2.tsx   
-│       │   │   │   └── component_n.tsx    
-│       │   │   ├── folder3/
-│       │   │   │   ├── component1.tsx 
-│       │   │   │   ├── component2.tsx   
-│       │   │   │   └── component_n.tsx  
-│       │   │   └── folder4/
-│       │   │       ├── component1.tsx 
-│       │   │       ├── component2.tsx   
-│       │   │       └── component_n.tsx         
-│       │   ├── loans/
-│       │   |   ├── component1.tsx        
-│       │   |   ├── component2.tsx          
-│       │   |   └── component_n.tsx       
-│       │   ├── auth/                 
-│       │   |   ├── component1.tsx        
-│       │   |   ├── component2.tsx          
-│       │   |   └── component_n.tsx         
-|       |   ├── admin/
-│       │   │   ├── folder1/
-│       │   │   │   ├── component1.tsx 
-│       │   │   │   ├── component2.tsx   
-│       │   │   │   └── component_n.tsx  
-│       │   │   ├── folder2/
-│       │   │   │   ├── component1.tsx 
-│       │   │   │   ├── component2.tsx   
-│       │   │   │   └── component_n.tsx    
-│       │   │   ├── folder3/
-│       │   │   │   ├── component1.tsx 
-│       │   │   │   ├── component2.tsx   
-│       │   │   │   └── component_n.tsx  
-│       │   │   └── folder4/
-│       │   │       ├── component1.tsx 
-│       │   │       ├── component2.tsx   
-│       │   │       └── component_n.tsx   
-│       │   ├── customers/
-│       │   |   ├── CustomerTable.tsx         # Main customers table with pagination       
-│       │   |   ├── CustomerCard.tsx          # Compact customer card view
-│       │   |   ├── CustomerFilters.tsx       # Advanced filtering component
-│       │   |   ├── CustomerForm.tsx          # Create/edit form with validation
-│       │   |   ├── CustomerProfile.tsx       # Customer profile summary
-│       │   |   ├── EmploymentForm.tsx        # Employment information form
-│       │   |   ├── GuarantorForm.tsx         # Guarantor creation form
-│       │   |   ├── GuarantorsList.tsx        # Guarantors listing
-│       │   |   ├── CustomerStats.tsx         # Statistics cards
-│       │   |   ├── CustomerSearch.tsx        # Search component with types
-│       │   |   ├── DocumentUpload.tsx        # Document upload component
-│       │   |   ├── StatusBadge.tsx           # Customer status badge
-│       │   |   ├── RiskIndicator.tsx         # Visual risk level indicator
-│       │   |   └── ExportDialog.tsx          # Export options dialog
-|       |   |
-│       │   │── notifications/
-│       │   |   ├── component1.tsx        
-│       │   |   ├── component2.tsx          
-│       │   |   └── component_n.tsx
-│       │   │── payments/
-│       │   |   ├── component1.tsx        
-│       │   |   ├── component2.tsx          
-│       │   |   └── component_n.tsx
-│       │   └── staff_settings/                        # NEW
-│       │           ├── component1.tsx
-│       │           ├── component2.tsx
-│       │           └── component_n.tsx
-│       ├── pages/
-│       │   ├── Dashboard.tsx                 #(overview of all pages)
-│       │   ├── Login.tsx
-│       │   ├── NotFound.tsx
-│       │   ├── Unauthorized.tsx
-|       |   ├── ActivityLog.tsx
-|       |   ├── Maintenance.tsx                # Maintenance mode page
-│       │   ├── docs/                          # ADD THIS DIRECTORY
-│       │   │   ├── ApiDocumentation.tsx       # API docs with Swagger UI
-│       │   │   ├── UserGuide.tsx              # User manual
-│       │   │   ├── SystemGuide.tsx            # System admin guide
-│       │   │   └── Tutorials.tsx
-│       │   ├── legal/                     # ADD THIS
-│       │   │   ├── TermsOfService.tsx
-│       │   │   ├── PrivacyPolicy.tsx
-│       │   │   ├── DataProtection.tsx
-│       │   │   └── AcceptableUse.tsx
-│       │   ├── support/                       # ADD THIS DIRECTORY
-│       │   │   ├── HelpCenter.tsx             # Main help page
-│       │   │   ├── ContactSupport.tsx         # Contact form
-│       │   │   ├── SystemStatus.tsx           # System uptime/status
-│       │   │   └── FeatureRequest.tsx         # Request new features
-│       │   ├── auth/
-|       |   |   ├── ForgotPassword.tsx       # Request password reset
-|       |   |   ├── ResetPassword.tsx        # Reset password with token
-|       |   |   ├── VerifyEmail.tsx          # Email verification (optional)
-|       |   |   └── TwoFactorAuth.tsx        # 2FA setup/verification
-│       │   ├── admin/
-|       |   |   ├── Staff/
-|       |   |   │   ├── List.tsx
-|       |   |   │   ├── Create.tsx
-|       |   |   │   ├── Edit.tsx
-|       |   |   │   ├── Detail.tsx
-|       |   |   │   ├── Performance.tsx     # KPIs, collections handled
-|       |   |   │   ├── Tasks.tsx           # Assign / track tasks
-|       |   |   │   └── Schedule.tsx        # Shifts / work calendar
-|       |   |   ├── settings/
-|       |   |   |   ├── Configuration.tsx       # System settings
-|       |   |   |   ├── LoanProducts.tsx        # Manage loan products
-|       |   |   |   ├── InterestRates.tsx       # Manage interest rates
-|       |   |   |   └── BackupRestore.tsx       # System backup/restore
-|       |   |   ├── Roles/
-|       |   |   |   ├── List.tsx            # List roles & permissions
-|       |   |   |   ├── Create.tsx          # Create new role
-|       |   |   |   └── Assign.tsx          # Assign roles to users
-│       │   │   └── AuditLogs/
-|       |   |       └── List.tsx 
-│       │   ├── loans/
-│       │   │   ├── routes.tsx
-│       │   │   ├── page1.tsx
-│       │   │   ├── page2.tsx
-│       │   │   └── maybe_page_n.tsx
-│       │   ├── customers/
-│       │   │   ├── routes.tsx                # Customer routes configuration
-│       │   │   ├── List.tsx                  # Customer list page with search/filters
-│       │   │   ├── Create.tsx                # Create new customer
-│       │   │   ├── Edit.tsx                  # Edit existing customer
-│       │   │   ├── Detail.tsx                # Customer details view
-│       │   │   ├── Employment.tsx            # Employment information page
-│       │   │   ├── Guarantors.tsx            # Manage guarantors
-│       │   │   ├── Import.tsx                # Bulk import customers
-│       │   │   ├── Analytics.tsx             # Customer analytics dashboard
-│       │   │   └── Activity.tsx              # Customer activity/audit log
-│       │   ├── repayments/
-│       │   │   ├── routes.tsx
-│       │   │   ├── page1.tsx
-│       │   │   ├── page2.tsx
-│       │   │   └── maybe_page_n.tsx
-│       │   ├── reports/
-│       │   │   ├── routes.tsx
-│       │   │   ├── page1.tsx
-│       │   │   ├── page2.tsx
-│       │   │   └── maybe_page_n.tsx
-│       │   ├── notifications/
-│       │   │   ├── routes.tsx
-│       │   │   ├── page1.tsx
-│       │   │   ├── page2.tsx
-│       │   │   └── maybe_page_n.tsx
-│       │   └── staff_settings/
-│       │       ├── routes.tsx
-│       │       ├── Profile.tsx
-│       │       └── maybe_page_n.tsx
-│       ├── hooks/
-│       │   ├── useAuth.ts
-│       │   ├── useMediaQuery.ts
-│       │   ├── useLoans.ts
-│       │   ├── useAudit.ts
-│       │   ├── useNotifications.ts
-│       │   ├── useRepayments.ts
-│       │   ├── useReports.ts
-│       │   ├── useCustomers.ts
-│       │   └── useMpesa.ts
-│       ├── store/
-│       │   ├── slices/
-│       │   │   ├── authSlice.ts
-│       │   │   ├── loanSlice.ts
-│       │   │   ├── auditSlice.ts
-│       │   │   ├── customerSlice.ts
-│       │   │   ├── notificationSlice.ts
-│       │   │   ├── reportsSlice.ts
-│       │   │   ├── repaymentSlice.ts
-│       │   │   ├── mpesaSlice.ts
-│       │   │   └── uiSlice.ts
-│       │   ├── store.ts
-│       │   └── selectors.ts
-│       ├── types/
-│       │   ├── api.ts
-│       │   ├── auth.ts
-│       │   ├── audit.ts
-│       │   ├── notifications.ts
-│       │   ├── repayments.ts
-│       │   ├── reports.ts
-│       │   ├── loans.ts
-│       │   ├── customers.ts
-│       │   └── mpesa.ts
-│       ├── styles/
+|   |
+│   └── src/ (change all files to jsx)
+│       ├── main.jsx
+│       ├── App.jsx
+│       ├── styles/ (retain as it is)
 │       │   ├── tailwind.css
 │       │   ├── globals.css
 │       │   ├── components.css
 │       │   └── animations.css
-│       └── router/
-│           ├── routes.tsx
-│           ├── PrivateRoute.tsx
-│           └── AdminRoute.tsx
+│       ├── hooks/ (may remain)
+│       │   ├── useAuth.js
+│       │   ├── useMediaQuery.js
+│       │   ├── useLoans.js
+│       │   ├── useAudit.js
+│       │   ├── useNotifications.js
+│       │   ├── useRepayments.js
+│       │   ├── useReports.js
+│       │   ├── useCustomers.js
+│       │   └── useMpesa.js
+│       ├── api/
+│       │   ├── axios.js
+│       │   ├── auth.js
+│       │   ├── loans.js
+│       │   ├── audit.js
+│       │   ├── notification.js
+│       │   ├── reports.js
+│       │   ├── customers.js
+│       │   ├── repayments.js
+│       │   └── mpesa.js
+|       |
+│       ├── utils/
+│           ├── formatters.js
+│           ├── theme.js
+│           ├── reportUtils.js
+│           ├── validators.js
+│           ├── cn.js
+│           └── constants.js
+|       
+│       ├── components/
+│       │   ├── layout/
+│       │   │   ├── Header.jsx
+│       │   │   ├── Sidebar.jsx
+│       │   │   ├── Footer.jsx
+│       │   │   └── Layout.jsx
+│       │   ├── ui/ (let the ui components remain but see if we can put them all together instead of each in its own )
+│       │   │   ├── Button/ 
+│       │   │   │   ├── Button.jsx
+│       │   │   │   └── index.js
+│       │   │   ├── Card/
+│       │   │   │   ├── Card.jsx
+│       │   │   │   └── index.js
+│       │   │   ├── Table/
+│       │   │   │   ├── Table.jsx
+│       │   │   │   └── index.js
+│       │   │   ├── Input/
+│       │   │   │   ├── Input.jsx
+│       │   │   │   └── index.js
+│       │   │   ├── Modal/
+│       │   │   │   ├── Modal.jsx
+│       │   │   │   └── index.js
+│       │   │   ├── Checkbox/ 
+│       │   │   │   ├── Checkbox.jsx
+│       │   │   │   └── index.js
+│       │   │   ├── Badge/
+│       │   │   │   ├── Badge.jsx
+│       │   │   │   └── index.js
+│       │   │   ├── Alert/ 
+│       │   │   │   ├── Alert.jsx
+│       │   │   │   └── index.js
+│       │   │   ├── Tooltip/ 
+│       │   │   │   ├── Tooltip.jsx
+│       │   │   │   └── index.js
+│       │   │   ├── Toast/ (move to shared folder as one file)
+│       │   │   │   ├── Toast.jsx
+|       |   |   |   ├── ToastProvider.jsx
+│       │   │   │   ├── useToast.jsx
+│       │   │   │   └── index.js
+│       │   │   ├── Tabs/ (maintian)
+│       │   │   │   ├── Tabs.jsx
+│       │   │   │   └── index.js
+│       │   │   |── Accordion/ (remove)
+│       │   │   |   ├── Accordion.jsx
+│       │   │   |   └── index.js
+│       │   │   |── RadioGroup/ (remove)
+│       │   │   |   ├── RadioGroup.jsx
+│       │   │   |   ├── RadioGroupItem.jsx
+│       │   │   |   └── index.js
+│       │   │   |── Label/ 
+│       │   │   |   ├── Label.jsx
+│       │   │   |   └── index.js
+│       │   │   ├── Theme/ (move to shared folder)
+│       │   │   │   ├── ThemeInitializer.jsx
+│       │   │   │   └── index.js
+│       │   │   └── Select/ 
+│       │   │        ├── Select.jsx
+│       │   │        └── index.js
+│       │   ├── shared/
+│       │   │   ├── Loading.jsx
+│       │   │   ├── Error.jsx
+│       │   │   ├── EmptyState.jsx
+│       │   │   ├── ConfirmDialog.jsx
+│       │   │   ├── Pagination.jsx
+│       │   │   ├── Breadcrumbs.jsx
+│       │   │   ├── ProgressBar.jsx            
+│       │   │   └── FileUpload.jsx
+│       │   ├── dashboard/
+│       │   |   ├── component1.jsx        
+│       │   |   ├── component2.jsx          
+│       │   |   └── component_n.jsx
+│       │   ├── reports/
+│       │   │   ├── folder1/
+│       │   │   │   ├── component1.jsx 
+│       │   │   │   ├── component2.jsx   
+│       │   │   │   └── component_n.jsx  
+│       │   │   ├── folder2/
+│       │   │   │   ├── component1.jsx 
+│       │   │   │   ├── component2.jsx   
+│       │   │   │   └── component_n.jsx    
+│       │   │   ├── folder3/
+│       │   │   │   ├── component1.jsx 
+│       │   │   │   ├── component2.jsx   
+│       │   │   │   └── component_n.jsx  
+│       │   │   └── folder4/
+│       │   │       ├── component1.jsx 
+│       │   │       ├── component2.jsx   
+│       │   │       └── component_n.jsx         
+│       │   ├── loans/
+│       │   |   ├── component1.jsx        
+│       │   |   ├── component2.jsx          
+│       │   |   └── component_n.jsx       
+│       │   ├── auth/                 
+│       │   |   ├── component1.jsx        
+│       │   |   ├── component2.jsx          
+│       │   |   └── component_n.jsx         
+|       |   ├── admin/
+│       │   │   ├── folder1/
+│       │   │   │   ├── component1.jsx 
+│       │   │   │   ├── component2.jsx   
+│       │   │   │   └── component_n.jsx  
+│       │   │   ├── folder2/
+│       │   │   │   ├── component1.jsx 
+│       │   │   │   ├── component2.jsx   
+│       │   │   │   └── component_n.jsx    
+│       │   │   ├── folder3/
+│       │   │   │   ├── component1.jsx 
+│       │   │   │   ├── component2.jsx   
+│       │   │   │   └── component_n.jsx  
+│       │   │   └── folder4/
+│       │   │       ├── component1.jsx 
+│       │   │       ├── component2.jsx   
+│       │   │       └── component_n.jsx   
+│       │   ├── customers/
+│       │   |   ├── CustomerTable.jsx         # Main customers table with pagination       
+│       │   |   ├── CustomerCard.jsx          # Compact customer card view
+│       │   |   ├── CustomerFilters.jsx       # Advanced filtering component
+│       │   |   ├── CustomerForm.jsx          # Create/edit form with validation
+│       │   |   ├── CustomerProfile.jsx       # Customer profile summary
+│       │   |   ├── EmploymentForm.jsx        # Employment information form
+│       │   |   ├── GuarantorForm.jsx         # Guarantor creation form
+│       │   |   ├── GuarantorsList.jsx        # Guarantors listing
+│       │   |   ├── CustomerStats.jsx         # Statistics cards
+│       │   |   ├── CustomerSearch.jsx        # Search component with types
+│       │   |   ├── DocumentUpload.jsx        # Document upload component
+│       │   |   ├── StatusBadge.jsx           # Customer status badge
+│       │   |   ├── RiskIndicator.jsx         # Visual risk level indicator
+│       │   |   └── ExportDialog.jsx          # Export options dialog
+|       |   |
+│       │   │── notifications/
+│       │   |   ├── component1.jsx        
+│       │   |   ├── component2.jsx          
+│       │   |   └── component_n.jsx
+│       │   │── payments/
+│       │   |   ├── component1.jsx        
+│       │   |   ├── component2.jsx          
+│       │   |   └── component_n.jsx
+│       │   └── staff_settings/                        # NEW
+│       │           ├── component1.jsx
+│       │           ├── component2.jsx
+│       │           └── component_n.jsx
+│       ├── pages/
+│       │   ├── Dashboard.jsx                 #(overview of all pages)
+│       │   ├── NotFound.jsx
+│       │   ├── Unauthorized.jsx
+|       |   ├── ActivityLog.jsx
+|       |   ├── Maintenance.jsx                # Maintenance mode page
+│       │   ├── docs/(remain)                          # ADD THIS DIRECTORY
+│       │   │   ├── ApiDocumentation.jsx       # API docs with Swagger UI
+│       │   │   ├── UserGuide.jsx              # User manual
+│       │   │   ├── SystemGuide.jsx            # System admin guide
+│       │   │   └── Tutorials.jsx
+│       │   ├── legal/(remain)                     # ADD THIS
+│       │   │   ├── TermsOfService.jsx
+│       │   │   ├── PrivacyPolicy.jsx
+│       │   │   ├── DataProtection.jsx
+│       │   │   └── AcceptableUse.jsx
+│       │   ├── support/(remain)                       # ADD THIS DIRECTORY
+│       │   │   ├── HelpCenter.jsx             # Main help page
+│       │   │   ├── ContactSupport.jsx         # Contact form
+│       │   │   ├── SystemStatus.jsx           # System uptime/status
+│       │   │   └── FeatureRequest.jsx         # Request new features
+│       │   ├── auth/
+|       |   |   ├──Login.jsx
+|       |   |   ├── ForgotPassword.jsx       # Request password reset
+|       |   |   ├── ResetPassword.jsx        # Reset password with token
+|       |   |   ├── VerifyEmail.jsx          # Email verification (optional)
+|       |   |   └── TwoFactorAuth.jsx        # 2FA setup/verification
+│       │   ├── admin/
+|       |   |   ├── AdminDashboard.jsx
+|       |   |   ├── routes.jsx
+|       |   |   └── index.js
+|       |   |       
+│       │   ├── loans/
+│       │   │   ├── LoanDashboard.jsx
+│       │   │   ├── routes.jsx
+│       │   │   └── index.js
+│       │   ├── customers/
+│       │   │   ├── CustomerDashboard.jsx
+│       │   │   ├── routes.jsx                
+│       │   │   └── index.js              
+│       │   ├── repayments/
+│       │   │   ├── RepaymentDashboar.jsx
+│       │   │   ├── routes.jsx
+│       │   │   └── index.js
+│       │   ├── reports/
+│       │   │   ├── reportDashboard.jsx
+│       │   │   ├── routes.jsx
+│       │   │   └── index.js
+│       │   ├── notifications/
+│       │   │   ├── NotificationDashboard.jsx
+│       │   │   ├── routes.jsx
+│       │   │   └── index.js
+│       │   └── staff_settings/(still thinking about it)
+│       │       ├── ProfileSetting.jsx
+│       │       ├── routes.jsx
+│       │       └── index.js
+│       └── router/ (retain as it is)
+│           ├── routes.jsx
+│           ├── PrivateRoute.jsx
+│           └── AdminRoute.jsx
 ├── docker-compose.yml           # Full stack development
 ├── docker-compose.prod.yml      # Production deployment
 ├── .gitignore
 ├── README.md
 └── CHANGELOG.md
+
+
+
+components for admin dashboard
+|       |   |   ├── Staff/
+|       |   |   │   ├── List.jsx
+|       |   |   │   ├── Create.jsx
+|       |   |   │   ├── Edit.jsx
+|       |   |   │   ├── Detail.jsx
+|       |   |   │   ├── Performance.jsx     # KPIs, collections handled
+|       |   |   │   ├── Tasks.jsx           # Assign / track tasks
+|       |   |   │   └── Schedule.jsx        # Shifts / work calendar
+|       |   |   ├── settings/
+|       |   |   |   ├── Configuration.jsx       # System settings
+|       |   |   |   ├── LoanProducts.jsx        # Manage loan products
+|       |   |   |   ├── InterestRates.jsx       # Manage interest rates
+|       |   |   |   └── BackupRestore.jsx       # System backup/restore
+|       |   |   ├── Roles/
+|       |   |   |   ├── List.jsx            # List roles & permissions
+|       |   |   |   ├── Create.jsx          # Create new role
+|       |   |   |   └── Assign.jsx          # Assign roles to users
+│       │   │   └── AuditLogs/
+|       |   |       └── List.jsx 

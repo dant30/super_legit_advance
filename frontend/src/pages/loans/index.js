@@ -1,0 +1,1 @@
+// frontend/src/pages/loans/index.tsx

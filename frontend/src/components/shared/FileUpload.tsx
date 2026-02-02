@@ -1,45 +1,13 @@
-// frontend/src/components/shared/FileUpload.tsx
+// frontend/src/components/shared/FileUpload.jsx
 import React, { useState, useRef, useCallback } from 'react'
-import {
-  Upload,
-  File,
-  Image,
-  AlertCircle,
-  Trash2,
-} from 'lucide-react'
-import { cn } from '@/lib/utils/cn'
-import { ProgressBar } from '@/components/shared/ProgressBar' // Import ProgressBar
+import { Upload, File, Image, AlertCircle, Trash2, X, CheckCircle } from 'lucide-react'
+import { cn } from '@utils/cn'
+import Button from '@components/ui/Button'
 
-export interface UploadedFile {
-  id: string
-  file: File
-  previewUrl?: string
-  progress?: number
-  error?: string
-  uploaded?: boolean
-}
-
-export interface FileUploadProps {
-  accept?: string
-  acceptedTypes?: string[]
-  maxSize?: number // MB
-  maxFiles?: number
-  multiple?: boolean
-  disabled?: boolean
-  label?: string
-  onFilesChange?: (files: UploadedFile[]) => void
-  onFileSelect?: (file: File | null) => void
-  onFileUpload?: (file: File) => Promise<void>
-  showPreview?: boolean
-  className?: string
-  dropzoneClassName?: string
-  error?: string
-}
-
-export const FileUpload: React.FC<FileUploadProps> = ({
+const FileUpload = ({
   accept,
   acceptedTypes = ['image/*', '.pdf', '.doc', '.docx', '.xls', '.xlsx'],
-  maxSize = 10,
+  maxSize = 10, // MB
   maxFiles = 5,
   multiple = false,
   disabled = false,
@@ -51,122 +19,124 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   className,
   dropzoneClassName,
   error: externalError,
+  showFileList = true,
+  variant = 'default', // 'default', 'compact', 'drag-only'
 }) => {
-  const [files, setFiles] = useState<UploadedFile[]>([])
+  const [files, setFiles] = useState([])
   const [dragOver, setDragOver] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef(null)
 
   const getAcceptString = () => {
     if (accept) return accept
     return acceptedTypes.join(',')
   }
 
-  const validateFile = (file: File): string | undefined => {
+  const validateFile = (file) => {
     const maxSizeBytes = maxSize * 1024 * 1024
     
     const typesToCheck = accept ? 
       accept.split(',').map(t => t.trim()) : 
       acceptedTypes
 
-    const isAccepted = typesToCheck.some((type) =>
-      type.endsWith('/*')
-        ? file.type.startsWith(type.replace('/*', ''))
-        : file.type === type || file.name.toLowerCase().endsWith(type.toLowerCase())
-    )
+    const isAccepted = typesToCheck.some((type) => {
+      if (type.endsWith('/*')) {
+        return file.type.startsWith(type.replace('/*', ''))
+      }
+      return file.type === type || file.name.toLowerCase().endsWith(type.toLowerCase())
+    })
 
     if (!isAccepted) {
       return `File type not allowed. Accepted: ${typesToCheck.join(', ')}`
     }
 
     if (file.size > maxSizeBytes) {
-      return `File exceeds ${maxSize}MB`
+      return `File exceeds ${maxSize}MB limit`
     }
 
-    return undefined
+    return null
   }
 
-  const handleFiles = useCallback(
-    (fileList: FileList | null) => {
-      if (!fileList || disabled) return
+  const handleFiles = useCallback((fileList) => {
+    if (!fileList || disabled) return
 
-      const incoming = Array.from(fileList)
-      if (files.length + incoming.length > maxFiles) {
-        alert(`Maximum ${maxFiles} files allowed`)
-        return
+    const incoming = Array.from(fileList)
+    if (files.length + incoming.length > maxFiles) {
+      alert(`Maximum ${maxFiles} files allowed`)
+      return
+    }
+
+    const mapped = incoming.map((file) => {
+      const error = validateFile(file)
+      const previewUrl = file.type.startsWith('image/')
+        ? URL.createObjectURL(file)
+        : undefined
+
+      return {
+        id: Math.random().toString(36).substr(2, 9),
+        file,
+        previewUrl,
+        error,
+        progress: 0,
+        uploaded: false,
       }
+    })
 
-      const mapped: UploadedFile[] = incoming.map((file) => {
-        const error = validateFile(file)
-        const previewUrl = file.type.startsWith('image/')
-          ? URL.createObjectURL(file)
-          : undefined
-
-        return {
-          id: crypto.randomUUID(),
-          file,
-          previewUrl,
-          error,
-          progress: 0,
-          uploaded: false,
-        }
-      })
-
-      const updated = multiple ? [...files, ...mapped] : mapped
-      setFiles(updated)
-      
-      onFilesChange?.(updated)
-      
-      if (onFileSelect) {
-        if (incoming.length > 0) {
-          onFileSelect(incoming[0])
-        } else {
-          onFileSelect(null)
-        }
+    const updated = multiple ? [...files, ...mapped] : mapped
+    setFiles(updated)
+    
+    if (onFilesChange) onFilesChange(updated)
+    
+    if (onFileSelect) {
+      if (incoming.length > 0) {
+        onFileSelect(incoming[0])
+      } else {
+        onFileSelect(null)
       }
+    }
 
-      if (onFileUpload && !mapped.some(f => f.error)) {
-        setUploading(true)
-        Promise.all(mapped.filter(f => !f.error).map((f) => uploadFile(f)))
-          .catch(err => console.error('Batch upload error:', err))
-          .finally(() => setUploading(false))
-      }
-    },
-    [files, multiple, maxFiles, disabled, onFilesChange, onFileUpload, onFileSelect, accept, acceptedTypes, maxSize]
-  )
+    if (onFileUpload && !mapped.some(f => f.error)) {
+      setUploading(true)
+      Promise.all(mapped.filter(f => !f.error).map((f) => uploadFile(f)))
+        .catch(err => console.error('Batch upload error:', err))
+        .finally(() => setUploading(false))
+    }
+  }, [files, multiple, maxFiles, disabled, onFilesChange, onFileUpload, onFileSelect])
 
-  const uploadFile = async (fileItem: UploadedFile) => {
+  const uploadFile = async (fileItem) => {
     try {
-      await onFileUpload?.(fileItem.file)
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.id === fileItem.id ? { ...f, uploaded: true, progress: 100 } : f
-        )
-      )
-    } catch (e) {
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.id === fileItem.id
-            ? {
-                ...f,
-                error: e instanceof Error ? e.message : 'Upload failed',
-              }
-            : f
-        )
-      )
+      // Simulate upload progress
+      for (let i = 0; i <= 100; i += 10) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+        setFiles(prev => prev.map(f => 
+          f.id === fileItem.id ? { ...f, progress: i } : f
+        ))
+      }
+      
+      await onFileUpload(fileItem.file)
+      setFiles(prev => prev.map(f => 
+        f.id === fileItem.id ? { ...f, uploaded: true, progress: 100 } : f
+      ))
+    } catch (err) {
+      setFiles(prev => prev.map(f => 
+        f.id === fileItem.id ? { 
+          ...f, 
+          error: err.message || 'Upload failed' 
+        } : f
+      ))
     }
   }
 
-  const removeFile = (id: string) => {
-    const target = files.find((f) => f.id === id)
+  const removeFile = (id) => {
+    const target = files.find(f => f.id === id)
     if (target?.previewUrl) {
       URL.revokeObjectURL(target.previewUrl)
     }
 
-    const updated = files.filter((f) => f.id !== id)
+    const updated = files.filter(f => f.id !== id)
     setFiles(updated)
     
-    onFilesChange?.(updated)
+    if (onFilesChange) onFilesChange(updated)
     if (onFileSelect) {
       if (updated.length > 0) {
         onFileSelect(updated[0].file)
@@ -177,15 +147,121 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   }
 
   const clearFiles = () => {
-    files.forEach((f) => {
-      if (f.previewUrl) {
-        URL.revokeObjectURL(f.previewUrl)
-      }
+    files.forEach(f => {
+      if (f.previewUrl) URL.revokeObjectURL(f.previewUrl)
     })
     setFiles([])
-    onFilesChange?.([])
-    onFileSelect?.(null)
+    if (onFilesChange) onFilesChange([])
+    if (onFileSelect) onFileSelect(null)
   }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setDragOver(false)
+    handleFiles(e.dataTransfer.files)
+  }
+
+  const handleDragOver = (e) => {
+    if (!disabled) {
+      e.preventDefault()
+      setDragOver(true)
+    }
+  }
+
+  const handleDragLeave = () => setDragOver(false)
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  const renderFileItem = (fileItem) => (
+    <div
+      key={fileItem.id}
+      className={cn(
+        'flex items-center gap-3 rounded-lg border p-3 transition-colors',
+        fileItem.error
+          ? 'border-danger-200 bg-danger-50 dark:bg-danger-900/20'
+          : fileItem.uploaded
+          ? 'border-success-200 bg-success-50 dark:bg-success-900/20'
+          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800'
+      )}
+    >
+      {/* File Icon/Preview */}
+      <div className="flex-shrink-0">
+        {showPreview && fileItem.previewUrl ? (
+          <img
+            src={fileItem.previewUrl}
+            alt={fileItem.file.name}
+            className="h-12 w-12 rounded object-cover"
+          />
+        ) : (
+          <div className="flex h-12 w-12 items-center justify-center rounded bg-gray-100 dark:bg-gray-800">
+            {fileItem.file.type.startsWith('image/') ? (
+              <Image className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+            ) : (
+              <File className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* File Info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-start gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              {fileItem.file.name}
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {formatFileSize(fileItem.file.size)}
+              </span>
+              {fileItem.uploaded && (
+                <CheckCircle className="h-3 w-3 text-success-600 dark:text-success-400" />
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => removeFile(fileItem.id)}
+            className="flex-shrink-0 p-1 text-gray-400 dark:text-gray-500 hover:text-danger-500 dark:hover:text-danger-400 transition-colors"
+            aria-label={`Remove ${fileItem.file.name}`}
+            disabled={uploading}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Error Message */}
+        {fileItem.error && (
+          <div className="mt-2 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-danger-600 dark:text-danger-400 flex-shrink-0" />
+            <p className="text-sm text-danger-600 dark:text-danger-400">
+              {fileItem.error}
+            </p>
+          </div>
+        )}
+
+        {/* Progress Bar */}
+        {fileItem.progress > 0 && fileItem.progress < 100 && (
+          <div className="mt-2">
+            <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary-600 dark:bg-primary-500 transition-all duration-300"
+                style={{ width: `${fileItem.progress}%` }}
+              />
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right">
+              {fileItem.progress}%
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 
   return (
     <div className={cn('w-full', className)}>
@@ -200,9 +276,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         aria-label={label}
       />
 
+      {/* Dropzone */}
       <div
         className={cn(
-          'cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors',
+          'cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors',
           dragOver
             ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
             : 'border-gray-300 bg-gray-50 dark:bg-gray-900/20 hover:border-gray-400 dark:hover:border-gray-600',
@@ -210,20 +287,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           dropzoneClassName
         )}
         onClick={() => !disabled && fileInputRef.current?.click()}
-        onDragOver={(e) => {
-          if (!disabled) {
-            e.preventDefault()
-            setDragOver(true)
-          }
-        }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={(e) => {
-          if (!disabled) {
-            e.preventDefault()
-            setDragOver(false)
-            handleFiles(e.dataTransfer.files)
-          }
-        }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -232,117 +298,73 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           }
         }}
       >
-        <Upload className="mx-auto mb-3 h-8 w-8 text-gray-400 dark:text-gray-500" />
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          {`Max ${maxSize}MB • ${accept || acceptedTypes.length} file types`}
+        <Upload className="mx-auto mb-3 h-10 w-10 text-gray-400 dark:text-gray-500" />
+        <p className="text-base font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {label}
         </p>
-        {files.length > 0 && !multiple && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Current file: {files[0]?.file.name}
-          </p>
-        )}
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {`Drag & drop files or `}
+          <span className="text-primary-600 dark:text-primary-400 font-medium cursor-pointer">
+            browse
+          </span>
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          {`Max ${maxSize}MB • ${acceptedTypes.length} file types`}
+        </p>
       </div>
 
-      {files.length > 0 && (
-        <div className="mt-6 space-y-3">
-          {files.map((f) => (
-            <div
-              key={f.id}
-              className={cn(
-                'flex items-center gap-4 rounded-lg border p-4 transition-colors',
-                f.error
-                  ? 'border-danger-200 bg-danger-50 dark:bg-danger-900/20'
-                  : f.uploaded
-                  ? 'border-success-200 bg-success-50 dark:bg-success-900/20'
-                  : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800'
-              )}
+      {/* File List */}
+      {showFileList && files.length > 0 && (
+        <div className="mt-4">
+          <div className="flex justify-between items-center mb-3">
+            <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+              {files.length} file{files.length !== 1 ? 's' : ''} selected
+            </h4>
+            <button
+              onClick={clearFiles}
+              className="text-sm text-gray-500 hover:text-danger-600 dark:text-gray-400 dark:hover:text-danger-400 transition-colors"
+              disabled={uploading}
             >
-              {showPreview && f.previewUrl ? (
-                <img
-                  src={f.previewUrl}
-                  alt={f.file.name}
-                  className="h-16 w-16 rounded object-cover flex-shrink-0"
-                  onLoad={() => {
-                    if (f.uploaded || f.error) {
-                      URL.revokeObjectURL(f.previewUrl!)
-                    }
-                  }}
-                />
-              ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 dark:bg-gray-800 flex-shrink-0">
-                  {f.file.type.startsWith('image/') ? (
-                    <Image className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-                  ) : (
-                    <File className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-                  )}
-                </div>
-              )}
-
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-start gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {f.file.name}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {(f.file.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => removeFile(f.id)}
-                    className="flex-shrink-0 p-1 text-gray-400 dark:text-gray-500 hover:text-danger-500 dark:hover:text-danger-400 transition-colors"
-                    aria-label={`Remove ${f.file.name}`}
-                    disabled={uploading}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-
-                {f.error && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-danger-600 dark:text-danger-400 flex-shrink-0" />
-                    <p className="text-sm text-danger-600 dark:text-danger-400">
-                      {f.error}
-                    </p>
-                  </div>
-                )}
-
-                {!f.error && !f.uploaded && f.progress !== undefined && (
-                  <div className="mt-2">
-                    {/* Change from progress={f.progress} to value={f.progress} */}
-                    <ProgressBar value={f.progress} />
-                    {f.progress > 0 && f.progress < 100 && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Uploading: {f.progress}%
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {f.uploaded && (
-                  <p className="text-xs text-success-600 dark:text-success-400 mt-2">
-                    ✓ Upload complete
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
+              Clear all
+            </button>
+          </div>
           
-          {files.length > 1 && (
-            <div className="flex justify-end pt-2">
+          <div className="space-y-2">
+            {files.map(renderFileItem)}
+          </div>
+        </div>
+      )}
+
+      {/* Compact File List */}
+      {!showFileList && files.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {files.slice(0, 3).map(fileItem => (
+            <div
+              key={fileItem.id}
+              className="inline-flex items-center gap-2 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-1.5 text-sm"
+            >
+              <File className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+              <span className="truncate max-w-[100px] text-gray-700 dark:text-gray-300">
+                {fileItem.file.name}
+              </span>
               <button
-                onClick={clearFiles}
-                className="text-sm text-gray-500 hover:text-danger-600 dark:text-gray-400 dark:hover:text-danger-400 transition-colors"
-                disabled={uploading}
+                onClick={() => removeFile(fileItem.id)}
+                className="text-gray-400 hover:text-danger-500 dark:text-gray-500 dark:hover:text-danger-400"
+                aria-label="Remove"
               >
-                Clear all files
+                <X className="h-3 w-3" />
               </button>
             </div>
+          ))}
+          {files.length > 3 && (
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              +{files.length - 3} more
+            </span>
           )}
         </div>
       )}
 
+      {/* External Error */}
       {externalError && (
         <div className="mt-3 flex items-center gap-2 text-sm text-danger-600 dark:text-danger-400">
           <AlertCircle className="h-4 w-4 flex-shrink-0" />
@@ -353,4 +375,24 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   )
 }
 
-// export default FileUpload
+// Single File Upload Component
+export const SingleFileUpload = (props) => (
+  <FileUpload
+    multiple={false}
+    maxFiles={1}
+    showFileList={true}
+    {...props}
+  />
+)
+
+// Multiple File Upload Component
+export const MultipleFileUpload = (props) => (
+  <FileUpload
+    multiple={true}
+    maxFiles={10}
+    showFileList={true}
+    {...props}
+  />
+)
+
+export default FileUpload

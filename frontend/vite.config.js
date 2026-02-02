@@ -3,29 +3,6 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import svgr from 'vite-plugin-svgr'
 import { visualizer } from 'rollup-plugin-visualizer'
-import { exec } from 'child_process'
-
-// -------------------------------
-// Custom Vite plugin to log TS errors without failing build
-// -------------------------------
-function typeCheckPlugin() {
-  return {
-    name: 'vite:type-check',
-    buildStart() {
-      exec('tsc --noEmit', (err, stdout, stderr) => {
-        if (stdout) {
-          console.log('\n\x1b[33mTypeScript Check Output:\x1b[0m\n', stdout)
-        }
-        if (stderr) {
-          console.error('\n\x1b[31mTypeScript Errors:\x1b[0m\n', stderr)
-        }
-        if (err) {
-          console.log('\x1b[36mTS check completed with errors (build continues)\x1b[0m')
-        }
-      })
-    },
-  }
-}
 
 export default defineConfig(({ mode }) => {
   const isProd = mode === 'production'
@@ -33,13 +10,14 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-      react(),
+      react({
+        jsxRuntime: 'automatic',
+      }),
       svgr({
         svgrOptions: {
           icon: true,
         },
       }),
-      typeCheckPlugin(), // << Inject our TS type-check plugin here
       isAnalyze &&
         visualizer({
           open: true,
@@ -55,10 +33,13 @@ export default defineConfig(({ mode }) => {
         '@components': path.resolve(__dirname, './src/components'),
         '@pages': path.resolve(__dirname, './src/pages'),
         '@hooks': path.resolve(__dirname, './src/hooks'),
-        '@store': path.resolve(__dirname, './src/store'),
         '@utils': path.resolve(__dirname, './src/utils'),
+        '@api': path.resolve(__dirname, './src/api'),
         '@styles': path.resolve(__dirname, './src/styles'),
+        '@router': path.resolve(__dirname, './src/router'),
+        '@contexts': path.resolve(__dirname, './src/contexts'),
       },
+      extensions: ['.js', '.jsx', '.json'],
     },
 
     server: {
@@ -98,9 +79,8 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             react: ['react', 'react-dom', 'react-router-dom'],
-            state: ['@reduxjs/toolkit', 'react-redux'],
             ui: ['lucide-react', 'clsx', 'tailwind-merge'],
-            forms: ['react-hook-form', 'zod'],
+            forms: ['react-hook-form'],
             charts: ['recharts'],
             utils: ['axios', 'date-fns'],
           },
@@ -120,10 +100,11 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 900,
     },
 
-    test: {
-      globals: true,
-      environment: 'jsdom',
-      setupFiles: './src/test/setup.ts',
+    ///Remove test config or update it
+       test: {
+       globals: true,
+       environment: 'jsdom',
+      //Remove setupFiles or create a JS version
     },
 
     css: {
