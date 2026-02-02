@@ -7,9 +7,10 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { ErrorBoundary } from 'react-error-boundary'
 import { HelmetProvider } from 'react-helmet-async'
 import App from './App'
-import ErrorFallback from '@components/shared/ErrorBoundary'
+import ErrorFallback from '@components/shared/ErrorBoundary' // Fixed path - using default export
 import { AuthProvider } from '@contexts/AuthContext'
-import { ToastProvider } from '@contexts/ToastContext' // <-- Updated import
+import { ToastProvider } from '@contexts/ToastContext'
+import { ThemeProvider } from '@contexts/ThemeContext'
 import '@styles/tailwind.css'
 
 // ======================================================
@@ -79,13 +80,15 @@ const Providers = ({ children }) => (
   >
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
-        <ToastProvider> {/* <-- New ToastProvider placement */}
-          <AuthProvider>
-            <BrowserRouter>
-              {children}
-            </BrowserRouter>
-          </AuthProvider>
-        </ToastProvider>
+        <ThemeProvider> {/* Wrap with ThemeProvider */}
+          <ToastProvider>
+            <AuthProvider>
+              <BrowserRouter>
+                {children}
+              </BrowserRouter>
+            </AuthProvider>
+          </ToastProvider>
+        </ThemeProvider>
       </HelmetProvider>
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
@@ -116,4 +119,3 @@ if (import.meta.env.DEV) {
   console.info(`Environment: ${import.meta.env.MODE}`)
   console.info(`API URL: ${import.meta.env.VITE_API_URL}`)
 }
-

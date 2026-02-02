@@ -4,7 +4,6 @@ import { Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { AnimatePresence } from 'framer-motion'
 import { useAuth } from '@hooks/useAuth'
-import { useTheme } from '@contexts/ThemeContext'
 import Layout from '@components/layout/Layout'
 import Loading from '@components/shared/Loading'
 import PrivateRoute from '@router/PrivateRoute'
@@ -41,7 +40,6 @@ const renderRoutes = (routes, parentKey = '') =>
 function App() {
   const location = useLocation()
   const { isLoading, isAuthenticated, checkAuth, isAdmin } = useAuth()
-  const { mounted } = useTheme()
 
   // 🔐 AUTH BOOTSTRAP (runs once on app load)
   useEffect(() => {
@@ -63,7 +61,6 @@ function App() {
 
   useEffect(() => {
     if (import.meta.env.VITE_ENABLE_ANALYTICS) {
-      // Dynamically import and send pageview
       import('react-ga4').then((ReactGA) => {
         ReactGA.default.send({
           hitType: 'pageview',
@@ -73,8 +70,8 @@ function App() {
     }
   }, [location])
 
-  // ⏳ HARD GATE: auth state still resolving or theme not mounted
-  if (isLoading || !mounted) {
+  // ⏳ HARD GATE: auth state still resolving
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Loading size="lg" />
@@ -82,18 +79,19 @@ function App() {
     )
   }
 
-  // Filter routes based on user role
+  // Filter routes based on user role - SIMPLIFIED LOGIC
   const getRoutesForUser = () => {
-    const allProtectedRoutes = [...protectedRoutes]
-    
     if (isAdmin()) {
       // Admin sees all routes
-      return allProtectedRoutes
+      return protectedRoutes
     }
     
     // Non-admin users only see non-adminOnly routes
-    return allProtectedRoutes.filter(r => !r.adminOnly)
+    return protectedRoutes.filter(route => !route.adminOnly)
   }
+
+  // Get user-specific routes
+  const userRoutes = getRoutesForUser()
 
   return (
     <>
@@ -123,18 +121,18 @@ function App() {
             {/* 🔒 Protected routes (role-based access) */}
             <Route path="/" element={<PrivateRoute />}>
               <Route element={<Layout />}>
-                {/* Render routes based on user role */}
-                {renderRoutes(getRoutesForUser())}
-                
-                {/* Staff-only routes (if any) */}
-                <Route element={<StaffRoute />}>
-                  {/* Add staff-only routes here if needed */}
-                </Route>
-                
-                {/* Admin-only routes */}
-                <Route element={<AdminRoute />}>
-                  {renderRoutes(protectedRoutes.filter(r => r.adminOnly))}
-                </Route>
+                {/* Render routes accessible to current user */}
+                {renderRoutes(userRoutes)}
+              </Route>
+              
+              {/* Nested staff-only routes (if needed) */}
+              <Route path="/staff" element={<StaffRoute />}>
+                {/* Staff-only subroutes would go here */}
+              </Route>
+              
+              {/* Nested admin-only routes */}
+              <Route path="/admin" element={<AdminRoute />}>
+                {renderRoutes(protectedRoutes.filter(route => route.adminOnly))}
               </Route>
             </Route>
 

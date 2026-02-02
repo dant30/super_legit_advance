@@ -17,7 +17,7 @@ const TwoFactorAuth = lazy(() => import('@pages/auth/TwoFactorAuth'))
 const StaffDashboard = lazy(() => import('@pages/dashboard/StaffDashboard'))
 const AdminDashboard = lazy(() => import('@pages/dashboard/AdminDashboard'))
 
-// Module pages - these will be updated when you create the actual pages
+// Module pages
 const CustomerDashboard = lazy(() => import('@pages/customers/CustomerDashboard'))
 const LoanDashboard = lazy(() => import('@pages/loans/LoanDashboard'))
 const RepaymentDashboard = lazy(() => import('@pages/repayments/RepaymentDashboard'))
@@ -50,18 +50,16 @@ export const protectedRoutes = [
   { path: '/profile', element: <Profile /> },
   { path: '/two-factor-auth', element: <TwoFactorAuth /> },
   
-  // Dashboard routes
+  //Dashboard routes
   { path: '/', element: <StaffDashboard /> },
-  { path: '/admin-dashboard', element: <AdminDashboard />, adminOnly: true },
-  
-  // Module routes (accessible by staff)
   { path: '/customers', element: <CustomerDashboard /> },
   { path: '/loans', element: <LoanDashboard /> },
   { path: '/repayments', element: <RepaymentDashboard /> },
   { path: '/reports', element: <ReportDashboard /> },
   { path: '/notifications', element: <NotificationDashboard /> },
   
-  // Admin-only module routes
+  // Admin-only routes (must be placed under /admin path)
+  { path: '/admin/dashboard', element: <AdminDashboard />, adminOnly: true },
   //{ path: '/admin/staff', element: <StaffList />, adminOnly: true },
   //{ path: '/admin/audit-logs', element: <AuditLogs />, adminOnly: true },
   //{ path: '/admin/settings', element: <Settings />, adminOnly: true },
