@@ -1,357 +1,512 @@
-// frontend/src/hooks/useCustomers.ts
-import { useState, useCallback } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { RootState, AppDispatch } from '@/store/store'
-import {
-  fetchCustomers as fetchCustomersAction,
-  fetchCustomerById as fetchCustomerByIdAction,
-  createCustomer as createCustomerAction,
-  updateCustomer as updateCustomerAction,
-  deleteCustomer as deleteCustomerAction,
-  searchCustomers as searchCustomersAction,
-  fetchCustomerStats as fetchCustomerStatsAction,
-  blacklistCustomer as blacklistCustomerAction,
-  activateCustomer as activateCustomerAction,
-  fetchEmployment as fetchEmploymentAction,
-  updateEmployment as updateEmploymentAction,
-  fetchGuarantors as fetchGuarantorsAction,
-  createGuarantor as createGuarantorAction,
-  fetchGuarantorById as fetchGuarantorByIdAction,
-  updateGuarantor as updateGuarantorAction,
-  deleteGuarantor as deleteGuarantorAction,
-  verifyGuarantor as verifyGuarantorAction,
-  clearCustomersError,
-  clearSelectedCustomerError,
-  clearStatsError,
-  clearEmploymentError,
-  clearGuarantorsError,
-  clearSearchError,
-  clearSelectedCustomer,
-  clearSelectedGuarantor,
-  setFilters,
-  setCustomerPage,
-} from '@/store/slices/customerSlice'
-import { customerAPI } from '@/lib/api/customers'
-import type {
-  Customer,
-  CustomerDetailResponse,
-  // CustomerListResponse, is declared but its value is never read.
-  CustomerStatsResponse,
-  CustomerListParams,
-  CustomerCreateData,
-  CustomerUpdateData,
-  Employment,
-  EmploymentCreateData,
-  Guarantor,
-  GuarantorCreateData,
-} from '@/lib/api/customers'
+// frontend/src/hooks/useCustomers.js
+import { useState, useCallback, useContext } from 'react'
+import customerAPI from '@/api/customers'
+import { AuthContext } from '@/contexts/AuthContext'
+import { useToast } from '@/contexts/ToastContext'
 
-interface UseCustomersReturn {
-  // State
-  customers: Customer[]
-  customersLoading: boolean
-  customersError: string | null
-  customersPagination: {
-    page: number
-    page_size: number
-    total: number
-    total_pages: number
-  }
-  
-  selectedCustomer: CustomerDetailResponse | null
-  selectedCustomerLoading: boolean
-  selectedCustomerError: string | null
-  
-  stats: CustomerStatsResponse | null
-  statsLoading: boolean
-  statsError: string | null
-  
-  employment: Employment | null
-  employmentLoading: boolean
-  employmentError: string | null
-  
-  guarantors: Guarantor[]
-  selectedGuarantor: Guarantor | null
-  guarantorsLoading: boolean
-  guarantorsError: string | null
-  
-  searchResults: Customer[]
-  searchLoading: boolean
-  searchError: string | null
-  
-  filters: {
-    search?: string
-    status?: string
-    gender?: string
-    county?: string
-    risk_level?: string
-  }
+export const useCustomers = () => {
+  const [state, setState] = useState({
+    // List state
+    customers: [],
+    customersLoading: false,
+    customersError: null,
+    customersPagination: {
+      page: 1,
+      page_size: 20,
+      total: 0,
+      total_pages: 0,
+    },
 
-  // Customer methods
-  fetchCustomers: (params?: CustomerListParams) => Promise<any>
-  fetchCustomer: (id: string) => Promise<any>
-  createCustomer: (data: CustomerCreateData) => Promise<any>
-  updateCustomer: (id: string, data: CustomerUpdateData) => Promise<any>
-  deleteCustomer: (id: string) => Promise<any>
-  searchCustomers: (query: string, searchType?: string) => Promise<any>
-  getCustomerStats: () => Promise<any>
-  blacklistCustomer: (id: string, reason: string) => Promise<any>
-  activateCustomer: (id: string) => Promise<any>
-  exportCustomers: (format: 'excel' | 'csv', filters?: any) => Promise<Blob>
-  importCustomers: (file: File) => Promise<any>
+    // Detail state
+    selectedCustomer: null,
+    selectedCustomerLoading: false,
+    selectedCustomerError: null,
 
-  // Employment methods
-  getEmployment: (customerId: string) => Promise<any>
-  updateEmployment: (customerId: string, data: EmploymentCreateData) => Promise<any>
+    // Stats state
+    stats: null,
+    statsLoading: false,
+    statsError: null,
 
-  // Guarantor methods
-  getGuarantors: (customerId: string) => Promise<any>
-  createGuarantor: (customerId: string, data: GuarantorCreateData) => Promise<any>
-  getGuarantor: (id: string) => Promise<any>
-  updateGuarantor: (id: string, data: Partial<GuarantorCreateData>) => Promise<any>
-  deleteGuarantor: (id: string) => Promise<any>
-  verifyGuarantor: (id: string, action: 'verify' | 'reject', notes: string) => Promise<any>
+    // Employment state
+    employment: null,
+    employmentLoading: false,
+    employmentError: null,
 
-  // Utility
-  clearCustomersError: () => void
-  clearSelectedCustomerError: () => void
-  clearStatsError: () => void
-  clearEmploymentError: () => void
-  clearGuarantorsError: () => void
-  clearSearchError: () => void
-  clearSelectedCustomer: () => void
-  clearSelectedGuarantor: () => void
-  clearError: () => void
-  setFilters: (filters: any) => void
-  setCustomerPage: (page: number) => void
-  isLoading: boolean
-  error: string | null
-}
+    // Guarantors state
+    guarantors: [],
+    selectedGuarantor: null,
+    guarantorsLoading: false,
+    guarantorsError: null,
 
-export const useCustomers = (): UseCustomersReturn => {
-  const dispatch = useDispatch<AppDispatch>()
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [error, setError] = useState<string | null>(null)
+    // Search state
+    searchResults: [],
+    searchLoading: false,
+    searchError: null,
 
-  // Get state from Redux store
-  const {
-    customers,
-    customersLoading,
-    customersError,
-    customersPagination,
-    selectedCustomer,
-    selectedCustomerLoading,
-    selectedCustomerError,
-    stats,
-    statsLoading,
-    statsError,
-    employment,
-    employmentLoading,
-    employmentError,
-    guarantors,
-    selectedGuarantor,
-    guarantorsLoading,
-    guarantorsError,
-    searchResults,
-    searchLoading,
-    searchError,
-    filters,
-  } = useSelector((state: RootState) => state.customers)
+    // Filters
+    filters: {},
+  })
+
+  const { user } = useContext(AuthContext)
+  const { showToast } = useToast()
+
+  // Helper to update state
+  const updateState = useCallback((updates) => {
+    setState(prev => ({ ...prev, ...updates }))
+  }, [])
+
+  // Helper to handle API calls with loading/error states
+  const callApi = useCallback(async (apiCall, loadingKey = null, errorKey = null) => {
+    if (loadingKey) {
+      updateState({ [loadingKey]: true, [errorKey]: null })
+    }
+
+    try {
+      const result = await apiCall()
+      
+      if (loadingKey) {
+        updateState({ [loadingKey]: false })
+      }
+
+      if (!result.success) {
+        if (errorKey) {
+          updateState({ [errorKey]: result.error })
+        }
+        showToast(result.error, 'error')
+        return { success: false, error: result.error }
+      }
+
+      return { success: true, data: result.data }
+    } catch (error) {
+      if (loadingKey) {
+        updateState({ [loadingKey]: false })
+      }
+      if (errorKey) {
+        updateState({ [errorKey]: error.message })
+      }
+      showToast(error.message || 'An error occurred', 'error')
+      return { success: false, error: error.message }
+    }
+  }, [updateState, showToast])
 
   /* ===== CUSTOMER METHODS ===== */
 
-  const fetchCustomers = useCallback(
-    async (params?: CustomerListParams) => {
-      return dispatch(fetchCustomersAction(params || {}))
-    },
-    [dispatch]
-  )
+  const fetchCustomers = useCallback(async (params = {}) => {
+    const mergedParams = {
+      page: state.customersPagination.page,
+      page_size: state.customersPagination.page_size,
+      ...state.filters,
+      ...params,
+    }
 
-  const fetchCustomer = useCallback(
-    async (id: string) => {
-      return dispatch(fetchCustomerByIdAction(id))
-    },
-    [dispatch]
-  )
+    const result = await callApi(
+      () => customerAPI.getCustomers(mergedParams),
+      'customersLoading',
+      'customersError'
+    )
 
-  const createCustomer = useCallback(
-    async (data: CustomerCreateData) => {
-      return dispatch(createCustomerAction(data))
-    },
-    [dispatch]
-  )
+    if (result.success) {
+      const data = result.data
+      let customers = []
+      let pagination = { ...state.customersPagination }
 
-  const updateCustomer = useCallback(
-    async (id: string, data: CustomerUpdateData) => {
-      return dispatch(updateCustomerAction({ id, data }))
-    },
-    [dispatch]
-  )
-
-  const deleteCustomer = useCallback(
-    async (id: string) => {
-      return dispatch(deleteCustomerAction(id))
-    },
-    [dispatch]
-  )
-
-  const searchCustomers = useCallback(
-    async (query: string, searchType?: string) => {
-      return dispatch(searchCustomersAction({ query, searchType }))
-    },
-    [dispatch]
-  )
-
-  const getCustomerStats = useCallback(
-    async () => {
-      return dispatch(fetchCustomerStatsAction())
-    },
-    [dispatch]
-  )
-
-  const blacklistCustomer = useCallback(
-    async (id: string, reason: string) => {
-      return dispatch(blacklistCustomerAction({ id, reason }))
-    },
-    [dispatch]
-  )
-
-  const activateCustomer = useCallback(
-    async (id: string) => {
-      return dispatch(activateCustomerAction(id))
-    },
-    [dispatch]
-  )
-
-  const exportCustomers = useCallback(
-    async (format: 'excel' | 'csv', filters?: any): Promise<Blob> => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const response = await customerAPI.exportCustomers(format, filters)
-        setIsLoading(false)
-        return response
-      } catch (err: any) {
-        setIsLoading(false)
-        const errorMessage =
-          err.response?.data?.detail || err.message || 'Failed to export customers'
-        setError(errorMessage)
-        throw new Error(errorMessage)
+      if (data.data) {
+        // New format with data and pagination
+        customers = data.data
+        if (data.pagination) {
+          pagination = {
+            page: data.pagination.page || 1,
+            page_size: data.pagination.page_size || 20,
+            total: data.pagination.total || 0,
+            total_pages: data.pagination.total_pages || 0,
+          }
+        }
+      } else if (data.results) {
+        // Old DRF format
+        customers = data.results
+        pagination = {
+          page: data.page || 1,
+          page_size: data.page_size || 20,
+          total: data.count || 0,
+          total_pages: data.total_pages || Math.ceil((data.count || 0) / 20),
+        }
+      } else {
+        // Array response
+        customers = Array.isArray(data) ? data : []
       }
-    },
-    []
-  )
 
-  const importCustomers = useCallback(
-    async (file: File): Promise<any> => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const response = await customerAPI.importCustomers(file)
-        setIsLoading(false)
-        return response
-      } catch (err: any) {
-        setIsLoading(false)
-        const errorMessage =
-          err.response?.data?.detail || err.message || 'Failed to import customers'
-        setError(errorMessage)
-        throw new Error(errorMessage)
-      }
-    },
-    []
-  )
+      updateState({
+        customers,
+        customersPagination: pagination,
+      })
+
+      showToast(`Loaded ${customers.length} customers`, 'success')
+    }
+
+    return result
+  }, [state.filters, state.customersPagination, callApi, updateState, showToast])
+
+  const fetchCustomer = useCallback(async (id) => {
+    const result = await callApi(
+      () => customerAPI.getCustomer(id),
+      'selectedCustomerLoading',
+      'selectedCustomerError'
+    )
+
+    if (result.success) {
+      updateState({ selectedCustomer: result.data })
+    }
+
+    return result
+  }, [callApi, updateState])
+
+  const createCustomer = useCallback(async (customerData) => {
+    const result = await callApi(
+      () => customerAPI.createCustomer(customerData),
+      'customersLoading',
+      'customersError'
+    )
+
+    if (result.success) {
+      updateState(prev => ({
+        customers: [result.data, ...prev.customers],
+      }))
+      showToast('Customer created successfully', 'success')
+    }
+
+    return result
+  }, [callApi, updateState, showToast])
+
+  const updateCustomer = useCallback(async (id, customerData) => {
+    const result = await callApi(
+      () => customerAPI.updateCustomer(id, customerData),
+      'customersLoading',
+      'customersError'
+    )
+
+    if (result.success) {
+      updateState(prev => ({
+        customers: prev.customers.map(customer =>
+          customer.id === id ? { ...customer, ...result.data } : customer
+        ),
+        selectedCustomer: prev.selectedCustomer?.id === id
+          ? { ...prev.selectedCustomer, ...result.data }
+          : prev.selectedCustomer,
+      }))
+      showToast('Customer updated successfully', 'success')
+    }
+
+    return result
+  }, [callApi, updateState, showToast])
+
+  const deleteCustomer = useCallback(async (id) => {
+    const result = await callApi(
+      () => customerAPI.deleteCustomer(id),
+      'customersLoading',
+      'customersError'
+    )
+
+    if (result.success) {
+      updateState(prev => ({
+        customers: prev.customers.filter(customer => customer.id !== id),
+        selectedCustomer: prev.selectedCustomer?.id === id ? null : prev.selectedCustomer,
+      }))
+      showToast('Customer deleted successfully', 'success')
+    }
+
+    return result
+  }, [callApi, updateState, showToast])
+
+  const searchCustomers = useCallback(async (query, searchType = 'basic') => {
+    const result = await callApi(
+      () => customerAPI.searchCustomers(query, searchType),
+      'searchLoading',
+      'searchError'
+    )
+
+    if (result.success) {
+      updateState({ searchResults: result.data || [] })
+    }
+
+    return result
+  }, [callApi, updateState])
+
+  const getCustomerStats = useCallback(async () => {
+    const result = await callApi(
+      () => customerAPI.getCustomerStats(),
+      'statsLoading',
+      'statsError'
+    )
+
+    if (result.success) {
+      updateState({ stats: result.data })
+    }
+
+    return result
+  }, [callApi, updateState])
+
+  const blacklistCustomer = useCallback(async (id, reason) => {
+    const result = await callApi(
+      () => customerAPI.blacklistCustomer(id, reason),
+      'customersLoading',
+      'customersError'
+    )
+
+    if (result.success) {
+      updateState(prev => ({
+        customers: prev.customers.map(customer =>
+          customer.id === id ? result.data : customer
+        ),
+        selectedCustomer: prev.selectedCustomer?.id === id
+          ? result.data
+          : prev.selectedCustomer,
+      }))
+      showToast('Customer blacklisted successfully', 'success')
+    }
+
+    return result
+  }, [callApi, updateState, showToast])
+
+  const activateCustomer = useCallback(async (id) => {
+    const result = await callApi(
+      () => customerAPI.activateCustomer(id),
+      'customersLoading',
+      'customersError'
+    )
+
+    if (result.success) {
+      updateState(prev => ({
+        customers: prev.customers.map(customer =>
+          customer.id === id ? result.data : customer
+        ),
+        selectedCustomer: prev.selectedCustomer?.id === id
+          ? result.data
+          : prev.selectedCustomer,
+      }))
+      showToast('Customer activated successfully', 'success')
+    }
+
+    return result
+  }, [callApi, updateState, showToast])
+
+  const exportCustomers = useCallback(async (format = 'excel', filters = {}) => {
+    const result = await callApi(() => customerAPI.exportCustomers(format, filters))
+
+    if (result.success) {
+      // Create download link
+      const url = window.URL.createObjectURL(result.data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `customers_export.${format === 'excel' ? 'xlsx' : 'csv'}`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      showToast('Export completed successfully', 'success')
+    }
+
+    return result
+  }, [callApi, showToast])
+
+  const importCustomers = useCallback(async (file) => {
+    const result = await callApi(() => customerAPI.importCustomers(file))
+
+    if (result.success) {
+      showToast(`Successfully imported ${result.data.imported_count || 0} customers`, 'success')
+      // Refresh customer list
+      fetchCustomers()
+    }
+
+    return result
+  }, [callApi, showToast, fetchCustomers])
 
   /* ===== EMPLOYMENT METHODS ===== */
 
-  const getEmployment = useCallback(
-    async (customerId: string) => {
-      return dispatch(fetchEmploymentAction(customerId))
-    },
-    [dispatch]
-  )
+  const getEmployment = useCallback(async (customerId) => {
+    const result = await callApi(
+      () => customerAPI.getEmployment(customerId),
+      'employmentLoading',
+      'employmentError'
+    )
 
-  const updateEmployment = useCallback(
-    async (customerId: string, data: EmploymentCreateData) => {
-      return dispatch(updateEmploymentAction({ customerId, data }))
-    },
-    [dispatch]
-  )
+    if (result.success) {
+      updateState({ employment: result.data })
+    }
+
+    return result
+  }, [callApi, updateState])
+
+  const updateEmployment = useCallback(async (customerId, employmentData) => {
+    const result = await callApi(
+      () => customerAPI.updateEmployment(customerId, employmentData),
+      'employmentLoading',
+      'employmentError'
+    )
+
+    if (result.success) {
+      updateState({
+        employment: result.data,
+        selectedCustomer: state.selectedCustomer
+          ? { ...state.selectedCustomer, employment: result.data }
+          : state.selectedCustomer,
+      })
+      showToast('Employment information updated successfully', 'success')
+    }
+
+    return result
+  }, [callApi, updateState, showToast, state.selectedCustomer])
 
   /* ===== GUARANTOR METHODS ===== */
 
-  const getGuarantors = useCallback(
-    async (customerId: string) => {
-      return dispatch(fetchGuarantorsAction(customerId))
-    },
-    [dispatch]
-  )
+  const getGuarantors = useCallback(async (customerId) => {
+    const result = await callApi(
+      () => customerAPI.getGuarantors(customerId),
+      'guarantorsLoading',
+      'guarantorsError'
+    )
 
-  const createGuarantor = useCallback(
-    async (customerId: string, data: GuarantorCreateData) => {
-      return dispatch(createGuarantorAction({ customerId, data }))
-    },
-    [dispatch]
-  )
+    if (result.success) {
+      updateState({ guarantors: result.data || [] })
+    }
 
-  const getGuarantor = useCallback(
-    async (id: string) => {
-      return dispatch(fetchGuarantorByIdAction(id))
-    },
-    [dispatch]
-  )
+    return result
+  }, [callApi, updateState])
 
-  const updateGuarantor = useCallback(
-    async (id: string, data: Partial<GuarantorCreateData>) => {
-      return dispatch(updateGuarantorAction({ id, data }))
-    },
-    [dispatch]
-  )
+  const createGuarantor = useCallback(async (customerId, guarantorData) => {
+    const result = await callApi(
+      () => customerAPI.createGuarantor(customerId, guarantorData),
+      'guarantorsLoading',
+      'guarantorsError'
+    )
 
-  const deleteGuarantor = useCallback(
-    async (id: string) => {
-      return dispatch(deleteGuarantorAction(id))
-    },
-    [dispatch]
-  )
+    if (result.success) {
+      updateState(prev => ({
+        guarantors: [result.data, ...prev.guarantors],
+      }))
+      showToast('Guarantor created successfully', 'success')
+    }
 
-  const verifyGuarantor = useCallback(
-    async (id: string, action: 'verify' | 'reject', notes: string) => {
-      return dispatch(verifyGuarantorAction({ id, action, notes }))
-    },
-    [dispatch]
-  )
+    return result
+  }, [callApi, updateState, showToast])
 
-  /* ===== UTILITY ===== */
+  const getGuarantor = useCallback(async (id) => {
+    const result = await callApi(
+      () => customerAPI.getGuarantor(id),
+      'guarantorsLoading',
+      'guarantorsError'
+    )
+
+    if (result.success) {
+      updateState({ selectedGuarantor: result.data })
+    }
+
+    return result
+  }, [callApi, updateState])
+
+  const updateGuarantor = useCallback(async (id, guarantorData) => {
+    const result = await callApi(
+      () => customerAPI.updateGuarantor(id, guarantorData),
+      'guarantorsLoading',
+      'guarantorsError'
+    )
+
+    if (result.success) {
+      updateState(prev => ({
+        guarantors: prev.guarantors.map(guarantor =>
+          guarantor.id === id ? result.data : guarantor
+        ),
+        selectedGuarantor: prev.selectedGuarantor?.id === id
+          ? result.data
+          : prev.selectedGuarantor,
+      }))
+      showToast('Guarantor updated successfully', 'success')
+    }
+
+    return result
+  }, [callApi, updateState, showToast])
+
+  const deleteGuarantor = useCallback(async (id) => {
+    const result = await callApi(
+      () => customerAPI.deleteGuarantor(id),
+      'guarantorsLoading',
+      'guarantorsError'
+    )
+
+    if (result.success) {
+      updateState(prev => ({
+        guarantors: prev.guarantors.filter(guarantor => guarantor.id !== id),
+        selectedGuarantor: prev.selectedGuarantor?.id === id ? null : prev.selectedGuarantor,
+      }))
+      showToast('Guarantor deleted successfully', 'success')
+    }
+
+    return result
+  }, [callApi, updateState, showToast])
+
+  const verifyGuarantor = useCallback(async (id, action, notes) => {
+    const result = await callApi(
+      () => customerAPI.verifyGuarantor(id, action, notes),
+      'guarantorsLoading',
+      'guarantorsError'
+    )
+
+    if (result.success) {
+      updateState(prev => ({
+        guarantors: prev.guarantors.map(guarantor =>
+          guarantor.id === id ? result.data : guarantor
+        ),
+        selectedGuarantor: prev.selectedGuarantor?.id === id
+          ? result.data
+          : prev.selectedGuarantor,
+      }))
+      showToast(`Guarantor ${action}ed successfully`, 'success')
+    }
+
+    return result
+  }, [callApi, updateState, showToast])
+
+  /* ===== UTILITY METHODS ===== */
+
+  const setFilters = useCallback((filters) => {
+    updateState({
+      filters: { ...state.filters, ...filters },
+      customersPagination: { ...state.customersPagination, page: 1 },
+    })
+  }, [state.filters, state.customersPagination, updateState])
+
+  const setCustomerPage = useCallback((page) => {
+    updateState({
+      customersPagination: { ...state.customersPagination, page },
+    })
+  }, [state.customersPagination, updateState])
 
   const clearError = useCallback(() => {
-    setError(null)
-    dispatch(clearCustomersError())
-  }, [dispatch])
+    updateState({
+      customersError: null,
+      selectedCustomerError: null,
+      statsError: null,
+      employmentError: null,
+      guarantorsError: null,
+      searchError: null,
+    })
+  }, [updateState])
+
+  const clearSelectedCustomer = useCallback(() => {
+    updateState({ selectedCustomer: null })
+  }, [updateState])
+
+  const clearSelectedGuarantor = useCallback(() => {
+    updateState({ selectedGuarantor: null })
+  }, [updateState])
+
+  const clearSearchResults = useCallback(() => {
+    updateState({ searchResults: [] })
+  }, [updateState])
 
   return {
     // State
-    customers,
-    customersLoading,
-    customersError,
-    customersPagination,
-    selectedCustomer,
-    selectedCustomerLoading,
-    selectedCustomerError,
-    stats,
-    statsLoading,
-    statsError,
-    employment,
-    employmentLoading,
-    employmentError,
-    guarantors,
-    selectedGuarantor,
-    guarantorsLoading,
-    guarantorsError,
-    searchResults,
-    searchLoading,
-    searchError,
-    filters,
-
+    ...state,
+    
     // Customer methods
     fetchCustomers,
     fetchCustomer,
@@ -364,11 +519,11 @@ export const useCustomers = (): UseCustomersReturn => {
     activateCustomer,
     exportCustomers,
     importCustomers,
-
+    
     // Employment methods
     getEmployment,
     updateEmployment,
-
+    
     // Guarantor methods
     getGuarantors,
     createGuarantor,
@@ -376,22 +531,22 @@ export const useCustomers = (): UseCustomersReturn => {
     updateGuarantor,
     deleteGuarantor,
     verifyGuarantor,
-
-    // Utility methods
-    clearCustomersError: () => dispatch(clearCustomersError()),
-    clearSelectedCustomerError: () => dispatch(clearSelectedCustomerError()),
-    clearStatsError: () => dispatch(clearStatsError()),
-    clearEmploymentError: () => dispatch(clearEmploymentError()),
-    clearGuarantorsError: () => dispatch(clearGuarantorsError()),
-    clearSearchError: () => dispatch(clearSearchError()),
-    clearSelectedCustomer: () => dispatch(clearSelectedCustomer()),
-    clearSelectedGuarantor: () => dispatch(clearSelectedGuarantor()),
-    clearError,
-    setFilters: (filters: any) => dispatch(setFilters(filters)),
-    setCustomerPage: (page: number) => dispatch(setCustomerPage(page)),
     
-    // Local helpers
-    isLoading,
-    error,
+    // Utility methods
+    setFilters,
+    setCustomerPage,
+    clearError,
+    clearSelectedCustomer,
+    clearSelectedGuarantor,
+    clearSearchResults,
+    
+    // Derived state
+    isLoading: state.customersLoading || state.selectedCustomerLoading || 
+               state.statsLoading || state.employmentLoading || 
+               state.guarantorsLoading || state.searchLoading,
+    
+    // Permission checks (using auth context)
+    canManageCustomers: user?.is_staff || user?.role === 'admin' || user?.role === 'staff',
+    canApproveCustomers: user?.role === 'admin' || user?.role === 'manager',
   }
 }
