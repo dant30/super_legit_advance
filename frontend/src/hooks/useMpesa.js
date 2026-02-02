@@ -1,296 +1,167 @@
-// frontend/src/hooks/useMpesa.ts
-import { useState, useCallback } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { mpesaAPI } from '@/lib/api/mpesa'
-import type {
-  STKPushRequest,
-  PaymentHistoryParams,
-  TransactionListParams,
-  PaymentRetryRequest,
-  PaymentReversalRequest
-} from '@/types/mpesa'
-import {
-  initiateSTKPush,
-  fetchPaymentHistory,
-  fetchTransactions,
-  fetchPaymentSummary,
-  fetchPaymentStatus,
-  fetchTransaction,
-  clearPaymentError,
-  clearTransactionError,
-  clearSTKPushState,
-  clearCurrentPayment,
-  clearCurrentTransaction,
-  clearSummary
-} from '@/store/slices/mpesaSlice'
-import { RootState, AppDispatch } from '@/store/store'
+// frontend/src/hooks/useMpesa.js
+import { useContext } from 'react'
+import MpesaContext from '../contexts/MpesaContext'
 
 /**
  * Custom hook for M-Pesa operations
- * Provides abstraction for Redux dispatch and API calls
+ * Provides access to MpesaContext with proper error handling
  */
 export const useMpesa = () => {
-  const dispatch = useDispatch<AppDispatch>()
-  const [localLoading, setLocalLoading] = useState(false)
-  const [localError, setLocalError] = useState<string | null>(null)
+  const context = useContext(MpesaContext)
+  
+  if (!context) {
+    throw new Error('useMpesa must be used within MpesaProvider')
+  }
+  
+  return context
+}
 
-  // Redux state selectors
-  const stkPushState = useSelector((state: RootState) => state.mpesa.stkPush)
-  const paymentsState = useSelector((state: RootState) => state.mpesa.payments)
-  const transactionsState = useSelector((state: RootState) => state.mpesa.transactions)
-  const summaryState = useSelector((state: RootState) => state.mpesa.summary)
-  const currentPaymentState = useSelector((state: RootState) => state.mpesa.currentPayment)
-  const currentTransactionState = useSelector((state: RootState) => state.mpesa.currentTransaction)
+/**
+ * Hook for initiating STK Push payments with auto-polling
+ */
+export const useMpesaPayment = () => {
+  const {
+    stkPush,
+    initiatePayment,
+    pollPaymentStatus,
+    clearSTKPushState
+  } = useMpesa()
 
   /**
-   * Initiate STK Push payment via Redux
+   * Initiate payment and start polling
    */
-  const initiatePayment = useCallback(
-    async (data: STKPushRequest) => {
-      try {
-        const result = await dispatch(initiateSTKPush(data))
-        if (result.payload) {
-          return result.payload
-        }
-        throw new Error('Failed to initiate payment')
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.error || err.message || 'Failed to initiate payment'
-        throw new Error(errorMessage)
+  const initiatePaymentWithPolling = async (paymentData, pollOptions = {}) => {
+    try {
+      // Clear previous state
+      clearSTKPushState()
+      
+      // Initiate payment
+      const result = await initiatePayment(paymentData)
+      
+      // Start polling if checkout request ID is available
+      if (result.checkout_request_id) {
+        const { interval = 3000, maxAttempts = 20 } = pollOptions
+        await pollPaymentStatus(result.checkout_request_id, interval, maxAttempts)
       }
-    },
-    [dispatch]
-  )
-
-  /**
-   * Get payment status via Redux
-   */
-  const getPaymentStatus = useCallback(
-    async (paymentReference?: string, checkoutRequestId?: string) => {
-      try {
-        const result = await dispatch(
-          fetchPaymentStatus({
-            paymentReference,
-            checkoutRequestId
-          })
-        )
-        if (result.payload) {
-          return result.payload
-        }
-        throw new Error('Failed to get payment status')
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.error || err.message || 'Failed to get payment status'
-        throw new Error(errorMessage)
-      }
-    },
-    [dispatch]
-  )
-
-  /**
-   * Get payment history via Redux
-   */
-  const getPaymentHistory = useCallback(
-    async (params?: PaymentHistoryParams) => {
-      try {
-        const result = await dispatch(fetchPaymentHistory(params))
-        if (result.payload) {
-          return result.payload
-        }
-        throw new Error('Failed to get payment history')
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.error || err.message || 'Failed to get payment history'
-        throw new Error(errorMessage)
-      }
-    },
-    [dispatch]
-  )
-
-  /**
-   * Get transactions via Redux
-   */
-  const getTransactions = useCallback(
-    async (params?: TransactionListParams) => {
-      try {
-        const result = await dispatch(fetchTransactions(params))
-        if (result.payload) {
-          return result.payload
-        }
-        throw new Error('Failed to get transactions')
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.error || err.message || 'Failed to get transactions'
-        throw new Error(errorMessage)
-      }
-    },
-    [dispatch]
-  )
-
-  /**
-   * Get single transaction via Redux
-   */
-  const getTransaction = useCallback(
-    async (receiptNumber: string) => {
-      try {
-        const result = await dispatch(fetchTransaction(receiptNumber))
-        if (result.payload) {
-          return result.payload
-        }
-        throw new Error('Failed to get transaction')
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.error || err.message || 'Failed to get transaction'
-        throw new Error(errorMessage)
-      }
-    },
-    [dispatch]
-  )
-
-  /**
-   * Retry failed payment (direct API call)
-   */
-  const retryPayment = useCallback(
-    async (paymentId: number, data?: PaymentRetryRequest) => {
-      setLocalLoading(true)
-      setLocalError(null)
-      try {
-        const result = await mpesaAPI.retryPayment(paymentId, data || {})
-        return result
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.error || err.message || 'Failed to retry payment'
-        setLocalError(errorMessage)
-        throw new Error(errorMessage)
-      } finally {
-        setLocalLoading(false)
-      }
-    },
-    []
-  )
-
-  /**
-   * Reverse payment (direct API call)
-   */
-  const reversePayment = useCallback(
-    async (receiptNumber: string, data: PaymentReversalRequest) => {
-      setLocalLoading(true)
-      setLocalError(null)
-      try {
-        const result = await mpesaAPI.reversePayment(receiptNumber, data)
-        return result
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.error || err.message || 'Failed to reverse payment'
-        setLocalError(errorMessage)
-        throw new Error(errorMessage)
-      } finally {
-        setLocalLoading(false)
-      }
-    },
-    []
-  )
-
-  /**
-   * Get payment summary via Redux
-   */
-  const getPaymentSummary = useCallback(
-    async (days?: number) => {
-      try {
-        const result = await dispatch(fetchPaymentSummary(days))
-        if (result.payload) {
-          return result.payload
-        }
-        throw new Error('Failed to get payment summary')
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.error || err.message || 'Failed to get payment summary'
-        throw new Error(errorMessage)
-      }
-    },
-    [dispatch]
-  )
-
-  /**
-   * Test webhook (direct API call, admin only)
-   */
-  const testWebhook = useCallback(
-    async (type: 'stk_push' | 'c2b_validation', data?: any) => {
-      setLocalLoading(true)
-      setLocalError(null)
-      try {
-        const result = await mpesaAPI.testWebhook(type, data)
-        return result
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.error || err.message || 'Failed to test webhook'
-        setLocalError(errorMessage)
-        throw new Error(errorMessage)
-      } finally {
-        setLocalLoading(false)
-      }
-    },
-    []
-  )
-
-  /**
-   * Clear all errors
-   */
-  const clearErrors = useCallback(() => {
-    setLocalError(null)
-    dispatch(clearPaymentError())
-    dispatch(clearTransactionError())
-  }, [dispatch])
-
-  /**
-   * Clear STK push state
-   */
-  const clearStkPushError = useCallback(() => {
-    dispatch(clearSTKPushState())
-  }, [dispatch])
-
-  /**
-   * Clear current payment state
-   */
-  const clearCurrentPaymentState = useCallback(() => {
-    dispatch(clearCurrentPayment())
-  }, [dispatch])
-
-  /**
-   * Clear current transaction state
-   */
-  const clearCurrentTransactionState = useCallback(() => {
-    dispatch(clearCurrentTransaction())
-  }, [dispatch])
-
-  /**
-   * Clear summary state
-   */
-  const clearSummaryState = useCallback(() => {
-    dispatch(clearSummary())
-  }, [dispatch])
+      
+      return result
+    } catch (error) {
+      throw error
+    }
+  }
 
   return {
-    // Local state
-    loading: localLoading,
-    error: localError,
+    stkPush,
+    initiatePayment: initiatePaymentWithPolling,
+    clearSTKPushState
+  }
+}
 
-    // Redux state
-    stkPush: stkPushState,
-    payments: paymentsState,
-    transactions: transactionsState,
-    summary: summaryState,
-    currentPayment: currentPaymentState,
-    currentTransaction: currentTransactionState,
-
-    // API methods
-    initiatePayment,
-    getPaymentStatus,
+/**
+ * Hook for payment history operations
+ */
+export const useMpesaHistory = () => {
+  const {
+    payments,
     getPaymentHistory,
+    clearPaymentError,
+    exportPayments
+  } = useMpesa()
+
+  /**
+   * Export payments to file
+   */
+  const exportToFile = async (format = 'csv', params = {}) => {
+    try {
+      const blob = await exportPayments(format, params)
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `payments_export_${new Date().toISOString().split('T')[0]}.${format}`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+      return true
+    } catch (error) {
+      throw error
+    }
+  }
+
+  /**
+   * Load more payments (pagination)
+   */
+  const loadMorePayments = async () => {
+    if (!payments.data?.next) return
+    
+    try {
+      const url = new URL(payments.data.next)
+      const params = Object.fromEntries(url.searchParams.entries())
+      await getPaymentHistory(params)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  return {
+    payments,
+    getPaymentHistory,
+    clearPaymentError,
+    exportToFile,
+    loadMorePayments
+  }
+}
+
+/**
+ * Hook for transaction operations
+ */
+export const useMpesaTransactions = () => {
+  const {
+    transactions,
+    currentTransaction,
     getTransactions,
     getTransaction,
-    retryPayment,
     reversePayment,
-    getPaymentSummary,
-    testWebhook,
+    clearTransactionError,
+    clearCurrentTransaction
+  } = useMpesa()
 
-    // Clear methods
-    clearErrors,
-    clearStkPushError,
-    clearCurrentPaymentState,
-    clearCurrentTransactionState,
-    clearSummaryState
+  return {
+    transactions,
+    currentTransaction,
+    getTransactions,
+    getTransaction,
+    reversePayment,
+    clearTransactionError,
+    clearCurrentTransaction
+  }
+}
+
+/**
+ * Hook for payment analytics
+ */
+export const useMpesaAnalytics = () => {
+  const {
+    summary,
+    getPaymentSummary,
+    clearSummary
+  } = useMpesa()
+
+  /**
+   * Refresh summary data
+   */
+  const refreshSummary = async (days) => {
+    await getPaymentSummary(days)
+  }
+
+  return {
+    summary,
+    getPaymentSummary,
+    refreshSummary,
+    clearSummary
   }
 }
 
