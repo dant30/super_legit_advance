@@ -1,8 +1,8 @@
 // frontend/src/contexts/AuthContext.jsx
-import React, { createContext, useState, useCallback, useEffect, useMemo } from 'react'
+import React, { createContext, useState, useCallback, useEffect, useMemo, useContext } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { authAPI } from '@api/auth'
-import axios from '@api/axios'
+import axiosInstance from '@api/axios'
 import { useToast } from '@contexts/ToastContext'
 
 // Create Auth Context
@@ -18,6 +18,26 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
+
+  // Handle authentication errors
+  const handleAuthError = (error) => {
+    console.error('Auth Error:', error)
+    const errorMessage = error.message || 'Authentication failed'
+    setError(errorMessage)
+    
+    // Clear invalid tokens
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    localStorage.removeItem('user')
+    
+    // Remove auth header
+    delete axiosInstance.defaults.headers.common.Authorization
+    
+    setUser(null)
+    setIsAuthenticated(false)
+    
+    return errorMessage
+  }
 
   // React Query for fetching current user
   const { 
@@ -38,38 +58,34 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', JSON.stringify(data))
     },
     onError: (err) => {
-      handleAuthError(err)
+      const errorMsg = handleAuthError(err)
+      toast.error(errorMsg, {
+        title: 'Authentication Error'
+      })
     }
   })
-
-  // Handle authentication errors
-  const handleAuthError = (error) => {
-    console.error('Auth Error:', error)
-    setError(error.message || 'Authentication failed')
-    
-    // Clear invalid tokens
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
-    localStorage.removeItem('user')
-    delete axios.defaults.headers.common.Authorization
-    
-    setUser(null)
-    setIsAuthenticated(false)
-  }
 
   // Check authentication on app load
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('access_token')
+      const storedUser = localStorage.getItem('user')
+      
       if (!token) {
         setIsLoading(false)
         return
       }
       
-      // If we already have user data, don't refetch
-      if (userData) {
-        setIsLoading(false)
-        return
+      // Set user from localStorage immediately for better UX
+      if (storedUser && !userData) {
+        try {
+          const parsedUser = JSON.parse(storedUser)
+          setUser(parsedUser)
+          setIsAuthenticated(true)
+        } catch (e) {
+          // Invalid JSON in localStorage, clear it
+          localStorage.removeItem('user')
+        }
       }
     }
 
@@ -104,7 +120,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', JSON.stringify(userData))
 
       // Set default auth header
-      axios.defaults.headers.common.Authorization = `Bearer ${access}`
+      axiosInstance.defaults.headers.common.Authorization = `Bearer ${access}`
 
       // Update state
       setUser(userData)
@@ -128,9 +144,10 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
       
-      setError(error.message || 'Login failed')
+      const errorMsg = error.message || 'Login failed'
+      setError(errorMsg)
       
-      toast.error(error.message || 'Invalid credentials', {
+      toast.error(errorMsg, {
         title: 'Login Failed'
       })
       
@@ -146,7 +163,7 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
-      delete axios.defaults.headers.common.Authorization
+      delete axiosInstance.defaults.headers.common.Authorization
       
       // Reset state
       setUser(null)
@@ -163,11 +180,12 @@ export function AuthProvider({ children }) {
     },
     onError: (error) => {
       console.error('Logout error:', error)
+      
       // Still clear local storage even if API fails
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
-      delete axios.defaults.headers.common.Authorization
+      delete axiosInstance.defaults.headers.common.Authorization
       
       setUser(null)
       setIsAuthenticated(false)
@@ -197,9 +215,10 @@ export function AuthProvider({ children }) {
       return updatedUser
     },
     onError: (error) => {
-      setError(error.message || 'Failed to update profile')
+      const errorMsg = error.message || 'Failed to update profile'
+      setError(errorMsg)
       
-      toast.error(error.message || 'Failed to update profile', {
+      toast.error(errorMsg, {
         title: 'Update Failed'
       })
       
@@ -212,19 +231,21 @@ export function AuthProvider({ children }) {
     mutationFn: ({ current_password, new_password, confirm_new_password }) =>
       authAPI.changePassword(current_password, new_password, confirm_new_password),
     onSuccess: (response) => {
-      setSuccessMessage(response.detail || 'Password changed successfully')
+      const message = response.detail || 'Password changed successfully'
+      setSuccessMessage(message)
       setError(null)
       
-      toast.success('Password changed successfully', {
+      toast.success(message, {
         title: 'Success'
       })
       
       return response
     },
     onError: (error) => {
-      setError(error.message || 'Failed to change password')
+      const errorMsg = error.message || 'Failed to change password'
+      setError(errorMsg)
       
-      toast.error(error.message || 'Failed to change password', {
+      toast.error(errorMsg, {
         title: 'Password Change Failed'
       })
       
@@ -290,6 +311,147 @@ export function AuthProvider({ children }) {
   const isStaffAvailable = useCallback(() => user?.staff_profile?.is_available || false, [user])
   const isStaffOnLeave = useCallback(() => user?.staff_profile?.is_on_leave || false, [user])
 
+  // Check if user is verified (email, phone, KYC)
+  const getVerificationStatus = useCallback(() => {
+    if (!user) {
+      return {
+        isVerified: false,
+        emailVerified: false,
+        phoneVerified: false,
+        kycCompleted: false,
+        allVerified: false,
+      }
+    }
+    
+    return {
+      isVerified: user.is_verified || false,
+      emailVerified: user.email_verified || false,
+      phoneVerified: user.phone_verified || false,
+      kycCompleted: user.kyc_completed || false,
+      allVerified: (user.email_verified && user.phone_verified && user.kyc_completed) || false,
+    }
+  }, [user])
+
+  // Get user's approval tier limits
+  const getApprovalLimits = useCallback(() => {
+    if (!user?.staff_profile) return null
+    
+    return {
+      maxLoanAmount: user.staff_profile.max_loan_approval_amount,
+      canApproveLoans: user.staff_profile.can_approve_loans,
+      canManageCustomers: user.staff_profile.can_manage_customers,
+      canProcessPayments: user.staff_profile.can_process_payments,
+      canGenerateReports: user.staff_profile.can_generate_reports,
+      approvalTier: user.staff_profile.approval_tier,
+    }
+  }, [user])
+
+  // Check if user can access specific feature
+  const canAccessFeature = useCallback((feature) => {
+    if (!user) return false
+    
+    // Admin can access everything
+    if (user.is_superuser || user.role === 'admin') return true
+    
+    // Map features to permissions
+    const featurePermissions = {
+      loans: ['can_approve_loans', 'view_own_loans'],
+      customers: ['can_manage_customers'],
+      repayments: ['can_process_payments', 'make_payments'],
+      reports: ['can_generate_reports'],
+      settings: user.is_staff,
+      dashboard: true, // Everyone can see dashboard
+    }
+    
+    const permissions = featurePermissions[feature]
+    
+    if (typeof permissions === 'boolean') {
+      return permissions
+    }
+    
+    if (Array.isArray(permissions)) {
+      return permissions.some(permission => hasPermission(permission))
+    }
+    
+    return false
+  }, [user, hasPermission])
+
+  // Check if user can perform action on resource
+  const canPerform = useCallback((action, resource) => {
+    if (!user) return false
+    
+    // Admin can do everything
+    if (user.is_superuser || user.role === 'admin') return true
+    
+    // Customer permissions
+    if (user.role === 'customer') {
+      const customerPermissions = {
+        loan: {
+          read: ['view_own_loans'],
+          create: ['apply_for_loans'],
+        },
+        repayment: {
+          read: ['view_own_repayments'],
+          create: ['make_payments'],
+        },
+        customer: {
+          read: ['view_own_profile'],
+          update: ['update_own_profile'],
+        },
+      }
+      
+      const resourcePerms = customerPermissions[resource]
+      if (!resourcePerms) return false
+      
+      const actionPerms = resourcePerms[action]
+      if (!actionPerms) return false
+      
+      return actionPerms.some(permission => hasPermission(permission))
+    }
+    
+    // Staff permissions
+    if (['staff', 'officer'].includes(user.role)) {
+      const staffPermissions = {
+        loan: {
+          create: ['can_approve_loans'],
+          read: ['can_approve_loans'],
+          update: ['can_approve_loans'],
+          delete: user.is_staff, // Only some staff can delete
+        },
+        customer: {
+          create: ['can_manage_customers'],
+          read: ['can_manage_customers'],
+          update: ['can_manage_customers'],
+          delete: user.is_staff,
+        },
+        repayment: {
+          create: ['can_process_payments'],
+          read: ['can_process_payments'],
+          update: ['can_process_payments'],
+          delete: user.is_staff,
+        },
+        report: {
+          read: ['can_generate_reports'],
+          create: ['can_generate_reports'],
+        },
+      }
+      
+      const resourcePerms = staffPermissions[resource]
+      if (!resourcePerms) return false
+      
+      const actionPerms = resourcePerms[action]
+      if (typeof actionPerms === 'boolean') return actionPerms
+      
+      if (Array.isArray(actionPerms)) {
+        return actionPerms.some(permission => hasPermission(permission))
+      }
+      
+      return false
+    }
+    
+    return false
+  }, [user, hasPermission])
+
   // Clear messages
   const clearError = useCallback(() => {
     setError(null)
@@ -341,11 +503,19 @@ export function AuthProvider({ children }) {
     isVerified,
     isLocked,
     requires2FA,
+    getVerificationStatus,
+    getApprovalLimits,
+    canAccessFeature,
+    canPerform,
     
     // Staff-specific checks
     canApproveLoanAmount,
     isStaffAvailable,
     isStaffOnLeave,
+    
+    // Convenience getters
+    staffProfile: user?.staff_profile || null,
+    role: user?.role || null,
     
     // Mutation states
     isLoggingIn: loginMutation.isLoading,
@@ -374,6 +544,10 @@ export function AuthProvider({ children }) {
     isVerified,
     isLocked,
     requires2FA,
+    getVerificationStatus,
+    getApprovalLimits,
+    canAccessFeature,
+    canPerform,
     canApproveLoanAmount,
     isStaffAvailable,
     isStaffOnLeave,

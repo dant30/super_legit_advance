@@ -1,11 +1,10 @@
 // frontend/src/api/axios.js
 import axios from 'axios'
+import { ENV } from '@utils/env'
 
 // Normalize API URL (remove trailing slash)
-const API_URL =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, '') ||
-  'http://localhost:8000/api'
-const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 30000
+const API_URL = ENV.API_URL?.replace(/\/$/, '') || 'http://localhost:8000/api'
+const API_TIMEOUT = ENV.API_TIMEOUT || 30000
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -35,15 +34,17 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // 🔴 DEBUG: Log all errors
-    console.error('[Axios Error]', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      url: error.config?.url,
-      method: error.config?.method,
-      data: error.response?.data,
-      message: error.message,
-    })
+    // Don't log in production
+    if (ENV.ENVIRONMENT === 'development') {
+      console.error('[Axios Error]', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        url: error.config?.url,
+        method: error.config?.method,
+        data: error.response?.data,
+        message: error.message,
+      })
+    }
 
     const originalRequest = error.config
 
@@ -52,7 +53,8 @@ axiosInstance.interceptors.response.use(
       error.response?.status === 401 &&
       !originalRequest._retry &&
       originalRequest.url &&
-      !originalRequest.url.includes('/auth/token/')
+      !originalRequest.url.includes('/auth/token/') &&
+      !originalRequest.url.includes('/auth/login/')
     ) {
       originalRequest._retry = true
 
@@ -88,11 +90,20 @@ axiosInstance.interceptors.response.use(
         localStorage.removeItem('user')
         delete axiosInstance.defaults.headers.common.Authorization
 
-        if (typeof window !== 'undefined') {
+        // Only redirect if not already on login page
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
           window.location.href = '/login'
         }
 
         return Promise.reject(refreshError)
+      }
+    }
+
+    // Handle specific error statuses
+    if (error.response?.status === 403) {
+      // Forbidden - redirect to unauthorized page
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/unauthorized')) {
+        window.location.href = '/unauthorized'
       }
     }
 

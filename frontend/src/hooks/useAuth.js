@@ -1,35 +1,36 @@
 // frontend/src/hooks/useAuth.js - OPTIMIZED CUSTOM HOOK
+// frontend/src/hooks/useAuth.js - OPTIMIZED CUSTOM HOOK
 import { useContext } from 'react'
 import { AuthContext } from '@contexts/AuthContext'
 
+// ==============================================
+// Core Hook
+// ==============================================
+
 /**
- * Custom hook to access authentication context
+ * Main hook to access authentication context
  * @returns {Object} Authentication context value
  */
-export function useAuth() {
+function useAuth() {
   const context = useContext(AuthContext)
   
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider')
   }
   
-  // Note: Your AuthContext already includes these methods:
-  // - hasRole()
-  // - isAdmin()
-  // - isStaff()
-  // - isCustomer()
-  // - isOfficer()
-  // So we don't need to redefine them here
-  
   return context
 }
+
+// ==============================================
+// Helper Hooks
+// ==============================================
 
 /**
  * Hook to check if user has specific role
  * @param {string|string[]} role - Role or array of roles to check
  * @returns {boolean} Whether user has the role
  */
-export function useHasRole(role) {
+function useHasRole(role) {
   const { hasRole, user } = useAuth()
   return user ? hasRole(role) : false
 }
@@ -39,7 +40,7 @@ export function useHasRole(role) {
  * @param {string} permission - Permission to check
  * @returns {boolean} Whether user has the permission
  */
-export function useHasPermission(permission) {
+function useHasPermission(permission) {
   const { hasPermission, user } = useAuth()
   return user ? hasPermission(permission) : false
 }
@@ -48,7 +49,7 @@ export function useHasPermission(permission) {
  * Hook to check if user is admin
  * @returns {boolean} Whether user is admin
  */
-export function useIsAdmin() {
+function useIsAdmin() {
   const { isAdmin, user } = useAuth()
   return user ? isAdmin() : false
 }
@@ -57,7 +58,7 @@ export function useIsAdmin() {
  * Hook to check if user is staff (admin, staff, or officer)
  * @returns {boolean} Whether user is staff
  */
-export function useIsStaff() {
+function useIsStaff() {
   const { isStaff, user } = useAuth()
   return user ? isStaff() : false
 }
@@ -66,7 +67,7 @@ export function useIsStaff() {
  * Hook to check if user is officer
  * @returns {boolean} Whether user is officer
  */
-export function useIsOfficer() {
+function useIsOfficer() {
   const { isOfficer, user } = useAuth()
   return user ? isOfficer() : false
 }
@@ -75,7 +76,7 @@ export function useIsOfficer() {
  * Hook to check if user is customer
  * @returns {boolean} Whether user is customer
  */
-export function useIsCustomer() {
+function useIsCustomer() {
   const { isCustomer, user } = useAuth()
   return user ? isCustomer() : false
 }
@@ -85,7 +86,7 @@ export function useIsCustomer() {
  * @param {number} amount - Loan amount to check
  * @returns {boolean} Whether user can approve the amount
  */
-export function useCanApproveLoanAmount(amount) {
+function useCanApproveLoanAmount(amount) {
   const { canApproveLoanAmount, user } = useAuth()
   return user ? canApproveLoanAmount(amount) : false
 }
@@ -94,7 +95,7 @@ export function useCanApproveLoanAmount(amount) {
  * Hook to get user's approval tier limits
  * @returns {Object|null} Approval limits or null if not staff
  */
-export function useApprovalLimits() {
+function useApprovalLimits() {
   const { user } = useAuth()
   
   if (!user?.staff_profile) return null
@@ -113,7 +114,7 @@ export function useApprovalLimits() {
  * Hook to get user's staff profile
  * @returns {Object|null} Staff profile or null if not staff
  */
-export function useStaffProfile() {
+function useStaffProfile() {
   const { user } = useAuth()
   return user?.staff_profile || null
 }
@@ -122,7 +123,7 @@ export function useStaffProfile() {
  * Hook to get user's authentication status
  * @returns {Object} Authentication status object
  */
-export function useAuthStatus() {
+function useAuthStatus() {
   const { 
     isAuthenticated, 
     isLoading, 
@@ -151,7 +152,7 @@ export function useAuthStatus() {
  * Hook to check if user is verified (email, phone, KYC)
  * @returns {Object} Verification status object
  */
-export function useVerificationStatus() {
+function useVerificationStatus() {
   const { user } = useAuth()
   
   if (!user) {
@@ -178,7 +179,7 @@ export function useVerificationStatus() {
  * @param {string} feature - Feature to check (e.g., 'loans', 'customers', 'reports')
  * @returns {boolean} Whether user can access the feature
  */
-export function useCanAccessFeature(feature) {
+function useCanAccessFeature(feature) {
   const { user, hasPermission } = useAuth()
   
   if (!user) return false
@@ -215,7 +216,7 @@ export function useCanAccessFeature(feature) {
  * @param {string} resource - Resource type (e.g., 'loan', 'customer', 'repayment')
  * @returns {boolean} Whether user can perform the action
  */
-export function useCanPerform(action, resource) {
+function useCanPerform(action, resource) {
   const { user, hasPermission } = useAuth()
   
   if (!user) return false
@@ -292,4 +293,27 @@ export function useCanPerform(action, resource) {
   return false
 }
 
+// ==============================================
+// Exports
+// ==============================================
+
+// Export everything individually
+export {
+  useAuth,
+  useHasRole,
+  useHasPermission,
+  useIsAdmin,
+  useIsStaff,
+  useIsOfficer,
+  useIsCustomer,
+  useCanApproveLoanAmount,
+  useApprovalLimits,
+  useStaffProfile,
+  useAuthStatus,
+  useVerificationStatus,
+  useCanAccessFeature,
+  useCanPerform,
+}
+
+// Export useAuth as default as well
 export default useAuth
