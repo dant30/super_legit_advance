@@ -48,7 +48,7 @@ const Login = () => {
   // Redirect after successful login
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
-      navigate('/dashboard', { replace: true })
+      navigate('/', { replace: true })
     }
   }, [isAuthenticated, authLoading, navigate])
 

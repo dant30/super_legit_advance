@@ -41,9 +41,14 @@ function App() {
   const location = useLocation()
   const { isLoading, isAuthenticated, checkAuth, isAdmin } = useAuth()
 
-  // 🔐 AUTH BOOTSTRAP (runs once on app load)
+  // 🔐 AUTH BOOTSTRAP - Only check if we have a token
   useEffect(() => {
-    checkAuth()
+    const token = localStorage.getItem('access_token')
+    if (token) {
+      checkAuth()
+    }
+    // Note: We're not setting isLoading here anymore
+    // The AuthContext will handle loading state
   }, [checkAuth])
 
   // 📊 Analytics (route-based)
@@ -71,7 +76,9 @@ function App() {
   }, [location])
 
   // ⏳ HARD GATE: auth state still resolving
-  if (isLoading) {
+  // Only show loading if we have a token AND isLoading is true
+  const hasToken = localStorage.getItem('access_token')
+  if (isLoading && hasToken) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Loading size="lg" />

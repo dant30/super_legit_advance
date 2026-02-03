@@ -10,7 +10,7 @@ export const AuthContext = createContext({})
 
 export function AuthProvider({ children }) {
   const queryClient = useQueryClient()
-  const toast = useToast()
+  const { addToast } = useToast()
 
   // State
   const [user, setUser] = useState(null)
@@ -25,13 +25,15 @@ export function AuthProvider({ children }) {
     const errorMessage = error.message || 'Authentication failed'
     setError(errorMessage)
     
-    // Clear invalid tokens
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
-    localStorage.removeItem('user')
-    
-    // Remove auth header
-    delete axiosInstance.defaults.headers.common.Authorization
+    // Only clear tokens if it's an authentication error
+    if (error.response?.status === 401 || error.message.includes('No refresh token')) {
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+      localStorage.removeItem('user')
+      
+      // Remove auth header
+      delete axiosInstance.defaults.headers.common.Authorization
+    }
     
     setUser(null)
     setIsAuthenticated(false)
@@ -47,8 +49,27 @@ export function AuthProvider({ children }) {
     refetch: refetchUser 
   } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => authAPI.getCurrentUser(),
-    enabled: !!localStorage.getItem('access_token'),
+    queryFn: async () => {
+      // Check if we have a token before making the request
+      const token = localStorage.getItem('access_token')
+      if (!token) {
+        throw new Error('No access token')
+      }
+      
+      try {
+        return await authAPI.getCurrentUser()
+      } catch (error) {
+        // If we get a 401, clear tokens and throw
+        if (error.response?.status === 401) {
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
+          localStorage.removeItem('user')
+          delete axiosInstance.defaults.headers.common.Authorization
+        }
+        throw error
+      }
+    },
+    enabled: false, // Start disabled - we'll enable manually
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
     onSuccess: (data) => {
@@ -58,10 +79,13 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', JSON.stringify(data))
     },
     onError: (err) => {
-      const errorMsg = handleAuthError(err)
-      toast.error(errorMsg, {
-        title: 'Authentication Error'
-      })
+      // Don't show toast for "No access token" errors (expected on login page)
+      if (err.message !== 'No access token') {
+        const errorMsg = handleAuthError(err)
+        addToast(errorMsg, {
+          title: 'Authentication Error'
+        })
+      }
     }
   })
 
@@ -76,17 +100,31 @@ export function AuthProvider({ children }) {
         return
       }
       
+      // Set auth header
+      axiosInstance.defaults.headers.common.Authorization = `Bearer ${token}`
+      
       // Set user from localStorage immediately for better UX
       if (storedUser && !userData) {
         try {
           const parsedUser = JSON.parse(storedUser)
           setUser(parsedUser)
           setIsAuthenticated(true)
+          
+          // Only fetch fresh user data if we have a token
+          if (token) {
+            await refetchUser()
+          }
         } catch (e) {
           // Invalid JSON in localStorage, clear it
           localStorage.removeItem('user')
+          setIsLoading(false)
         }
+      } else if (token) {
+        // Fetch user data if we have a token
+        await refetchUser()
       }
+      
+      setIsLoading(false)
     }
 
     checkAuth()
@@ -94,16 +132,12 @@ export function AuthProvider({ children }) {
 
   // Update loading state
   useEffect(() => {
-    if (localStorage.getItem('access_token')) {
-      setIsLoading(isFetchingUser)
-    } else {
-      setIsLoading(false)
-    }
+    setIsLoading(isFetchingUser)
   }, [isFetchingUser])
 
   // Update error state
   useEffect(() => {
-    if (fetchError) {
+    if (fetchError && fetchError.message !== 'No access token') {
       setError(fetchError.message)
     }
   }, [fetchError])
@@ -132,7 +166,7 @@ export function AuthProvider({ children }) {
       queryClient.invalidateQueries(['currentUser'])
       
       // Show toast
-      toast.success('Logged in successfully', {
+      addToast('Logged in successfully', {
         title: 'Success'
       })
       
@@ -147,7 +181,7 @@ export function AuthProvider({ children }) {
       const errorMsg = error.message || 'Login failed'
       setError(errorMsg)
       
-      toast.error(errorMsg, {
+      addToast(errorMsg, {
         title: 'Login Failed'
       })
       
@@ -174,7 +208,7 @@ export function AuthProvider({ children }) {
       // Clear query cache
       queryClient.clear()
       
-      toast.info('You have been logged out successfully', {
+      addToast('You have been logged out successfully', {
         title: 'Logged out'
       })
     },
@@ -190,7 +224,7 @@ export function AuthProvider({ children }) {
       setUser(null)
       setIsAuthenticated(false)
       
-      toast.info('You have been logged out', {
+      addToast('You have been logged out', {
         title: 'Logged out'
       })
     }
@@ -208,7 +242,7 @@ export function AuthProvider({ children }) {
       // Update query cache
       queryClient.setQueryData(['currentUser'], updatedUser)
       
-      toast.success('Profile updated successfully', {
+      addToast('Profile updated successfully', {
         title: 'Success'
       })
       
@@ -218,7 +252,7 @@ export function AuthProvider({ children }) {
       const errorMsg = error.message || 'Failed to update profile'
       setError(errorMsg)
       
-      toast.error(errorMsg, {
+      addToast(errorMsg, {
         title: 'Update Failed'
       })
       
@@ -235,7 +269,7 @@ export function AuthProvider({ children }) {
       setSuccessMessage(message)
       setError(null)
       
-      toast.success(message, {
+      addToast(message, {
         title: 'Success'
       })
       
@@ -245,7 +279,7 @@ export function AuthProvider({ children }) {
       const errorMsg = error.message || 'Failed to change password'
       setError(errorMsg)
       
-      toast.error(errorMsg, {
+      addToast(errorMsg, {
         title: 'Password Change Failed'
       })
       
@@ -463,11 +497,20 @@ export function AuthProvider({ children }) {
 
   // Check authentication (for manual refresh)
   const checkAuth = useCallback(async () => {
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      setIsLoading(false)
+      return
+    }
+    
     setIsLoading(true)
     try {
       await refetchUser()
     } catch (error) {
-      handleAuthError(error)
+      // Don't handle "No access token" errors
+      if (error.message !== 'No access token') {
+        handleAuthError(error)
+      }
     } finally {
       setIsLoading(false)
     }
