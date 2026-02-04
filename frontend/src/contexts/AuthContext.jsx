@@ -1,9 +1,16 @@
 // frontend/src/contexts/AuthContext.jsx
-import React, { createContext, useState, useCallback, useEffect, useMemo, useContext } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+} from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { authAPI } from '@api/auth'
 import axiosInstance from '@api/axios'
-import { useToast } from '@contexts/ToastContext'
+import { authAPI } from '@api/auth'
+import { useToast } from './ToastContext'
 
 // Create Auth Context
 export const AuthContext = createContext({})
@@ -13,63 +20,55 @@ export function AuthProvider({ children }) {
   const { addToast } = useToast()
 
   // State
-  const [user, setUser] = useState(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem('user')
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
+    }
+  })
+  const [isAuthenticated, setIsAuthenticated] = useState(!!user)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
 
   // Handle authentication errors
-  const handleAuthError = (error) => {
-    console.error('Auth Error:', error)
-    const errorMessage = error.message || 'Authentication failed'
-    setError(errorMessage)
-    
-    // Only clear tokens if it's an authentication error
-    if (error.response?.status === 401 || error.message.includes('No refresh token')) {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user')
-      
-      // Remove auth header
-      delete axiosInstance.defaults.headers.common.Authorization
-    }
-    
+  const handleAuthError = useCallback((err) => {
+    const msg = err?.message || 'Authentication error'
+    setError(msg)
+
+    // Clear stored tokens and user
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    localStorage.removeItem('user')
+    delete axiosInstance.defaults.headers.common.Authorization
+
     setUser(null)
     setIsAuthenticated(false)
-    
-    return errorMessage
-  }
+
+    // Optional redirect handled by callers (keeps context testable)
+    return msg
+  }, [])
 
   // React Query for fetching current user
-  const { 
-    data: userData, 
+  const {
+    data: userData,
     isLoading: isFetchingUser,
     error: fetchError,
-    refetch: refetchUser 
+    refetch: refetchUser,
   } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
-      // Check if we have a token before making the request
       const token = localStorage.getItem('access_token')
       if (!token) {
         throw new Error('No access token')
       }
-      
-      try {
-        return await authAPI.getCurrentUser()
-      } catch (error) {
-        // If we get a 401, clear tokens and throw
-        if (error.response?.status === 401) {
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
-          localStorage.removeItem('user')
-          delete axiosInstance.defaults.headers.common.Authorization
-        }
-        throw error
-      }
+      // ensure axios header is set
+      axiosInstance.defaults.headers.common.Authorization = `Bearer ${token}`
+      return authAPI.getCurrentUser()
     },
-    enabled: false, // Start disabled - we'll enable manually
+    enabled: false,
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
     onSuccess: (data) => {
@@ -79,14 +78,11 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', JSON.stringify(data))
     },
     onError: (err) => {
-      // Don't show toast for "No access token" errors (expected on login page)
       if (err.message !== 'No access token') {
-        const errorMsg = handleAuthError(err)
-        addToast(errorMsg, {
-          title: 'Authentication Error'
-        })
+        // propagate the error quietly
+        console.error('Fetch current user failed:', err)
       }
-    }
+    },
   })
 
   // Check authentication on app load
@@ -138,96 +134,61 @@ export function AuthProvider({ children }) {
   // Update error state
   useEffect(() => {
     if (fetchError && fetchError.message !== 'No access token') {
-      setError(fetchError.message)
+      handleAuthError(fetchError)
     }
-  }, [fetchError])
+  }, [fetchError, handleAuthError])
 
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: (credentials) => authAPI.login(credentials),
     onSuccess: (data) => {
       const { access, refresh, user: userData } = data
-
-      // Persist tokens
       localStorage.setItem('access_token', access)
       localStorage.setItem('refresh_token', refresh)
       localStorage.setItem('user', JSON.stringify(userData))
-
-      // Set default auth header
       axiosInstance.defaults.headers.common.Authorization = `Bearer ${access}`
-
-      // Update state
       setUser(userData)
       setIsAuthenticated(true)
       setError(null)
-      setSuccessMessage('Login successful')
-      
-      // Invalidate and refetch user query
+      addToast('Logged in successfully', { title: 'Success' })
       queryClient.invalidateQueries(['currentUser'])
-      
-      // Show toast
-      addToast('Logged in successfully', {
-        title: 'Success'
-      })
-      
       return userData
     },
-    onError: (error) => {
-      // Clear any partial tokens
+    onError: (err) => {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
-      
-      const errorMsg = error.message || 'Login failed'
-      setError(errorMsg)
-      
-      addToast(errorMsg, {
-        title: 'Login Failed'
-      })
-      
-      throw error
-    }
+      const msg = err?.message || 'Login failed'
+      setError(msg)
+      addToast(msg, { title: 'Login Failed' })
+      throw err
+    },
   })
 
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: () => authAPI.logout(),
     onSuccess: () => {
-      // Clear local storage
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
       delete axiosInstance.defaults.headers.common.Authorization
-      
-      // Reset state
       setUser(null)
       setIsAuthenticated(false)
-      setSuccessMessage('Logout successful')
       setError(null)
-      
-      // Clear query cache
       queryClient.clear()
-      
-      addToast('You have been logged out successfully', {
-        title: 'Logged out'
-      })
+      addToast('You have been logged out', { title: 'Logged out' })
     },
-    onError: (error) => {
-      console.error('Logout error:', error)
-      
-      // Still clear local storage even if API fails
+    onError: (err) => {
+      console.error('Logout error:', err)
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
       delete axiosInstance.defaults.headers.common.Authorization
-      
       setUser(null)
       setIsAuthenticated(false)
-      
-      addToast('You have been logged out', {
-        title: 'Logged out'
-      })
-    }
+      addToast('You have been logged out', { title: 'Logged out' })
+    },
   })
 
   // Update profile mutation
@@ -238,125 +199,119 @@ export function AuthProvider({ children }) {
       setUser(updatedUser)
       setSuccessMessage('Profile updated successfully')
       setError(null)
-      
-      // Update query cache
       queryClient.setQueryData(['currentUser'], updatedUser)
-      
-      addToast('Profile updated successfully', {
-        title: 'Success'
-      })
-      
+      addToast('Profile updated successfully', { title: 'Success' })
       return updatedUser
     },
-    onError: (error) => {
-      const errorMsg = error.message || 'Failed to update profile'
-      setError(errorMsg)
-      
-      addToast(errorMsg, {
-        title: 'Update Failed'
-      })
-      
-      throw error
-    }
+    onError: (err) => {
+      const msg = err?.message || 'Failed to update profile'
+      setError(msg)
+      addToast(msg, { title: 'Update Failed' })
+      throw err
+    },
   })
 
   // Change password mutation
   const changePasswordMutation = useMutation({
     mutationFn: ({ current_password, new_password, confirm_new_password }) =>
       authAPI.changePassword(current_password, new_password, confirm_new_password),
-    onSuccess: (response) => {
-      const message = response.detail || 'Password changed successfully'
+    onSuccess: (res) => {
+      const message = res?.detail || 'Password changed successfully'
       setSuccessMessage(message)
       setError(null)
-      
-      addToast(message, {
-        title: 'Success'
-      })
-      
-      return response
+      addToast(message, { title: 'Success' })
+      return res
     },
-    onError: (error) => {
-      const errorMsg = error.message || 'Failed to change password'
-      setError(errorMsg)
-      
-      addToast(errorMsg, {
-        title: 'Password Change Failed'
-      })
-      
-      throw error
-    }
+    onError: (err) => {
+      const msg = err?.message || 'Failed to change password'
+      setError(msg)
+      addToast(msg, { title: 'Password Change Failed' })
+      throw err
+    },
   })
 
-  // Check if user has specific role(s)
+  // Check authentication (for manual refresh)
+  const checkAuth = useCallback(async () => {
+    const access = localStorage.getItem('access_token')
+    const refresh = localStorage.getItem('refresh_token')
+    if (!access) {
+      // try refresh if possible
+      if (refresh) {
+        try {
+          const data = await authAPI.refreshToken(refresh)
+          const newAccess = data.access
+          localStorage.setItem('access_token', newAccess)
+          axiosInstance.defaults.headers.common.Authorization = `Bearer ${newAccess}`
+        } catch (err) {
+          handleAuthError(err)
+          return false
+        }
+      } else {
+        handleAuthError(new Error('No access token'))
+        return false
+      }
+    } else {
+      axiosInstance.defaults.headers.common.Authorization = `Bearer ${access}`
+    }
+
+    try {
+      await refetchUser()
+      return true
+    } catch (err) {
+      handleAuthError(err)
+      return false
+    }
+  }, [refetchUser, handleAuthError])
+
+  // role & permission helpers
   const hasRole = useCallback((role) => {
     if (!user) return false
-    if (Array.isArray(role)) {
-      return role.includes(user.role)
-    }
+    if (Array.isArray(role)) return role.includes(user.role)
     return user.role === role
   }, [user])
 
-  // Permission checks
   const hasPermission = useCallback((permission) => {
     if (!user) return false
-
-    // Superadmin has all permissions
     if (user.is_superuser) return true
-
-    const staffProfile = user.staff_profile
-
-    if (!staffProfile) {
-      // Non-staff users only have basic permissions
-      return permission === 'view_own_loans' || permission === 'make_payments'
-    }
-
-    // Map permissions to staff profile flags
+    const staff = user.staff_profile
+    if (!staff) return false
     const permissionMap = {
-      can_approve_loans: staffProfile?.can_approve_loans || false,
-      can_manage_customers: staffProfile?.can_manage_customers || false,
-      can_process_payments: staffProfile?.can_process_payments || false,
-      can_generate_reports: staffProfile?.can_generate_reports || false,
+      can_approve_loans: staff?.can_approve_loans || false,
+      can_manage_customers: staff?.can_manage_customers || false,
+      can_process_payments: staff?.can_process_payments || false,
+      can_generate_reports: staff?.can_generate_reports || false,
     }
-
     return permissionMap[permission] || false
   }, [user])
 
-  // Staff-specific checks
   const canApproveLoanAmount = useCallback((amount) => {
     if (!user?.staff_profile) return false
-    const maxAmount = user.staff_profile.max_loan_approval_amount
-    return maxAmount ? amount <= maxAmount : false
+    const max = user.staff_profile.max_loan_approval_amount
+    return max == null ? true : amount <= max
   }, [user])
 
-  // Convenience role checkers
   const isAdmin = useCallback(() => hasRole('admin'), [hasRole])
   const isStaff = useCallback(() => hasRole(['admin', 'staff', 'officer']), [hasRole])
   const isOfficer = useCallback(() => hasRole('officer'), [hasRole])
   const isCustomer = useCallback(() => hasRole('customer'), [hasRole])
 
-  // Status checks
   const isVerified = useCallback(() => user?.is_verified || false, [user])
   const isLocked = useCallback(() => {
     if (!user?.locked_until) return false
-    const lockedUntil = new Date(user.locked_until)
-    return lockedUntil > new Date()
+    return new Date(user.locked_until) > new Date()
   }, [user])
   const requires2FA = useCallback(() => user?.two_factor_enabled || false, [user])
   const isStaffAvailable = useCallback(() => user?.staff_profile?.is_available || false, [user])
   const isStaffOnLeave = useCallback(() => user?.staff_profile?.is_on_leave || false, [user])
 
-  // Check if user is verified (email, phone, KYC)
   const getVerificationStatus = useCallback(() => {
-    if (!user) {
-      return {
-        isVerified: false,
-        emailVerified: false,
-        phoneVerified: false,
-        kycCompleted: false,
-        allVerified: false,
-      }
+    if (!user) return {
+      isVerified: false,
+      emailVerified: false,
+      phoneVerified: false,
+      kycCompleted: false,
+      allVerified: false,
     }
-    
     return {
       isVerified: user.is_verified || false,
       emailVerified: user.email_verified || false,
@@ -366,155 +321,22 @@ export function AuthProvider({ children }) {
     }
   }, [user])
 
-  // Get user's approval tier limits
   const getApprovalLimits = useCallback(() => {
     if (!user?.staff_profile) return null
-    
+    const sp = user.staff_profile
     return {
-      maxLoanAmount: user.staff_profile.max_loan_approval_amount,
-      canApproveLoans: user.staff_profile.can_approve_loans,
-      canManageCustomers: user.staff_profile.can_manage_customers,
-      canProcessPayments: user.staff_profile.can_process_payments,
-      canGenerateReports: user.staff_profile.can_generate_reports,
-      approvalTier: user.staff_profile.approval_tier,
+      maxLoanAmount: sp.max_loan_approval_amount,
+      canApproveLoans: sp.can_approve_loans,
+      canManageCustomers: sp.can_manage_customers,
+      canProcessPayments: sp.can_process_payments,
+      canGenerateReports: sp.can_generate_reports,
+      approvalTier: sp.approval_tier,
     }
   }, [user])
 
-  // Check if user can access specific feature
-  const canAccessFeature = useCallback((feature) => {
-    if (!user) return false
-    
-    // Admin can access everything
-    if (user.is_superuser || user.role === 'admin') return true
-    
-    // Map features to permissions
-    const featurePermissions = {
-      loans: ['can_approve_loans', 'view_own_loans'],
-      customers: ['can_manage_customers'],
-      repayments: ['can_process_payments', 'make_payments'],
-      reports: ['can_generate_reports'],
-      settings: user.is_staff,
-      dashboard: true, // Everyone can see dashboard
-    }
-    
-    const permissions = featurePermissions[feature]
-    
-    if (typeof permissions === 'boolean') {
-      return permissions
-    }
-    
-    if (Array.isArray(permissions)) {
-      return permissions.some(permission => hasPermission(permission))
-    }
-    
-    return false
-  }, [user, hasPermission])
-
-  // Check if user can perform action on resource
-  const canPerform = useCallback((action, resource) => {
-    if (!user) return false
-    
-    // Admin can do everything
-    if (user.is_superuser || user.role === 'admin') return true
-    
-    // Customer permissions
-    if (user.role === 'customer') {
-      const customerPermissions = {
-        loan: {
-          read: ['view_own_loans'],
-          create: ['apply_for_loans'],
-        },
-        repayment: {
-          read: ['view_own_repayments'],
-          create: ['make_payments'],
-        },
-        customer: {
-          read: ['view_own_profile'],
-          update: ['update_own_profile'],
-        },
-      }
-      
-      const resourcePerms = customerPermissions[resource]
-      if (!resourcePerms) return false
-      
-      const actionPerms = resourcePerms[action]
-      if (!actionPerms) return false
-      
-      return actionPerms.some(permission => hasPermission(permission))
-    }
-    
-    // Staff permissions
-    if (['staff', 'officer'].includes(user.role)) {
-      const staffPermissions = {
-        loan: {
-          create: ['can_approve_loans'],
-          read: ['can_approve_loans'],
-          update: ['can_approve_loans'],
-          delete: user.is_staff, // Only some staff can delete
-        },
-        customer: {
-          create: ['can_manage_customers'],
-          read: ['can_manage_customers'],
-          update: ['can_manage_customers'],
-          delete: user.is_staff,
-        },
-        repayment: {
-          create: ['can_process_payments'],
-          read: ['can_process_payments'],
-          update: ['can_process_payments'],
-          delete: user.is_staff,
-        },
-        report: {
-          read: ['can_generate_reports'],
-          create: ['can_generate_reports'],
-        },
-      }
-      
-      const resourcePerms = staffPermissions[resource]
-      if (!resourcePerms) return false
-      
-      const actionPerms = resourcePerms[action]
-      if (typeof actionPerms === 'boolean') return actionPerms
-      
-      if (Array.isArray(actionPerms)) {
-        return actionPerms.some(permission => hasPermission(permission))
-      }
-      
-      return false
-    }
-    
-    return false
-  }, [user, hasPermission])
-
   // Clear messages
-  const clearError = useCallback(() => {
-    setError(null)
-  }, [])
-
-  const clearSuccess = useCallback(() => {
-    setSuccessMessage(null)
-  }, [])
-
-  // Check authentication (for manual refresh)
-  const checkAuth = useCallback(async () => {
-    const token = localStorage.getItem('access_token')
-    if (!token) {
-      setIsLoading(false)
-      return
-    }
-    
-    setIsLoading(true)
-    try {
-      await refetchUser()
-    } catch (error) {
-      // Don't handle "No access token" errors
-      if (error.message !== 'No access token') {
-        handleAuthError(error)
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }, [refetchUser])
+  const clearError = useCallback(() => setError(null), [])
+  const clearSuccess = useCallback(() => setSuccessMessage(null), [])
 
   // Context value
   const value = useMemo(() => ({
@@ -548,10 +370,6 @@ export function AuthProvider({ children }) {
     requires2FA,
     getVerificationStatus,
     getApprovalLimits,
-    canAccessFeature,
-    canPerform,
-    
-    // Staff-specific checks
     canApproveLoanAmount,
     isStaffAvailable,
     isStaffOnLeave,
@@ -589,8 +407,6 @@ export function AuthProvider({ children }) {
     requires2FA,
     getVerificationStatus,
     getApprovalLimits,
-    canAccessFeature,
-    canPerform,
     canApproveLoanAmount,
     isStaffAvailable,
     isStaffOnLeave,
