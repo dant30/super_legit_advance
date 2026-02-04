@@ -1,391 +1,266 @@
 // frontend/src/api/customers.js
 import axios from './axios'
 
-// Base URL for customer endpoints
-const CUSTOMER_BASE_URL = '/customers'
+const BASE = '/customers'
 
-// =====================================================
-// API Functions
-// =====================================================
+const parseResponse = (response) => {
+  // Standardize response shape from backend
+  const data = response.data
+  if (data && typeof data === 'object') {
+    // DRF style: { success, data, pagination, message } or raw list/object
+    if (data.success === true && data.data !== undefined) {
+      return { success: true, data: data.data, pagination: data.pagination || null, message: data.message || null }
+    }
+    // If backend returns list/object directly
+    return { success: true, data: data, pagination: null }
+  }
+  return { success: true, data: data }
+}
 
-// Get all customers with filters
+const handleError = (error) => {
+  const payload = error?.response?.data || {}
+  const message = payload.detail || payload.message || (typeof payload === 'string' ? payload : null) || error.message || 'An error occurred'
+  return { success: false, error: message, raw: payload, status: error?.response?.status || null }
+}
+
+// ====== Customers ======
 export const getCustomers = async (params = {}) => {
   try {
-    const response = await axios.get(CUSTOMER_BASE_URL, { params })
-    // Handle both response formats
-    if (response.data.success && response.data.data) {
-      return {
-        success: true,
-        data: response.data.data,
-        pagination: response.data.pagination,
-        message: response.data.message
-      }
-    }
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error fetching customers:', error)
-    return {
-      success: false,
-      error: error.response?.data?.detail || error.message || 'Failed to fetch customers'
-    }
+    const res = await axios.get(`${BASE}/`, { params })
+    return parseResponse(res)
+  } catch (err) {
+    console.error('getCustomers error', err)
+    return handleError(err)
   }
 }
 
-// Get single customer by ID
 export const getCustomer = async (id) => {
   try {
-    const response = await axios.get(`${CUSTOMER_BASE_URL}/${id}/`)
-    if (response.data.success && response.data.data) {
-      return { success: true, data: response.data.data }
-    }
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error fetching customer:', error)
-    return {
-      success: false,
-      error: error.response?.data?.detail || error.message || 'Failed to fetch customer'
-    }
+    const res = await axios.get(`${BASE}/${id}/`)
+    return parseResponse(res)
+  } catch (err) {
+    console.error('getCustomer error', err)
+    return handleError(err)
   }
 }
 
-// Create new customer
-export const createCustomer = async (customerData) => {
+export const createCustomer = async (payload) => {
   try {
-    const formData = new FormData()
-    
-    // Append all fields to formData
-    Object.entries(customerData).forEach(([key, value]) => {
-      if (value instanceof File) {
-        formData.append(key, value)
-      } else if (value !== undefined && value !== null) {
-        formData.append(key, String(value))
+    const form = new FormData()
+    Object.entries(payload || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null) return
+      if (Array.isArray(v)) {
+        v.forEach(item => form.append(k, item))
+      } else {
+        form.append(k, v instanceof File ? v : String(v))
       }
     })
-    
-    const response = await axios.post(`${CUSTOMER_BASE_URL}/create/`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-    
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error creating customer:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to create customer'
-    }
+    const res = await axios.post(`${BASE}/create/`, form, { headers: { 'Content-Type': 'multipart/form-data' } })
+    return parseResponse(res)
+  } catch (err) {
+    console.error('createCustomer error', err)
+    return handleError(err)
   }
 }
 
-// Update customer
-export const updateCustomer = async (id, customerData) => {
+export const updateCustomer = async (id, payload) => {
   try {
-    const formData = new FormData()
-    
-    Object.entries(customerData).forEach(([key, value]) => {
-      if (value instanceof File) {
-        formData.append(key, value)
-      } else if (value !== undefined && value !== null) {
-        formData.append(key, String(value))
+    const form = new FormData()
+    Object.entries(payload || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null) return
+      if (Array.isArray(v)) {
+        v.forEach(item => form.append(k, item))
+      } else {
+        form.append(k, v instanceof File ? v : String(v))
       }
     })
-    
-    const response = await axios.put(`${CUSTOMER_BASE_URL}/${id}/`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-    
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error updating customer:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to update customer'
-    }
+    const res = await axios.put(`${BASE}/${id}/`, form, { headers: { 'Content-Type': 'multipart/form-data' } })
+    return parseResponse(res)
+  } catch (err) {
+    console.error('updateCustomer error', err)
+    return handleError(err)
   }
 }
 
-// Delete customer
 export const deleteCustomer = async (id) => {
   try {
-    await axios.delete(`${CUSTOMER_BASE_URL}/${id}/`)
-    return { success: true, message: 'Customer deleted successfully' }
-  } catch (error) {
-    console.error('Error deleting customer:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to delete customer'
-    }
+    const res = await axios.delete(`${BASE}/${id}/`)
+    return parseResponse(res)
+  } catch (err) {
+    console.error('deleteCustomer error', err)
+    return handleError(err)
   }
 }
 
-// Search customers
-export const searchCustomers = async (query, searchType = 'basic') => {
+export const searchCustomers = async (query, type = 'basic', params = {}) => {
   try {
-    const response = await axios.get(`${CUSTOMER_BASE_URL}/search/`, {
-      params: { q: query, type: searchType }
-    })
-    return { success: true, data: response.data.results || response.data }
-  } catch (error) {
-    console.error('Error searching customers:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to search customers'
-    }
+    const res = await axios.get(`${BASE}/search/`, { params: { q: query, type, ...params } })
+    return parseResponse(res)
+  } catch (err) {
+    console.error('searchCustomers error', err)
+    return handleError(err)
   }
 }
 
-// Get customer statistics
 export const getCustomerStats = async () => {
   try {
-    const response = await axios.get(`${CUSTOMER_BASE_URL}/stats/`)
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error fetching customer stats:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to fetch customer statistics'
-    }
+    const res = await axios.get(`${BASE}/stats/`)
+    return parseResponse(res)
+  } catch (err) {
+    console.error('getCustomerStats error', err)
+    return handleError(err)
   }
 }
 
-// Blacklist customer
-export const blacklistCustomer = async (id, reason) => {
+export const blacklistCustomer = async (id, reason = '') => {
   try {
-    const response = await axios.post(`${CUSTOMER_BASE_URL}/${id}/blacklist/`, { reason })
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error blacklisting customer:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to blacklist customer'
-    }
+    const res = await axios.post(`${BASE}/${id}/blacklist/`, { reason })
+    return parseResponse(res)
+  } catch (err) {
+    console.error('blacklistCustomer error', err)
+    return handleError(err)
   }
 }
 
-// Activate customer
 export const activateCustomer = async (id) => {
   try {
-    const response = await axios.post(`${CUSTOMER_BASE_URL}/${id}/activate/`)
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error activating customer:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to activate customer'
-    }
+    const res = await axios.post(`${BASE}/${id}/activate/`)
+    return parseResponse(res)
+  } catch (err) {
+    console.error('activateCustomer error', err)
+    return handleError(err)
   }
 }
 
-// Export customers
 export const exportCustomers = async (format = 'excel', filters = {}) => {
   try {
-    const response = await axios.get(`${CUSTOMER_BASE_URL}/export/`, {
+    const res = await axios.get(`${BASE}/export/`, {
       params: { format, ...filters },
-      responseType: 'blob'
+      responseType: 'blob',
     })
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error exporting customers:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to export customers'
-    }
+    return { success: true, data: res.data, filename: res.headers['content-disposition'] || null }
+  } catch (err) {
+    console.error('exportCustomers error', err)
+    return handleError(err)
   }
 }
 
-// Import customers
 export const importCustomers = async (file) => {
   try {
-    const formData = new FormData()
-    formData.append('file', file)
-    
-    const response = await axios.post(`${CUSTOMER_BASE_URL}/import/`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-    
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error importing customers:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to import customers'
-    }
+    const form = new FormData()
+    form.append('file', file)
+    const res = await axios.post(`${BASE}/import/`, form, { headers: { 'Content-Type': 'multipart/form-data' } })
+    return parseResponse(res)
+  } catch (err) {
+    console.error('importCustomers error', err)
+    return handleError(err)
   }
 }
 
-// =====================================================
-// Employment Endpoints
-// =====================================================
-
-// Get employment info
+// ====== Employment ======
 export const getEmployment = async (customerId) => {
   try {
-    const response = await axios.get(`${CUSTOMER_BASE_URL}/${customerId}/employment/`)
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error fetching employment:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to fetch employment'
-    }
+    const res = await axios.get(`${BASE}/${customerId}/employment/`)
+    return parseResponse(res)
+  } catch (err) {
+    console.error('getEmployment error', err)
+    return handleError(err)
   }
 }
 
-// Update employment
-export const updateEmployment = async (customerId, employmentData) => {
+export const updateEmployment = async (customerId, payload) => {
   try {
-    const formData = new FormData()
-    
-    Object.entries(employmentData).forEach(([key, value]) => {
-      if (value instanceof File) {
-        formData.append(key, value)
-      } else if (value !== undefined && value !== null) {
-        formData.append(key, String(value))
-      }
+    const form = new FormData()
+    Object.entries(payload || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null) return
+      form.append(k, v instanceof File ? v : String(v))
     })
-    
-    const response = await axios.put(
-      `${CUSTOMER_BASE_URL}/${customerId}/employment/update/`,
-      formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
-    )
-    
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error updating employment:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to update employment'
-    }
+    const res = await axios.put(`${BASE}/${customerId}/employment/update/`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return parseResponse(res)
+  } catch (err) {
+    console.error('updateEmployment error', err)
+    return handleError(err)
   }
 }
 
-// =====================================================
-// Guarantor Endpoints
-// =====================================================
-
-// Get guarantors
+// ====== Guarantors ======
 export const getGuarantors = async (customerId) => {
   try {
-    const response = await axios.get(`${CUSTOMER_BASE_URL}/${customerId}/guarantors/`)
-    return { success: true, data: response.data.results || response.data }
-  } catch (error) {
-    console.error('Error fetching guarantors:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to fetch guarantors'
-    }
+    const res = await axios.get(`${BASE}/${customerId}/guarantors/`)
+    return parseResponse(res)
+  } catch (err) {
+    console.error('getGuarantors error', err)
+    return handleError(err)
   }
 }
 
-// Create guarantor
-export const createGuarantor = async (customerId, guarantorData) => {
+export const createGuarantor = async (customerId, payload) => {
   try {
-    const formData = new FormData()
-    
-    Object.entries(guarantorData).forEach(([key, value]) => {
-      if (value instanceof File) {
-        formData.append(key, value)
-      } else if (value !== undefined && value !== null) {
-        formData.append(key, String(value))
-      }
+    const form = new FormData()
+    Object.entries(payload || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null) return
+      form.append(k, v instanceof File ? v : String(v))
     })
-    
-    const response = await axios.post(
-      `${CUSTOMER_BASE_URL}/${customerId}/guarantors/create/`,
-      formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
-    )
-    
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error creating guarantor:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to create guarantor'
-    }
+    const res = await axios.post(`${BASE}/${customerId}/guarantors/create/`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return parseResponse(res)
+  } catch (err) {
+    console.error('createGuarantor error', err)
+    return handleError(err)
   }
 }
 
-// Get single guarantor
 export const getGuarantor = async (id) => {
   try {
-    const response = await axios.get(`${CUSTOMER_BASE_URL}/guarantors/${id}/`)
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error fetching guarantor:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to fetch guarantor'
-    }
+    const res = await axios.get(`${BASE}/guarantors/${id}/`)
+    return parseResponse(res)
+  } catch (err) {
+    console.error('getGuarantor error', err)
+    return handleError(err)
   }
 }
 
-// Update guarantor
-export const updateGuarantor = async (id, guarantorData) => {
+export const updateGuarantor = async (id, payload) => {
   try {
-    const formData = new FormData()
-    
-    Object.entries(guarantorData).forEach(([key, value]) => {
-      if (value instanceof File) {
-        formData.append(key, value)
-      } else if (value !== undefined && value !== null) {
-        formData.append(key, String(value))
-      }
+    const form = new FormData()
+    Object.entries(payload || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null) return
+      form.append(k, v instanceof File ? v : String(v))
     })
-    
-    const response = await axios.put(
-      `${CUSTOMER_BASE_URL}/guarantors/${id}/`,
-      formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
-    )
-    
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error updating guarantor:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to update guarantor'
-    }
+    const res = await axios.put(`${BASE}/guarantors/${id}/`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return parseResponse(res)
+  } catch (err) {
+    console.error('updateGuarantor error', err)
+    return handleError(err)
   }
 }
 
-// Delete guarantor
 export const deleteGuarantor = async (id) => {
   try {
-    await axios.delete(`${CUSTOMER_BASE_URL}/guarantors/${id}/`)
-    return { success: true, message: 'Guarantor deleted successfully' }
-  } catch (error) {
-    console.error('Error deleting guarantor:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to delete guarantor'
-    }
+    const res = await axios.delete(`${BASE}/guarantors/${id}/`)
+    return parseResponse(res)
+  } catch (err) {
+    console.error('deleteGuarantor error', err)
+    return handleError(err)
   }
 }
 
-// Verify guarantor
-export const verifyGuarantor = async (id, action, notes) => {
+export const verifyGuarantor = async (id, action, notes = '') => {
   try {
-    const response = await axios.post(`${CUSTOMER_BASE_URL}/guarantors/${id}/verify/`, {
-      action,
-      notes
-    })
-    return { success: true, data: response.data }
-  } catch (error) {
-    console.error('Error verifying guarantor:', error)
-    return {
-      success: false,
-      error: error.response?.data || error.message || 'Failed to verify guarantor'
-    }
+    const res = await axios.post(`${BASE}/guarantors/${id}/verify/`, { action, notes })
+    return parseResponse(res)
+  } catch (err) {
+    console.error('verifyGuarantor error', err)
+    return handleError(err)
   }
 }
-
-// =====================================================
-// Export all functions
-// =====================================================
 
 const customerAPI = {
-  // Customer methods
   getCustomers,
   getCustomer,
   createCustomer,
@@ -397,18 +272,14 @@ const customerAPI = {
   activateCustomer,
   exportCustomers,
   importCustomers,
-  
-  // Employment methods
   getEmployment,
   updateEmployment,
-  
-  // Guarantor methods
   getGuarantors,
   createGuarantor,
   getGuarantor,
   updateGuarantor,
   deleteGuarantor,
-  verifyGuarantor
+  verifyGuarantor,
 }
 
 export default customerAPI

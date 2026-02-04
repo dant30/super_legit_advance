@@ -6,141 +6,106 @@ class MpesaAPI {
     this.baseURL = '/mpesa'
   }
 
-  /**
-   * STK Push - Initiate payment request
-   */
+  // Initiate STK push (matches STKPushInitiateView)
   async initiateSTKPush(data) {
-    const response = await axiosInstance.post(`${this.baseURL}/stk-push/initiate/`, data)
-    return response.data
+    const resp = await axiosInstance.post(`${this.baseURL}/stk-push/initiate/`, data)
+    return resp.data
   }
 
-  /**
-   * Payment Status - Check payment status by reference or checkout request ID
-   */
-  async getPaymentStatus(paymentReference, checkoutRequestId) {
+  // Get payment status by payment_reference or checkout_request_id
+  async getPaymentStatus(paymentReference = null, checkoutRequestId = null) {
     if (paymentReference) {
-      const response = await axiosInstance.get(
-        `${this.baseURL}/payment/status/${paymentReference}/`
-      )
-      return response.data
-    } else if (checkoutRequestId) {
-      const response = await axiosInstance.get(`${this.baseURL}/payment/status/`, {
+      const resp = await axiosInstance.get(`${this.baseURL}/payment/status/${encodeURIComponent(paymentReference)}/`)
+      return resp.data
+    }
+    if (checkoutRequestId) {
+      const resp = await axiosInstance.get(`${this.baseURL}/payment/status/`, {
         params: { checkout_request_id: checkoutRequestId }
       })
-      return response.data
-    } else {
-      throw new Error('Either payment_reference or checkout_request_id is required')
+      return resp.data
     }
+    throw new Error('paymentReference or checkoutRequestId is required')
   }
 
-  /**
-   * Payment History - Get paginated payment history with filters
-   */
+  // Paginated payment history (matches PaymentHistoryView)
   async getPaymentHistory(params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/payment/history/`, { params })
-    return response.data
+    const resp = await axiosInstance.get(`${this.baseURL}/payment/history/`, { params })
+    return resp.data
   }
 
-  /**
-   * Transactions - Get all transactions
-   */
+  // Transactions list (TransactionListView)
   async getTransactions(params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/transactions/`, { params })
-    return response.data
+    const resp = await axiosInstance.get(`${this.baseURL}/transactions/`, { params })
+    return resp.data
   }
 
-  /**
-   * Transaction Detail - Get single transaction by receipt number
-   */
+  // Transaction detail (TransactionDetailView)
   async getTransaction(receiptNumber) {
-    const response = await axiosInstance.get(
-      `${this.baseURL}/transactions/${receiptNumber}/`
-    )
-    return response.data
+    const resp = await axiosInstance.get(`${this.baseURL}/transactions/${encodeURIComponent(receiptNumber)}/`)
+    return resp.data
   }
 
-  /**
-   * Payment Retry - Retry failed payment
-   */
-  async retryPayment(paymentId, data) {
-    const response = await axiosInstance.post(
-      `${this.baseURL}/payment/${paymentId}/retry/`,
-      data
-    )
-    return response.data
+  // Retry a failed payment (PaymentRetryView)
+  async retryPayment(paymentId, data = {}) {
+    const resp = await axiosInstance.post(`${this.baseURL}/payment/${paymentId}/retry/`, data)
+    return resp.data
   }
 
-  /**
-   * Payment Reversal - Reverse successful payment
-   */
-  async reversePayment(receiptNumber, data) {
-    const response = await axiosInstance.post(
-      `${this.baseURL}/payment/${receiptNumber}/reverse/`,
-      data
-    )
-    return response.data
+  // Reverse a successful payment (PaymentReversalView)
+  async reversePayment(receiptNumber, data = {}) {
+    const resp = await axiosInstance.post(`${this.baseURL}/payment/${encodeURIComponent(receiptNumber)}/reverse/`, data)
+    return resp.data
   }
 
-  /**
-   * Payment Summary - Get payment statistics and analytics
-   */
-  async getPaymentSummary(days) {
-    const response = await axiosInstance.get(`${this.baseURL}/summary/`, {
-      params: { days }
-    })
-    return response.data
+  // Summary analytics (PaymentSummaryView)
+  async getPaymentSummary(days = 30) {
+    const resp = await axiosInstance.get(`${this.baseURL}/summary/`, { params: { days } })
+    return resp.data
   }
 
-  /**
-   * Webhook Test - Test webhook endpoints (admin only)
-   */
-  async testWebhook(type, data) {
-    const response = await axiosInstance.post(`${this.baseURL}/webhook/test/`, {
-      type,
-      data
-    })
-    return response.data
+  // Test webhook (PaymentWebhookTestView)
+  async testWebhook(type = 'stk_push', data = {}) {
+    const resp = await axiosInstance.post(`${this.baseURL}/webhook/test/`, { type, data })
+    return resp.data
   }
 
-  /**
-   * Poll Payment Status - Continuously poll for payment status
-   */
+  // Polling helper (delegates to backend polling but keeps client-side wrapper)
   async pollPaymentStatus(checkoutRequestId, interval = 3000, maxAttempts = 20) {
+    let attempts = 0
     return new Promise((resolve, reject) => {
-      let attempts = 0
-      
-      const poll = async () => {
-        attempts++
-        
+      const tick = async () => {
+        attempts += 1
         try {
           const result = await this.getPaymentStatus(null, checkoutRequestId)
-          
-          if (result.payment.status === 'SUCCESSFUL' || result.payment.status === 'FAILED') {
+          // backend returns { success: true, payment: {...} } on PaymentStatusView
+          const payment = result?.payment || result
+          const status = payment?.status || payment?.payment?.status
+          if (status === 'SUCCESSFUL' || status === 'FAILED' || status === 'CANCELLED' || status === 'TIMEOUT') {
             resolve(result)
-          } else if (attempts >= maxAttempts) {
-            reject(new Error('Payment status polling timeout'))
-          } else {
-            setTimeout(poll, interval)
+            return
           }
-        } catch (error) {
-          reject(error)
+          if (attempts >= maxAttempts) {
+            reject(new Error('Polling timeout'))
+            return
+          }
+          setTimeout(tick, interval)
+        } catch (err) {
+          reject(err)
         }
       }
-      
-      poll()
+      tick()
     })
   }
 
-  /**
-   * Export Payment History - Export payments to CSV/Excel
-   */
+  // Export payments (blob)
   async exportPayments(format = 'csv', params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/payment/export/`, {
+    const resp = await axiosInstance.get(`${this.baseURL}/payment/export/`, {
       params: { format, ...params },
       responseType: 'blob'
     })
-    return response.data
+    return resp.data
   }
 }
 
 export const mpesaAPI = new MpesaAPI()
+export default mpesaAPI

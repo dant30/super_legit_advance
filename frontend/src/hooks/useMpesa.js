@@ -1,5 +1,5 @@
 // frontend/src/hooks/useMpesa.js
-import { useContext } from 'react'
+import { useContext, useCallback } from 'react'
 import MpesaContext from '../contexts/MpesaContext'
 
 /**
@@ -30,25 +30,21 @@ export const useMpesaPayment = () => {
   /**
    * Initiate payment and start polling
    */
-  const initiatePaymentWithPolling = async (paymentData, pollOptions = {}) => {
-    try {
-      // Clear previous state
-      clearSTKPushState()
-      
-      // Initiate payment
-      const result = await initiatePayment(paymentData)
-      
-      // Start polling if checkout request ID is available
-      if (result.checkout_request_id) {
-        const { interval = 3000, maxAttempts = 20 } = pollOptions
-        await pollPaymentStatus(result.checkout_request_id, interval, maxAttempts)
-      }
-      
-      return result
-    } catch (error) {
-      throw error
+  const initiatePaymentWithPolling = useCallback(async (paymentData, pollOptions = {}) => {
+    // Clear previous state
+    clearSTKPushState()
+    
+    // Initiate payment
+    const res = await initiatePayment(paymentData)
+    // backend returns { success, checkout_request_id, payment_id, ... }
+    const checkoutId = res?.checkout_request_id || res?.data?.checkout_request_id
+    if (checkoutId) {
+      const { interval = 3000, maxAttempts = 20 } = pollOptions
+      const final = await pollPaymentStatus(checkoutId, interval, maxAttempts)
+      return { initiated: res, finalStatus: final }
     }
-  }
+    return { initiated: res }
+  }, [initiatePayment, pollPaymentStatus, clearSTKPushState])
 
   return {
     stkPush,
@@ -71,40 +67,32 @@ export const useMpesaHistory = () => {
   /**
    * Export payments to file
    */
-  const exportToFile = async (format = 'csv', params = {}) => {
-    try {
-      const blob = await exportPayments(format, params)
-      
-      // Create download link
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `payments_export_${new Date().toISOString().split('T')[0]}.${format}`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-      
-      return true
-    } catch (error) {
-      throw error
-    }
-  }
+  const exportToFile = useCallback(async (format = 'csv', params = {}) => {
+    const blob = await exportPayments(format, params)
+    
+    // Create download link
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `payments_${new Date().toISOString().slice(0,10)}.${format}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+    
+    return true
+  }, [exportPayments])
 
   /**
    * Load more payments (pagination)
    */
-  const loadMorePayments = async () => {
-    if (!payments.data?.next) return
+  const loadMorePayments = useCallback(async () => {
+    if (!payments?.data?.next) return
     
-    try {
-      const url = new URL(payments.data.next)
-      const params = Object.fromEntries(url.searchParams.entries())
-      await getPaymentHistory(params)
-    } catch (error) {
-      throw error
-    }
-  }
+    const url = new URL(payments.data.next)
+    const params = Object.fromEntries(url.searchParams.entries())
+    await getPaymentHistory(params)
+  }, [payments, getPaymentHistory])
 
   return {
     payments,
@@ -153,9 +141,9 @@ export const useMpesaAnalytics = () => {
   /**
    * Refresh summary data
    */
-  const refreshSummary = async (days) => {
+  const refreshSummary = useCallback(async (days = 30) => {
     await getPaymentSummary(days)
-  }
+  }, [getPaymentSummary])
 
   return {
     summary,

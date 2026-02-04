@@ -9,7 +9,6 @@ const RepaymentContext = createContext(null)
 export const RepaymentProvider = ({ children }) => {
   const repaymentState = useRepayments()
 
-  // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => repaymentState, [repaymentState])
 
   return (
@@ -22,15 +21,13 @@ export const RepaymentProvider = ({ children }) => {
 // Custom hook to use repayment context
 export const useRepaymentContext = () => {
   const context = useContext(RepaymentContext)
-  
   if (!context) {
     throw new Error('useRepaymentContext must be used within a RepaymentProvider')
   }
-  
   return context
 }
 
-// Constants export for convenience
+// Re-export constants from API for convenience
 export {
   REPAYMENT_STATUS,
   SCHEDULE_STATUS,

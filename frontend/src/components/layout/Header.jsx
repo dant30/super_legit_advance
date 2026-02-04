@@ -45,7 +45,10 @@ const Header = ({ onMenuClick }) => {
     queryKey: ['notifications'],
     queryFn: async () => {
       try {
-        const response = await axios.get('/notifications/unread/')
+        // backend exposes notifications at /api/notifications/notifications/
+        const response = await axios.get('/notifications/notifications/', {
+          params: { page_size: 10, ordering: '-created_at' }
+        })
         return response.data.results || []
       } catch (error) {
         console.error('Error fetching notifications:', error)
@@ -54,14 +57,15 @@ const Header = ({ onMenuClick }) => {
     },
     staleTime: 60 * 1000, // 1 minute
   })
-
+  
   useEffect(() => {
     if (notificationsData) {
       setNotifications(notificationsData.slice(0, 10)) // Show only latest 10
     }
   }, [notificationsData])
 
-  const unreadCount = notifications.filter(n => !n.is_read).length
+  // backend returns status; consider notifications with status !== 'READ' as unread
+  const unreadCount = notifications.filter(n => n.status !== 'READ').length
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -296,7 +300,7 @@ const Header = ({ onMenuClick }) => {
                           >
                             <div className="flex items-start gap-3">
                               <div className="flex-shrink-0 mt-0.5">
-                                {getNotificationIcon(notif.type)}
+                                {getNotificationIcon(notif.notification_type)}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm text-gray-900 dark:text-white line-clamp-1">
@@ -312,7 +316,7 @@ const Header = ({ onMenuClick }) => {
                                   </p>
                                 )}
                               </div>
-                              {!notif.is_read && (
+                              {notif.status !== 'READ' && (
                                 <span className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0 mt-2" />
                               )}
                             </div>
@@ -323,7 +327,7 @@ const Header = ({ onMenuClick }) => {
                       <div className="p-8 text-center">
                         <Inbox className="h-12 w-12 mx-auto mb-3 text-gray-400" />
                         <p className="text-sm text-gray-500 dark:text-gray-400">No notifications</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">You're all caught up!</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">You&apos;re all caught up!</p>
                       </div>
                     )}
                   </div>

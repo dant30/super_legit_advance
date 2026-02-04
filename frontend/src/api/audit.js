@@ -35,12 +35,12 @@ class AuditAPI {
   /**
    * Search audit logs
    */
-  async searchAuditLogs(query, searchType = 'all', params = {}) {
+  async searchAuditLogs(q, type = 'all', params = {}) {
     try {
       const response = await axiosInstance.get(`${this.baseURL}/search/`, {
         params: {
-          query,
-          search_type: searchType,
+          q,
+          type,
           ...params,
         },
       })
@@ -73,7 +73,7 @@ class AuditAPI {
     try {
       const response = await axiosInstance.get(`${this.baseURL}/export/`, {
         params: { format, ...params },
-        responseType: 'blob',
+        responseType: format === 'json' ? 'json' : 'blob',
       })
       return response.data
     } catch (error) {
@@ -161,6 +161,168 @@ class AuditAPI {
       return response.data
     } catch (error) {
       console.error('Error fetching audit logs by model:', error)
+      throw this.formatError(error)
+    }
+  }
+
+  /**
+   * Get audit logs for specific user
+   */
+  async getAuditLogsByUser(userId, params = {}) {
+    try {
+      const response = await axiosInstance.get(`${this.baseURL}/`, {
+        params: {
+          user_id: userId,
+          ...params,
+        },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching audit logs by user:', error)
+      throw this.formatError(error)
+    }
+  }
+
+  /**
+   * Get audit logs for specific object
+   */
+  async getAuditLogsByObject(objectId, params = {}) {
+    try {
+      const response = await axiosInstance.get(`${this.baseURL}/`, {
+        params: {
+          object_id: objectId,
+          ...params,
+        },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching audit logs by object:', error)
+      throw this.formatError(error)
+    }
+  }
+
+  /**
+   * Get audit logs by IP address
+   */
+  async getAuditLogsByIp(ipAddress, params = {}) {
+    try {
+      const response = await axiosInstance.get(`${this.baseURL}/`, {
+        params: {
+          ip_address: ipAddress,
+          ...params,
+        },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching audit logs by IP:', error)
+      throw this.formatError(error)
+    }
+  }
+
+  /**
+   * Get audit logs by action
+   */
+  async getAuditLogsByAction(action, params = {}) {
+    try {
+      const response = await axiosInstance.get(`${this.baseURL}/`, {
+        params: {
+          action,
+          ...params,
+        },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching audit logs by action:', error)
+      throw this.formatError(error)
+    }
+  }
+
+  /**
+   * Get audit logs by severity
+   */
+  async getAuditLogsBySeverity(severity, params = {}) {
+    try {
+      const response = await axiosInstance.get(`${this.baseURL}/`, {
+        params: {
+          severity,
+          ...params,
+        },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching audit logs by severity:', error)
+      throw this.formatError(error)
+    }
+  }
+
+  /**
+   * Get audit logs by status
+   */
+  async getAuditLogsByStatus(status, params = {}) {
+    try {
+      const response = await axiosInstance.get(`${this.baseURL}/`, {
+        params: {
+          status,
+          ...params,
+        },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching audit logs by status:', error)
+      throw this.formatError(error)
+    }
+  }
+
+  /**
+   * Get audit logs by module
+   */
+  async getAuditLogsByModule(module, params = {}) {
+    try {
+      const response = await axiosInstance.get(`${this.baseURL}/`, {
+        params: {
+          module,
+          ...params,
+        },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching audit logs by module:', error)
+      throw this.formatError(error)
+    }
+  }
+
+  /**
+   * Get audit logs by compliance event flag
+   */
+  async getComplianceFlaggedLogs(isComplianceEvent = true, params = {}) {
+    try {
+      const response = await axiosInstance.get(`${this.baseURL}/`, {
+        params: {
+          is_compliance_event: isComplianceEvent,
+          ...params,
+        },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching compliance flagged logs:', error)
+      throw this.formatError(error)
+    }
+  }
+
+  /**
+   * Get audit logs by tags
+   */
+  async getAuditLogsByTags(tags = [], params = {}) {
+    try {
+      const response = await axiosInstance.get(`${this.baseURL}/`, {
+        params: {
+          tags,
+          ...params,
+        },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching audit logs by tags:', error)
       throw this.formatError(error)
     }
   }

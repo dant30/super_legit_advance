@@ -1,16 +1,8 @@
 // frontend/src/contexts/NotificationContext.jsx
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import useNotifications from '@/hooks/useNotifications'
-
-/* =====================================================
- * Context
- * ===================================================== */
+import useNotifications from '@hooks/useNotifications'
 
 const NotificationContext = createContext(null)
-
-/* =====================================================
- * Provider Component
- * ===================================================== */
 
 export const NotificationProvider = ({ children }) => {
   const {
@@ -18,50 +10,40 @@ export const NotificationProvider = ({ children }) => {
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    bulkSend,
+    sendTestNotification,
+    createNotification,
+    useGetStats,
+    useGetTemplates,
+    useGetSMSStats,
     error,
     clearError,
     successMessage,
     clearSuccess,
-    NOTIFICATION_TYPES,
-    NOTIFICATION_CHANNELS,
-    NOTIFICATION_STATUSES,
-    NOTIFICATION_PRIORITIES,
-    getNotificationTypeDisplay,
-    getNotificationStatusDisplay,
-    getNotificationPriorityDisplay,
+    notificationsAPI,
   } = useNotifications()
 
-  // State for unread notifications
   const [unreadCount, setUnreadCount] = useState(0)
   const [recentNotifications, setRecentNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
 
-  // Fetch notifications for the current user
-  const { data: notificationsData, refetch: refetchNotifications } = useGetNotifications(
-    { page_size: 10, ordering: '-created_at' },
-    { refetchInterval: 30000 } // Auto-refresh every 30 seconds
-  )
+  const { data: notificationsData, refetch: refetchNotifications, isLoading: notificationsLoading } =
+    useGetNotifications({ page_size: 10, ordering: '-created_at' }, { refetchInterval: 30000 })
 
-  // Update unread count and recent notifications
+  // derive unread + recent on data change
   useEffect(() => {
-    if (notificationsData?.results) {
-      const notifications = notificationsData.results
-      const unread = notifications.filter(n => n.status === NOTIFICATION_STATUSES.SENT || 
-                                              n.status === NOTIFICATION_STATUSES.DELIVERED).length
-      
-      setUnreadCount(unread)
-      setRecentNotifications(notifications.slice(0, 5)) // Show only 5 most recent
-    }
-  }, [notificationsData, NOTIFICATION_STATUSES])
-
-  /* ===== ACTIONS ===== */
+    const results = notificationsData?.results || []
+    setRecentNotifications(results.slice(0, 5))
+    const unread = results.filter(n => ['SENT', 'DELIVERED'].includes(n.status)).length
+    setUnreadCount(unread)
+  }, [notificationsData])
 
   const handleMarkAsRead = useCallback(async (id) => {
     try {
       await markAsRead(id)
       setUnreadCount(prev => Math.max(0, prev - 1))
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error)
+    } catch (e) {
+      console.error(e)
     }
   }, [markAsRead])
 
@@ -69,146 +51,80 @@ export const NotificationProvider = ({ children }) => {
     try {
       await markAllAsRead()
       setUnreadCount(0)
-      refetchNotifications()
-    } catch (error) {
-      console.error('Failed to mark all notifications as read:', error)
+      await refetchNotifications()
+    } catch (e) {
+      console.error(e)
     }
   }, [markAllAsRead, refetchNotifications])
 
-  const handleDeleteNotification = useCallback(async (id) => {
+  const handleDelete = useCallback(async (id) => {
     try {
       await deleteNotification(id)
-      refetchNotifications()
-    } catch (error) {
-      console.error('Failed to delete notification:', error)
+      await refetchNotifications()
+    } catch (e) {
+      console.error(e)
     }
   }, [deleteNotification, refetchNotifications])
-
-  const toggleNotifications = useCallback(() => {
-    setShowNotifications(prev => !prev)
-  }, [])
-
-  const closeNotifications = useCallback(() => {
-    setShowNotifications(false)
-  }, [])
 
   const addNotification = useCallback((notification) => {
     setRecentNotifications(prev => [notification, ...prev.slice(0, 4)])
     setUnreadCount(prev => prev + 1)
   }, [])
 
-  // Simulate receiving a real-time notification (you would connect this to WebSockets)
-  const simulateNewNotification = useCallback((type = NOTIFICATION_TYPES.SYSTEM_ALERT, title = 'New Notification', message = 'This is a test notification') => {
-    const newNotification = {
+  const simulateNewNotification = useCallback((payload) => {
+    // client-side simulated notification (for dev/testing)
+    const n = {
       id: Date.now(),
-      notification_type: type,
-      title,
-      message,
-      status: NOTIFICATION_STATUSES.SENT,
+      notification_type: payload?.type || 'SYSTEM_ALERT',
+      title: payload?.title || 'Test',
+      message: payload?.message || 'This is a simulated notification',
+      status: 'SENT',
       created_at: new Date().toISOString(),
-      channel: NOTIFICATION_CHANNELS.IN_APP,
-      priority: NOTIFICATION_PRIORITIES.MEDIUM,
+      recipient_name: payload?.recipient_name || 'You',
+      channel: 'IN_APP',
+      priority: 'MEDIUM',
       is_read: false,
     }
-    
-    addNotification(newNotification)
-  }, [NOTIFICATION_TYPES, NOTIFICATION_STATUSES, NOTIFICATION_CHANNELS, NOTIFICATION_PRIORITIES, addNotification])
+    addNotification(n)
+  }, [addNotification])
 
-  /* ===== CONTEXT VALUE ===== */
+  const toggleNotifications = useCallback(() => setShowNotifications(s => !s), [])
+  const closeNotifications = useCallback(() => setShowNotifications(false), [])
 
   const contextValue = {
-    // State
+    // state
     unreadCount,
     recentNotifications,
     showNotifications,
     notifications: notificationsData?.results || [],
     totalNotifications: notificationsData?.count || 0,
-    isLoading: notificationsData === undefined,
+    isLoading: notificationsLoading,
     error,
     successMessage,
-    
-    // Actions
+
+    // actions
     markAsRead: handleMarkAsRead,
     markAllAsRead: handleMarkAllAsRead,
-    deleteNotification: handleDeleteNotification,
-    toggleNotifications,
-    closeNotifications,
+    deleteNotification: handleDelete,
+    bulkSend: async (data) => bulkSend(data),
+    sendTestNotification: async (data) => sendTestNotification(data),
+    createNotification: async (data) => createNotification(data),
+
+    // helpers
     addNotification,
     simulateNewNotification,
+    toggleNotifications,
+    closeNotifications,
     refetchNotifications,
-    
-    // Clear functions
+
+    // clearers
     clearError,
     clearSuccess,
-    
-    // Constants
-    NOTIFICATION_TYPES,
-    NOTIFICATION_CHANNELS,
-    NOTIFICATION_STATUSES,
-    NOTIFICATION_PRIORITIES,
-    
-    // Helper functions
-    getNotificationTypeDisplay,
-    getNotificationStatusDisplay,
-    getNotificationPriorityDisplay,
-    
-    // Utility functions
-    getUnreadNotifications: () => {
-      return (notificationsData?.results || []).filter(
-        n => n.status === NOTIFICATION_STATUSES.SENT || 
-             n.status === NOTIFICATION_STATUSES.DELIVERED
-      )
-    },
-    
-    getNotificationColor: (type) => {
-      const colorMap = {
-        [NOTIFICATION_TYPES.LOAN_APPROVED]: 'bg-success-100 text-success-700',
-        [NOTIFICATION_TYPES.LOAN_REJECTED]: 'bg-danger-100 text-danger-700',
-        [NOTIFICATION_TYPES.LOAN_DISBURSED]: 'bg-primary-100 text-primary-700',
-        [NOTIFICATION_TYPES.PAYMENT_RECEIVED]: 'bg-success-100 text-success-700',
-        [NOTIFICATION_TYPES.PAYMENT_OVERDUE]: 'bg-danger-100 text-danger-700',
-        [NOTIFICATION_TYPES.PAYMENT_REMINDER]: 'bg-warning-100 text-warning-700',
-        [NOTIFICATION_TYPES.SYSTEM_ALERT]: 'bg-neutral-100 text-neutral-700',
-        [NOTIFICATION_TYPES.ACCOUNT_UPDATE]: 'bg-primary-100 text-primary-700',
-        [NOTIFICATION_TYPES.MARKETING]: 'bg-purple-100 text-purple-700',
-        [NOTIFICATION_TYPES.OTHER]: 'bg-neutral-100 text-neutral-700',
-      }
-      return colorMap[type] || 'bg-neutral-100 text-neutral-700'
-    },
-    
-    getNotificationIcon: (type) => {
-      const iconMap = {
-        [NOTIFICATION_TYPES.LOAN_APPROVED]: 'check-circle',
-        [NOTIFICATION_TYPES.LOAN_REJECTED]: 'x-circle',
-        [NOTIFICATION_TYPES.LOAN_DISBURSED]: 'dollar-sign',
-        [NOTIFICATION_TYPES.PAYMENT_RECEIVED]: 'check-circle',
-        [NOTIFICATION_TYPES.PAYMENT_OVERDUE]: 'alert-circle',
-        [NOTIFICATION_TYPES.PAYMENT_REMINDER]: 'bell',
-        [NOTIFICATION_TYPES.SYSTEM_ALERT]: 'alert-triangle',
-        [NOTIFICATION_TYPES.ACCOUNT_UPDATE]: 'user',
-        [NOTIFICATION_TYPES.MARKETING]: 'megaphone',
-        [NOTIFICATION_TYPES.OTHER]: 'info',
-      }
-      return iconMap[type] || 'bell'
-    },
-    
-    formatNotificationTime: (dateString) => {
-      if (!dateString) return 'Just now'
-      
-      const date = new Date(dateString)
-      const now = new Date()
-      const diffMs = now - date
-      const diffMins = Math.floor(diffMs / 60000)
-      const diffHours = Math.floor(diffMs / 3600000)
-      const diffDays = Math.floor(diffMs / 86400000)
-      
-      if (diffMins < 1) return 'Just now'
-      if (diffMins < 60) return `${diffMins}m ago`
-      if (diffHours < 24) return `${diffHours}h ago`
-      if (diffDays < 7) return `${diffDays}d ago`
-      
-      return date.toLocaleDateString()
-    },
+
+    // api helpers
+    previewTemplate: notificationsAPI.previewTemplate?.bind(notificationsAPI),
+    getTypeDisplay: notificationsAPI.getTypeDisplay?.bind(notificationsAPI),
+    formatNotification: notificationsAPI.formatNotification?.bind(notificationsAPI),
   }
 
   return (
@@ -218,22 +134,10 @@ export const NotificationProvider = ({ children }) => {
   )
 }
 
-/* =====================================================
- * Custom Hook for using the context
- * ===================================================== */
-
 export const useNotificationContext = () => {
-  const context = useContext(NotificationContext)
-  
-  if (!context) {
-    throw new Error('useNotificationContext must be used within a NotificationProvider')
-  }
-  
-  return context
+  const ctx = useContext(NotificationContext)
+  if (!ctx) throw new Error('useNotificationContext must be used within NotificationProvider')
+  return ctx
 }
-
-/* =====================================================
- * Export
- * ===================================================== */
 
 export default NotificationContext

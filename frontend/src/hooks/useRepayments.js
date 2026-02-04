@@ -1,7 +1,7 @@
 // frontend/src/hooks/useRepayments.js
-import { useState, useCallback } from 'react'
-import { repaymentsAPI } from '../api/repayments'
+import { useState, useCallback, useRef } from 'react'
 import { useToast } from '../contexts/ToastContext'
+import { repaymentsAPI } from '../api/repayments'
 
 export const useRepayments = () => {
   const [state, setState] = useState({
@@ -21,41 +21,34 @@ export const useRepayments = () => {
     },
   })
 
-  const { showToast } = useToast()
+  const { addToast } = useToast()
+  const exportAbortRef = useRef(null)
 
-  // ===== STATE MANAGEMENT =====
-
-  const setLoading = (loading) => {
+  const setLoading = useCallback((loading) => {
     setState(prev => ({ ...prev, loading }))
-  }
+  }, [])
 
-  const setError = (error) => {
+  const setError = useCallback((error) => {
     setState(prev => ({ ...prev, error }))
-  }
+  }, [])
 
-  const clearError = () => {
+  const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }))
-  }
+  }, [])
 
-  const clearSelectedRepayment = () => {
+  const clearSelectedRepayment = useCallback(() => {
     setState(prev => ({ ...prev, selectedRepayment: null }))
-  }
+  }, [])
 
-  const setPage = (page) => {
-    setState(prev => ({
-      ...prev,
-      pagination: { ...prev.pagination, page }
-    }))
-  }
+  const setPage = useCallback((page) => {
+    setState(prev => ({ ...prev, pagination: { ...prev.pagination, page } }))
+  }, [])
 
-  const setPageSize = (pageSize) => {
-    setState(prev => ({
-      ...prev,
-      pagination: { ...prev.pagination, pageSize, page: 1 }
-    }))
-  }
+  const setPageSize = useCallback((pageSize) => {
+    setState(prev => ({ ...prev, pagination: { ...prev.pagination, pageSize, page: 1 } }))
+  }, [])
 
-  // ===== REPAYMENT OPERATIONS =====
+  // ===== REPAYMENTS =====
 
   const getRepayments = useCallback(async (params = {}) => {
     try {
@@ -65,471 +58,476 @@ export const useRepayments = () => {
         page: state.pagination.page,
         page_size: state.pagination.pageSize
       })
-      
       setState(prev => ({
         ...prev,
         repayments: response.results || [],
         pagination: {
           ...prev.pagination,
           count: response.count || 0,
-          next: response.next,
-          previous: response.previous
+          next: response.next || null,
+          previous: response.previous || null,
         }
       }))
-      
       return response
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to fetch repayments'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to fetch repayments'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [state.pagination.page, state.pagination.pageSize, showToast])
+  }, [state.pagination.page, state.pagination.pageSize, addToast, setLoading])
 
   const getRepaymentById = useCallback(async (id) => {
     try {
       setLoading(true)
       const repayment = await repaymentsAPI.getRepayment(id)
-      
-      setState(prev => ({
-        ...prev,
-        selectedRepayment: repayment
-      }))
-      
+      setState(prev => ({ ...prev, selectedRepayment: repayment }))
       return repayment
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to fetch repayment'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to fetch repayment'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast, setLoading])
 
   const createRepayment = useCallback(async (data) => {
     try {
       setLoading(true)
       const repayment = await repaymentsAPI.createRepayment(data)
-      
-      // Add to local state if successful
-      setState(prev => ({
-        ...prev,
-        repayments: [repayment, ...prev.repayments]
-      }))
-      
-      showToast('Repayment created successfully', 'success')
+      setState(prev => ({ ...prev, repayments: [repayment, ...prev.repayments] }))
+      addToast({ title: 'Success', message: 'Repayment created', type: 'success' })
       return repayment
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to create repayment'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to create repayment'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
   const updateRepayment = useCallback(async (id, data) => {
     try {
       setLoading(true)
       const repayment = await repaymentsAPI.updateRepayment(id, data)
-      
-      // Update in local state
       setState(prev => ({
         ...prev,
-        repayments: prev.repayments.map(r => 
-          r.id === repayment.id ? repayment : r
-        ),
+        repayments: prev.repayments.map(r => r.id === repayment.id ? repayment : r),
         selectedRepayment: prev.selectedRepayment?.id === repayment.id ? repayment : prev.selectedRepayment
       }))
-      
-      showToast('Repayment updated successfully', 'success')
+      addToast({ title: 'Success', message: 'Repayment updated', type: 'success' })
       return repayment
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to update repayment'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to update repayment'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
   const deleteRepayment = useCallback(async (id) => {
     try {
       setLoading(true)
       await repaymentsAPI.deleteRepayment(id)
-      
-      // Remove from local state
       setState(prev => ({
         ...prev,
         repayments: prev.repayments.filter(r => r.id !== id),
         selectedRepayment: prev.selectedRepayment?.id === id ? null : prev.selectedRepayment
       }))
-      
-      showToast('Repayment deleted successfully', 'success')
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to delete repayment'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+      addToast({ title: 'Success', message: 'Repayment deleted', type: 'success' })
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to delete repayment'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
   const processRepayment = useCallback(async (id, data) => {
     try {
       setLoading(true)
-      const repayment = await repaymentsAPI.processRepayment(id, data)
-      
-      // Update in local state
+      const res = await repaymentsAPI.processRepayment(id, data)
+      // update local state using returned repayment if provided
+      const repayment = res.repayment || res
       setState(prev => ({
         ...prev,
-        repayments: prev.repayments.map(r => 
-          r.id === repayment.id ? repayment : r
-        ),
+        repayments: prev.repayments.map(r => r.id === repayment.id ? repayment : r),
         selectedRepayment: prev.selectedRepayment?.id === repayment.id ? repayment : prev.selectedRepayment
       }))
-      
-      showToast('Repayment processed successfully', 'success')
-      return repayment
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to process repayment'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+      addToast({ title: 'Success', message: res.message || 'Repayment processed', type: 'success' })
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to process repayment'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
-  // ===== SCHEDULE OPERATIONS =====
+  const waiveRepayment = useCallback(async (id, data) => {
+    try {
+      setLoading(true)
+      const res = await repaymentsAPI.waiveRepayment(id, data)
+      const repayment = res.repayment || res
+      setState(prev => ({
+        ...prev,
+        repayments: prev.repayments.map(r => r.id === repayment.id ? repayment : r),
+        selectedRepayment: prev.selectedRepayment?.id === repayment.id ? repayment : prev.selectedRepayment
+      }))
+      addToast({ title: 'Success', message: res.message || 'Waiver applied', type: 'success' })
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to waive repayment'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }, [addToast])
+
+  const cancelRepayment = useCallback(async (id, data) => {
+    try {
+      setLoading(true)
+      const res = await repaymentsAPI.cancelRepayment(id, data)
+      const repayment = res.repayment || res
+      setState(prev => ({
+        ...prev,
+        repayments: prev.repayments.map(r => r.id === repayment.id ? repayment : r),
+        selectedRepayment: prev.selectedRepayment?.id === repayment.id ? repayment : prev.selectedRepayment
+      }))
+      addToast({ title: 'Success', message: res.message || 'Repayment cancelled', type: 'success' })
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to cancel repayment'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }, [addToast])
+
+  // ===== SCHEDULES =====
 
   const getSchedules = useCallback(async (loanId, params = {}) => {
     try {
       setLoading(true)
-      const response = await repaymentsAPI.getSchedules(loanId, params)
-      
-      setState(prev => ({
-        ...prev,
-        schedules: response.results || []
-      }))
-      
-      return response
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to fetch schedules'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+      const res = await repaymentsAPI.getSchedules(loanId, params)
+      setState(prev => ({ ...prev, schedules: res.results || res || [] }))
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to fetch schedules'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
   const generateSchedule = useCallback(async (loanId) => {
     try {
       setLoading(true)
-      const schedules = await repaymentsAPI.generateSchedule(loanId)
-      
-      setState(prev => ({
-        ...prev,
-        schedules
-      }))
-      
-      showToast('Schedule generated successfully', 'success')
-      return schedules
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to generate schedule'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+      const res = await repaymentsAPI.generateSchedule(loanId)
+      // replace local schedules with newly generated items
+      setState(prev => ({ ...prev, schedules: res.schedule_items || res || [] }))
+      addToast({ title: 'Success', message: res.message || 'Schedule generated', type: 'success' })
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to generate schedule'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
-  // ===== PENALTY OPERATIONS =====
+  const adjustSchedule = useCallback(async (scheduleId, data) => {
+    try {
+      setLoading(true)
+      const res = await repaymentsAPI.adjustSchedule(scheduleId, data)
+      addToast({ title: 'Success', message: res.message || 'Schedule adjusted', type: 'success' })
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to adjust schedule'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }, [addToast])
+
+  // ===== PENALTIES =====
 
   const getPenalties = useCallback(async (params = {}) => {
     try {
       setLoading(true)
-      const response = await repaymentsAPI.getPenalties(params)
-      
-      setState(prev => ({
-        ...prev,
-        penalties: response.results || []
-      }))
-      
-      return response
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to fetch penalties'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+      const res = await repaymentsAPI.getPenalties(params)
+      setState(prev => ({ ...prev, penalties: res.results || res || [] }))
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to fetch penalties'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
   const createPenalty = useCallback(async (data) => {
     try {
       setLoading(true)
       const penalty = await repaymentsAPI.createPenalty(data)
-      
-      setState(prev => ({
-        ...prev,
-        penalties: [penalty, ...prev.penalties]
-      }))
-      
-      showToast('Penalty created successfully', 'success')
+      setState(prev => ({ ...prev, penalties: [penalty, ...prev.penalties] }))
+      addToast({ title: 'Success', message: 'Penalty created', type: 'success' })
       return penalty
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to create penalty'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to create penalty'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
-  // ===== DASHBOARD & STATS =====
-
-  const getDashboardStats = useCallback(async () => {
+  const applyPenalty = useCallback(async (id) => {
     try {
       setLoading(true)
-      const stats = await repaymentsAPI.getDashboard()
-      
-      setState(prev => ({
-        ...prev,
-        dashboardStats: stats
-      }))
-      
-      return stats
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to fetch dashboard stats'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+      const res = await repaymentsAPI.applyPenalty(id)
+      addToast({ title: 'Success', message: res.message || 'Penalty applied', type: 'success' })
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to apply penalty'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
+
+  const waivePenalty = useCallback(async (id, data) => {
+    try {
+      setLoading(true)
+      const res = await repaymentsAPI.waivePenalty(id, data)
+      addToast({ title: 'Success', message: res.message || 'Penalty waived', type: 'success' })
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to waive penalty'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }, [addToast])
+
+  // ===== STATS & DASHBOARD =====
 
   const getStats = useCallback(async () => {
     try {
       setLoading(true)
-      return await repaymentsAPI.getStats()
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to fetch stats'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+      const res = await repaymentsAPI.getStats()
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to fetch stats'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
+
+  const getDashboardStats = useCallback(async () => {
+    try {
+      setLoading(true)
+      const res = await repaymentsAPI.getDashboard()
+      setState(prev => ({ ...prev, dashboardStats: res }))
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to fetch dashboard'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }, [addToast])
 
   // ===== SPECIAL VIEWS =====
 
   const getOverdueRepayments = useCallback(async (params = {}) => {
     try {
       setLoading(true)
-      const response = await repaymentsAPI.getOverdueRepayments(params)
-      
-      setState(prev => ({
-        ...prev,
-        repayments: response.results || []
-      }))
-      
-      return response
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to fetch overdue repayments'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+      const res = await repaymentsAPI.getOverdueRepayments(params)
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to fetch overdue repayments'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
   const getUpcomingRepayments = useCallback(async (params = {}) => {
     try {
       setLoading(true)
-      const response = await repaymentsAPI.getUpcomingRepayments(params)
-      
-      setState(prev => ({
-        ...prev,
-        repayments: response.results || []
-      }))
-      
-      return response
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to fetch upcoming repayments'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+      const res = await repaymentsAPI.getUpcomingRepayments(params)
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to fetch upcoming repayments'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
-  // ===== BULK OPERATIONS =====
+  // ===== BULK =====
 
   const bulkCreateRepayments = useCallback(async (data) => {
     try {
       setLoading(true)
-      const result = await repaymentsAPI.bulkCreateRepayments(data)
-      
-      showToast(result.message, 'success')
-      return result
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to bulk create repayments'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+      const res = await repaymentsAPI.bulkCreateRepayments(data)
+      addToast({ title: 'Success', message: res.message || 'Bulk create completed', type: 'success' })
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Bulk create failed'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
   // ===== EXPORT =====
 
-  const exportRepayments = useCallback(async (params = {}) => {
+  const exportRepayments = useCallback(async (params = {}, filename = 'repayments_export.xlsx') => {
     try {
       setLoading(true)
       const blob = await repaymentsAPI.exportRepayments(params)
-      
-      // Create download link
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `repayments_export_${new Date().toISOString().split('T')[0]}.${
-        params?.format === 'csv' ? 'csv' : 'xlsx'
-      }`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-      
-      showToast('Repayments exported successfully', 'success')
-      return blob
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to export repayments'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+      repaymentsAPI.downloadExport(blob, filename)
+      addToast({ title: 'Success', message: 'Export ready', type: 'success' })
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Export failed'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
-  // ===== CUSTOMER & LOAN SPECIFIC =====
+  // ===== CUSTOMER / LOAN SPECIFIC =====
 
   const getCustomerRepayments = useCallback(async (customerId, params = {}) => {
     try {
       setLoading(true)
-      return await repaymentsAPI.getCustomerRepayments(customerId, params)
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to fetch customer repayments'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+      const res = await repaymentsAPI.getCustomerRepayments(customerId, params)
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to fetch customer repayments'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
   const getLoanRepayments = useCallback(async (loanId, params = {}) => {
     try {
       setLoading(true)
-      return await repaymentsAPI.getLoanRepayments(loanId, params)
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.error || error.message || 'Failed to fetch loan repayments'
-      setError(errorMsg)
-      showToast(errorMsg, 'error')
-      throw error
+      const res = await repaymentsAPI.getLoanRepayments(loanId, params)
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to fetch loan repayments'
+      setError(msg)
+      addToast({ title: 'Error', message: msg, type: 'error' })
+      throw err
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [addToast])
 
-  // ===== UTILITY FUNCTIONS =====
+  // ===== UTIL =====
 
-  const formatPaymentMethod = useCallback((method) => {
-    return repaymentsAPI.formatPaymentMethod(method)
-  }, [])
-
-  const formatStatus = useCallback((status) => {
-    return repaymentsAPI.formatStatus(status)
-  }, [])
-
-  const getStatusColor = useCallback((status) => {
-    return repaymentsAPI.getStatusColor(status)
-  }, [])
-
-  const formatCurrency = useCallback((amount) => {
-    return repaymentsAPI.formatCurrency(amount)
-  }, [])
-
-  const calculateRemainingDays = useCallback((dueDate) => {
-    return repaymentsAPI.calculateRemainingDays(dueDate)
-  }, [])
+  const formatStatus = useCallback((s) => repaymentsAPI.formatStatus(s), [])
+  const formatCurrency = useCallback((a) => repaymentsAPI.formatCurrency(a), [])
 
   return {
-    // State
+    // state
     ...state,
-    
-    // State setters
+
+    // setters
     setPage,
     setPageSize,
     clearError,
     clearSelectedRepayment,
-    
-    // Repayment operations
+
+    // repaid operations
     getRepayments,
     getRepaymentById,
     createRepayment,
     updateRepayment,
     deleteRepayment,
     processRepayment,
-    
-    // Schedule operations
+    waiveRepayment,
+    cancelRepayment,
+
+    // schedules
     getSchedules,
     generateSchedule,
-    
-    // Penalty operations
+    adjustSchedule,
+
+    // penalties
     getPenalties,
+    getPenalty: repaymentsAPI.getPenalty,
     createPenalty,
-    
-    // Dashboard & Stats
-    getDashboardStats,
+    applyPenalty,
+    waivePenalty,
+
+    // stats & dashboard
     getStats,
-    
-    // Special views
+    getDashboardStats,
+
+    // special
     getOverdueRepayments,
     getUpcomingRepayments,
-    
-    // Bulk operations
+
+    // bulk & export
     bulkCreateRepayments,
-    
-    // Export
     exportRepayments,
-    
-    // Customer & Loan specific
+
+    // customer/loan
     getCustomerRepayments,
     getLoanRepayments,
-    
-    // Utility functions
-    formatPaymentMethod,
+
+    // utils
     formatStatus,
-    getStatusColor,
     formatCurrency,
-    calculateRemainingDays
   }
 }
 

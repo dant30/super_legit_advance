@@ -1,5 +1,5 @@
 // frontend/src/lib/api/loans.js
-import axios from './axios';
+import axios from './axios'
 
 /**
  * LOAN STATUS CONSTANTS
@@ -16,7 +16,7 @@ export const LOAN_STATUS = {
   OVERDUE: 'OVERDUE',
   WRITTEN_OFF: 'WRITTEN_OFF',
   CANCELLED: 'CANCELLED'
-};
+}
 
 export const LOAN_APPLICATION_STATUS = {
   DRAFT: 'DRAFT',
@@ -28,7 +28,7 @@ export const LOAN_APPLICATION_STATUS = {
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED',
   CANCELLED: 'CANCELLED'
-};
+}
 
 export const LOAN_TYPE = {
   PERSONAL: 'PERSONAL',
@@ -38,13 +38,13 @@ export const LOAN_TYPE = {
   ASSET_FINANCING: 'ASSET_FINANCING',
   EDUCATION: 'EDUCATION',
   AGRICULTURE: 'AGRICULTURE'
-};
+}
 
 export const INTEREST_TYPE = {
   FIXED: 'FIXED',
   REDUCING_BALANCE: 'REDUCING_BALANCE',
   FLAT_RATE: 'FLAT_RATE'
-};
+}
 
 export const REPAYMENT_FREQUENCY = {
   DAILY: 'DAILY',
@@ -55,13 +55,13 @@ export const REPAYMENT_FREQUENCY = {
   BIANNUAL: 'BIANNUAL',
   ANNUAL: 'ANNUAL',
   BULLET: 'BULLET'
-};
+}
 
 export const RISK_LEVEL = {
   LOW: 'LOW',
   MEDIUM: 'MEDIUM',
   HIGH: 'HIGH'
-};
+}
 
 /**
  * STATUS LABELS FOR DISPLAY
@@ -78,7 +78,7 @@ export const LOAN_STATUS_LABELS = {
   [LOAN_STATUS.OVERDUE]: 'Overdue',
   [LOAN_STATUS.WRITTEN_OFF]: 'Written Off',
   [LOAN_STATUS.CANCELLED]: 'Cancelled'
-};
+}
 
 export const LOAN_TYPE_LABELS = {
   [LOAN_TYPE.PERSONAL]: 'Personal Loan',
@@ -88,7 +88,7 @@ export const LOAN_TYPE_LABELS = {
   [LOAN_TYPE.ASSET_FINANCING]: 'Asset Financing',
   [LOAN_TYPE.EDUCATION]: 'Education Loan',
   [LOAN_TYPE.AGRICULTURE]: 'Agricultural Loan'
-};
+}
 
 /**
  * UTILITY FUNCTIONS
@@ -98,497 +98,221 @@ export const getLoanStatusColor = (status) => {
     case LOAN_STATUS.ACTIVE:
     case LOAN_STATUS.APPROVED:
     case LOAN_STATUS.COMPLETED:
-      return 'success';
+      return 'success'
     case LOAN_STATUS.PENDING:
     case LOAN_STATUS.UNDER_REVIEW:
     case LOAN_STATUS.DRAFT:
-      return 'warning';
+      return 'warning'
     case LOAN_STATUS.REJECTED:
     case LOAN_STATUS.CANCELLED:
-      return 'danger';
+      return 'danger'
     case LOAN_STATUS.OVERDUE:
     case LOAN_STATUS.DEFAULTED:
-      return 'error';
+      return 'error'
     default:
-      return 'default';
+      return 'default'
   }
-};
+}
 
 export const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-KE', {
     style: 'currency',
     currency: 'KES',
     minimumFractionDigits: 2
-  }).format(amount);
-};
+  }).format(Number(amount || 0))
+}
 
 export const calculateDaysBetween = (startDate, endDate) => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const diffTime = Math.abs(end - start);
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-};
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  const diffTime = Math.abs(end - start)
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+}
 
 /**
- * LOAN API FUNCTIONS
+ * LOAN API FUNCTIONS (matches backend routes in backend/apps/loans/urls.py)
  */
 class LoanAPI {
   constructor() {
-    this.baseURL = '/loans';
+    this.baseURL = '/loans'
   }
 
-  // ========== LOAN MANAGEMENT ==========
-
-  /**
-   * Fetch all loans with optional filters
-   */
   async getLoans(filters = {}) {
-    try {
-      const response = await axios.get(this.baseURL, { params: filters });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching loans:', error);
-      throw error;
-    }
+    const res = await axios.get(`${this.baseURL}/`, { params: filters })
+    return res.data
   }
 
-  /**
-   * Fetch single loan by ID
-   */
   async getLoan(id) {
-    try {
-      const response = await axios.get(`${this.baseURL}/${id}/`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching loan ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.get(`${this.baseURL}/${id}/`)
+    return res.data
   }
 
-  /**
-   * Create a new loan
-   */
   async createLoan(data) {
-    try {
-      const response = await axios.post(`${this.baseURL}/create/`, data);
-      return response.data;
-    } catch (error) {
-      console.error('Error creating loan:', error);
-      throw error;
-    }
+    const res = await axios.post(`${this.baseURL}/create/`, data)
+    return res.data
   }
 
-  /**
-   * Update an existing loan
-   */
   async updateLoan(id, data) {
-    try {
-      const response = await axios.patch(`${this.baseURL}/${id}/`, data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error updating loan ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.patch(`${this.baseURL}/${id}/`, data)
+    return res.data
   }
 
-  /**
-   * Delete a loan
-   */
   async deleteLoan(id) {
-    try {
-      await axios.delete(`${this.baseURL}/${id}/`);
-      return { success: true, message: 'Loan deleted successfully' };
-    } catch (error) {
-      console.error(`Error deleting loan ${id}:`, error);
-      throw error;
-    }
+    await axios.delete(`${this.baseURL}/${id}/`)
+    return { success: true }
   }
 
-  /**
-   * Approve a loan
-   */
   async approveLoan(id, data = {}) {
-    try {
-      const response = await axios.post(`${this.baseURL}/${id}/approve/`, data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error approving loan ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.post(`${this.baseURL}/${id}/approve/`, data)
+    return res.data
   }
 
-  /**
-   * Reject a loan
-   */
   async rejectLoan(id, reason) {
-    try {
-      const response = await axios.post(`${this.baseURL}/${id}/reject/`, {
-        rejection_reason: reason
-      });
-      return response.data;
-    } catch (error) {
-      console.error(`Error rejecting loan ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.post(`${this.baseURL}/${id}/reject/`, {
+      rejection_reason: reason
+    })
+    return res.data
   }
 
-  /**
-   * Disburse a loan
-   */
   async disburseLoan(id, data = {}) {
-    try {
-      const response = await axios.post(`${this.baseURL}/${id}/disburse/`, data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error disbursing loan ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.post(`${this.baseURL}/${id}/disburse/`, data)
+    return res.data
   }
 
-  /**
-   * Calculate loan terms
-   */
-  async calculateLoan(data) {
-    try {
-      const response = await axios.post(`${this.baseURL}/calculator/`, data);
-      return response.data;
-    } catch (error) {
-      console.error('Error calculating loan:', error);
-      throw error;
-    }
+  async calculateLoan(payload) {
+    const res = await axios.post(`${this.baseURL}/calculator/`, payload)
+    return res.data
   }
 
-  /**
-   * Get loan statistics
-   */
   async getLoanStats() {
-    try {
-      const response = await axios.get(`${this.baseURL}/stats/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching loan stats:', error);
-      throw error;
-    }
+    const res = await axios.get(`${this.baseURL}/stats/`)
+    return res.data
   }
 
-  /**
-   * Search loans
-   */
-  async searchLoans(query, searchType = 'basic') {
-    try {
-      const response = await axios.get(`${this.baseURL}/search/`, {
-        params: { q: query, type: searchType }
-      });
-      return response.data.results || [];
-    } catch (error) {
-      console.error('Error searching loans:', error);
-      throw error;
-    }
+  async searchLoans(q = '', type = 'basic', params = {}) {
+    const res = await axios.get(`${this.baseURL}/search/`, {
+      params: { q, type, ...params }
+    })
+    // backend returns list or paginated results; prefer results if present
+    return res.data.results || res.data
   }
 
-  /**
-   * Export loans
-   */
   async exportLoans(format = 'excel', filters = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/export/`, {
-        params: { format, ...filters },
-        responseType: 'blob'
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error exporting loans:', error);
-      throw error;
-    }
+    const res = await axios.get(`${this.baseURL}/export/`, {
+      params: { format, ...filters },
+      responseType: 'blob'
+    })
+    return res.data
   }
 
-  // ========== LOAN APPLICATION MANAGEMENT ==========
-
-  /**
-   * Fetch all loan applications
-   */
+  // Applications
   async getLoanApplications(filters = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/applications/`, {
-        params: filters
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching loan applications:', error);
-      throw error;
-    }
+    const res = await axios.get(`${this.baseURL}/applications/`, { params: filters })
+    return res.data
   }
 
-  /**
-   * Fetch single loan application
-   */
   async getLoanApplication(id) {
-    try {
-      const response = await axios.get(`${this.baseURL}/applications/${id}/`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching loan application ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.get(`${this.baseURL}/applications/${id}/`)
+    return res.data
   }
 
-  /**
-   * Create a new loan application
-   */
   async createLoanApplication(data) {
-    try {
-      const response = await axios.post(
-        `${this.baseURL}/applications/create/`,
-        data
-      );
-      return response.data;
-    } catch (error) {
-      console.error('Error creating loan application:', error);
-      throw error;
-    }
+    const res = await axios.post(`${this.baseURL}/applications/create/`, data)
+    return res.data
   }
 
-  /**
-   * Update a loan application
-   */
   async updateLoanApplication(id, data) {
-    try {
-      const response = await axios.patch(
-        `${this.baseURL}/applications/${id}/`,
-        data
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Error updating loan application ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.patch(`${this.baseURL}/applications/${id}/`, data)
+    return res.data
   }
 
-  /**
-   * Submit a loan application for review
-   */
   async submitLoanApplication(id) {
-    try {
-      const response = await axios.post(
-        `${this.baseURL}/applications/${id}/submit/`
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Error submitting loan application ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.post(`${this.baseURL}/applications/${id}/submit/`)
+    return res.data
   }
 
-  /**
-   * Review a loan application
-   */
   async reviewLoanApplication(id, data) {
-    try {
-      const response = await axios.post(
-        `${this.baseURL}/applications/${id}/review/`,
-        data
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Error reviewing loan application ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.post(`${this.baseURL}/applications/${id}/review/`, data)
+    return res.data
   }
 
-  /**
-   * Approve a loan application
-   */
   async approveLoanApplication(id, data = {}) {
-    try {
-      const response = await axios.post(
-        `${this.baseURL}/applications/${id}/approve/`,
-        data
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Error approving loan application ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.post(`${this.baseURL}/applications/${id}/approve/`, data)
+    return res.data
   }
 
-  /**
-   * Reject a loan application
-   */
   async rejectLoanApplication(id, reason) {
-    try {
-      const response = await axios.post(
-        `${this.baseURL}/applications/${id}/reject/`,
-        { rejection_reason: reason }
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Error rejecting loan application ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.post(`${this.baseURL}/applications/${id}/reject/`, {
+      rejection_reason: reason
+    })
+    return res.data
   }
 
-  /**
-   * Delete a loan application
-   */
   async deleteLoanApplication(id) {
-    try {
-      await axios.delete(`${this.baseURL}/applications/${id}/`);
-      return { success: true, message: 'Application deleted successfully' };
-    } catch (error) {
-      console.error(`Error deleting loan application ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.delete(`${this.baseURL}/applications/${id}/`)
+    return res.data
   }
 
-  // ========== COLLATERAL MANAGEMENT ==========
-
-  /**
-   * Fetch collaterals for a loan
-   */
+  // Collateral
   async getCollaterals(loanId, filters = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/${loanId}/collateral/`, {
-        params: filters
-      });
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching collaterals for loan ${loanId}:`, error);
-      throw error;
-    }
+    const res = await axios.get(`${this.baseURL}/${loanId}/collateral/`, { params: filters })
+    return res.data
   }
 
-  /**
-   * Fetch single collateral
-   */
   async getCollateral(id) {
-    try {
-      const response = await axios.get(`${this.baseURL}/collateral/${id}/`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching collateral ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.get(`${this.baseURL}/collateral/${id}/`)
+    return res.data
   }
 
-  /**
-   * Create collateral
-   */
   async createCollateral(loanId, data) {
-    try {
-      const response = await axios.post(
-        `${this.baseURL}/${loanId}/collateral/create/`,
-        data
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Error creating collateral for loan ${loanId}:`, error);
-      throw error;
-    }
+    const res = await axios.post(`${this.baseURL}/${loanId}/collateral/create/`, data)
+    return res.data
   }
 
-  /**
-   * Update collateral
-   */
   async updateCollateral(id, data) {
-    try {
-      const response = await axios.patch(
-        `${this.baseURL}/collateral/${id}/`,
-        data
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Error updating collateral ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.patch(`${this.baseURL}/collateral/${id}/`, data)
+    return res.data
   }
 
-  /**
-   * Delete collateral
-   */
   async deleteCollateral(id) {
-    try {
-      await axios.delete(`${this.baseURL}/collateral/${id}/`);
-      return { success: true, message: 'Collateral deleted successfully' };
-    } catch (error) {
-      console.error(`Error deleting collateral ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.delete(`${this.baseURL}/collateral/${id}/`)
+    return res.data
   }
 
-  /**
-   * Release collateral
-   */
   async releaseCollateral(id, data = {}) {
-    try {
-      const response = await axios.post(
-        `${this.baseURL}/collateral/${id}/release/`,
-        data
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Error releasing collateral ${id}:`, error);
-      throw error;
-    }
+    const res = await axios.post(`${this.baseURL}/collateral/${id}/release/`, data)
+    return res.data
   }
 
-  // ========== UTILITY FUNCTIONS ==========
-
-  /**
-   * Download exported file
-   */
-  downloadExport(blob, filename) {
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+  // Utilities
+  downloadExport(blob, filename = 'export.xlsx') {
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
   }
 
-  /**
-   * Validate loan data before submission
-   */
   validateLoanData(data) {
-    const errors = {};
-
-    if (!data.customer) {
-      errors.customer = 'Customer is required';
-    }
-
-    if (!data.amount_requested || data.amount_requested <= 0) {
-      errors.amount_requested = 'Valid loan amount is required';
-    }
-
-    if (!data.term_months || data.term_months <= 0) {
-      errors.term_months = 'Valid loan term is required';
-    }
-
-    if (!data.purpose) {
-      errors.purpose = 'Loan purpose is required';
-    }
-
-    return {
-      isValid: Object.keys(errors).length === 0,
-      errors
-    };
+    const errors = {}
+    if (!data.customer) errors.customer = 'Customer is required'
+    if (!data.amount_requested || Number(data.amount_requested) <= 0) errors.amount_requested = 'Amount requested must be > 0'
+    if (!data.term_months || Number(data.term_months) <= 0) errors.term_months = 'Term must be > 0'
+    if (!data.purpose) errors.purpose = 'Purpose is required'
+    return { isValid: Object.keys(errors).length === 0, errors }
   }
 
-  /**
-   * Calculate affordability
-   */
-  calculateAffordability(monthlyIncome, monthlyExpenses, proposedInstallment) {
-    const disposableIncome = monthlyIncome - monthlyExpenses;
-    const installmentRatio = (proposedInstallment / monthlyIncome) * 100;
-    const affordabilityScore = Math.max(0, 100 - installmentRatio);
+  calculateAffordability(monthlyIncome = 0, monthlyExpenses = 0, proposedInstallment = 0) {
+    const disposableIncome = Number(monthlyIncome) - Number(monthlyExpenses)
+    const installmentRatio = monthlyIncome > 0 ? (Number(proposedInstallment) / Number(monthlyIncome)) * 100 : 100
+    const affordabilityScore = Math.max(0, 100 - installmentRatio)
 
-    let affordabilityLevel = 'GOOD';
-    if (installmentRatio > 40) {
-      affordabilityLevel = 'POOR';
-    } else if (installmentRatio > 20) {
-      affordabilityLevel = 'MODERATE';
-    }
+    let affordabilityLevel = 'GOOD'
+    if (installmentRatio > 40) affordabilityLevel = 'POOR'
+    else if (installmentRatio > 20) affordabilityLevel = 'MODERATE'
 
     return {
       disposableIncome,
@@ -596,14 +320,12 @@ class LoanAPI {
       affordabilityScore,
       affordabilityLevel,
       recommendation: installmentRatio > 40 ? 'Reject' : installmentRatio > 20 ? 'Review' : 'Approve'
-    };
+    }
   }
 }
 
-// Create and export a singleton instance
-export const loanAPI = new LoanAPI();
+export const loanAPI = new LoanAPI()
 
-// Also export utility functions individually for easy importing
 export {
   LOAN_STATUS,
   LOAN_APPLICATION_STATUS,
@@ -616,4 +338,4 @@ export {
   getLoanStatusColor,
   formatCurrency,
   calculateDaysBetween
-};
+}

@@ -2,402 +2,193 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'
 import { mpesaAPI } from '../api/mpesa'
 
-// Create context
-const MpesaContext = createContext()
+const MpesaContext = createContext(null)
 
-// Initial state
 const initialState = {
-  payments: {
-    data: null,
-    loading: false,
-    error: null,
-    filters: {}
-  },
-  transactions: {
-    data: null,
-    loading: false,
-    error: null,
-    filters: {}
-  },
-  summary: {
-    data: null,
-    loading: false,
-    error: null
-  },
-  currentPayment: {
-    data: null,
-    loading: false,
-    error: null
-  },
-  currentTransaction: {
-    data: null,
-    loading: false,
-    error: null
-  },
-  stkPush: {
-    loading: false,
-    error: null,
-    success: false,
-    checkoutRequestId: null,
-    paymentReference: null,
-    paymentId: null
-  }
+  payments: { data: null, loading: false, error: null, filters: {} },
+  transactions: { data: null, loading: false, error: null, filters: {} },
+  summary: { data: null, loading: false, error: null },
+  currentPayment: { data: null, loading: false, error: null },
+  currentTransaction: { data: null, loading: false, error: null },
+  stkPush: { loading: false, error: null, success: false, checkoutRequestId: null, paymentReference: null, paymentId: null }
 }
 
 export const useMpesa = () => {
-  const context = useContext(MpesaContext)
-  if (!context) {
-    throw new Error('useMpesa must be used within MpesaProvider')
-  }
-  return context
+  const ctx = useContext(MpesaContext)
+  if (!ctx) throw new Error('useMpesa must be used within MpesaProvider')
+  return ctx
 }
 
 export const MpesaProvider = ({ children }) => {
   const [state, setState] = useState(initialState)
 
-  // Helper to update state
-  const setMpesaState = useCallback((updates) => {
-    setState(prev => ({ ...prev, ...updates }))
-  }, [])
+  const setPartial = useCallback((patch) => setState(prev => ({ ...prev, ...patch })), [])
 
-  // Clear state functions
-  const clearSTKPushState = useCallback(() => {
-    setMpesaState({ stkPush: initialState.stkPush })
-  }, [setMpesaState])
+  const clearSTKPushState = useCallback(() => setPartial({ stkPush: initialState.stkPush }), [setPartial])
+  const clearPaymentError = useCallback(() => setPartial({
+    payments: { ...state.payments, error: null }, stkPush: { ...state.stkPush, error: null }
+  }), [state.payments, state.stkPush, setPartial])
+  const clearTransactionError = useCallback(() => setPartial({
+    transactions: { ...state.transactions, error: null }, currentTransaction: { ...state.currentTransaction, error: null }
+  }), [state.transactions, state.currentTransaction, setPartial])
+  const clearCurrentPayment = useCallback(() => setPartial({ currentPayment: initialState.currentPayment }), [setPartial])
+  const clearCurrentTransaction = useCallback(() => setPartial({ currentTransaction: initialState.currentTransaction }), [setPartial])
+  const clearSummary = useCallback(() => setPartial({ summary: initialState.summary }), [setPartial])
+  const clearAllErrors = useCallback(() => setPartial({
+    payments: { ...state.payments, error: null },
+    transactions: { ...state.transactions, error: null },
+    summary: { ...state.summary, error: null },
+    currentPayment: { ...state.currentPayment, error: null },
+    currentTransaction: { ...state.currentTransaction, error: null },
+    stkPush: { ...state.stkPush, error: null }
+  }), [state, setPartial])
 
-  const clearPaymentError = useCallback(() => {
-    setMpesaState({ 
-      payments: { ...state.payments, error: null },
-      stkPush: { ...state.stkPush, error: null }
-    })
-  }, [state.payments, state.stkPush, setMpesaState])
-
-  const clearTransactionError = useCallback(() => {
-    setMpesaState({ 
-      transactions: { ...state.transactions, error: null },
-      currentTransaction: { ...state.currentTransaction, error: null }
-    })
-  }, [state.transactions, state.currentTransaction, setMpesaState])
-
-  const clearCurrentPayment = useCallback(() => {
-    setMpesaState({ currentPayment: initialState.currentPayment })
-  }, [setMpesaState])
-
-  const clearCurrentTransaction = useCallback(() => {
-    setMpesaState({ currentTransaction: initialState.currentTransaction })
-  }, [setMpesaState])
-
-  const clearSummary = useCallback(() => {
-    setMpesaState({ summary: initialState.summary })
-  }, [setMpesaState])
-
-  const clearAllErrors = useCallback(() => {
-    setMpesaState({
-      payments: { ...state.payments, error: null },
-      transactions: { ...state.transactions, error: null },
-      summary: { ...state.summary, error: null },
-      currentPayment: { ...state.currentPayment, error: null },
-      currentTransaction: { ...state.currentTransaction, error: null },
-      stkPush: { ...state.stkPush, error: null }
-    })
-  }, [state, setMpesaState])
-
-  // STK Push Payment
-  const initiatePayment = useCallback(async (paymentData) => {
-    setMpesaState({ 
-      stkPush: { ...initialState.stkPush, loading: true }
-    })
-
+  // Initiate STK Push
+  const initiatePayment = useCallback(async (payload) => {
+    setPartial({ stkPush: { ...initialState.stkPush, loading: true } })
     try {
-      const result = await mpesaAPI.initiateSTKPush(paymentData)
-      
-      setMpesaState({
+      const res = await mpesaAPI.initiateSTKPush(payload)
+      // backend returns { success, payment_reference, checkout_request_id, payment_id }
+      setPartial({
         stkPush: {
           loading: false,
-          success: true,
-          error: null,
-          checkoutRequestId: result.checkout_request_id,
-          paymentReference: result.payment_reference,
-          paymentId: result.payment_id
+          success: !!res?.success,
+          error: res?.error || null,
+          checkoutRequestId: res?.checkout_request_id || null,
+          paymentReference: res?.payment_reference || null,
+          paymentId: res?.payment_id || null
         }
       })
-
-      return result
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to initiate payment'
-      
-      setMpesaState({
-        stkPush: {
-          ...initialState.stkPush,
-          error: errorMessage
-        }
-      })
-
-      throw new Error(errorMessage)
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to initiate payment'
+      setPartial({ stkPush: { ...initialState.stkPush, error: msg } })
+      throw err
     }
-  }, [setMpesaState])
+  }, [setPartial])
 
-  // Get Payment Status
-  const getPaymentStatus = useCallback(async (paymentReference, checkoutRequestId) => {
-    setMpesaState({ 
-      currentPayment: { ...initialState.currentPayment, loading: true }
-    })
-
+  // Get payment status
+  const getPaymentStatus = useCallback(async (paymentReference = null, checkoutRequestId = null) => {
+    setPartial({ currentPayment: { ...initialState.currentPayment, loading: true } })
     try {
-      const result = await mpesaAPI.getPaymentStatus(paymentReference, checkoutRequestId)
-      
-      setMpesaState({
-        currentPayment: {
-          data: result.payment,
-          loading: false,
-          error: null
-        }
-      })
-
-      return result
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to get payment status'
-      
-      setMpesaState({
-        currentPayment: {
-          ...initialState.currentPayment,
-          error: errorMessage
-        }
-      })
-
-      throw new Error(errorMessage)
+      const res = await mpesaAPI.getPaymentStatus(paymentReference, checkoutRequestId)
+      // backend returns { success: true, payment: {...} } for PaymentStatusView
+      const payment = res?.payment || res
+      setPartial({ currentPayment: { data: payment, loading: false, error: null } })
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to fetch payment status'
+      setPartial({ currentPayment: { ...initialState.currentPayment, error: msg } })
+      throw err
     }
-  }, [setMpesaState])
+  }, [setPartial])
 
-  // Poll Payment Status
+  // Poll payment status
   const pollPaymentStatus = useCallback(async (checkoutRequestId, interval = 3000, maxAttempts = 20) => {
+    setPartial({ currentPayment: { ...initialState.currentPayment, loading: true } })
     try {
-      const result = await mpesaAPI.pollPaymentStatus(checkoutRequestId, interval, maxAttempts)
-      
-      setMpesaState({
-        currentPayment: {
-          data: result.payment,
-          loading: false,
-          error: null
-        }
-      })
-
-      return result
-    } catch (error) {
-      const errorMessage = error.message || 'Failed to poll payment status'
-      
-      setMpesaState({
-        currentPayment: {
-          ...state.currentPayment,
-          loading: false,
-          error: errorMessage
-        }
-      })
-
-      throw new Error(errorMessage)
+      const res = await mpesaAPI.pollPaymentStatus(checkoutRequestId, interval, maxAttempts)
+      const payment = res?.payment || res
+      setPartial({ currentPayment: { data: payment, loading: false, error: null } })
+      return res
+    } catch (err) {
+      const msg = err?.message || 'Failed to poll payment status'
+      setPartial({ currentPayment: { ...state.currentPayment, loading: false, error: msg } })
+      throw err
     }
-  }, [state.currentPayment, setMpesaState])
+  }, [state.currentPayment, setPartial])
 
-  // Get Payment History
+  // Payment history
   const getPaymentHistory = useCallback(async (params = {}) => {
-    setMpesaState({ 
-      payments: { 
-        ...state.payments, 
-        loading: true, 
-        error: null,
-        filters: params 
-      }
-    })
-
+    setPartial({ payments: { ...state.payments, loading: true, error: null, filters: params } })
     try {
-      const result = await mpesaAPI.getPaymentHistory(params)
-      
-      setMpesaState({
-        payments: {
-          data: result,
-          loading: false,
-          error: null,
-          filters: params
-        }
-      })
-
-      return result
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch payment history'
-      
-      setMpesaState({
-        payments: {
-          ...state.payments,
-          loading: false,
-          error: errorMessage
-        }
-      })
-
-      throw new Error(errorMessage)
+      const res = await mpesaAPI.getPaymentHistory(params)
+      setPartial({ payments: { data: res, loading: false, error: null, filters: params } })
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to fetch payment history'
+      setPartial({ payments: { ...state.payments, loading: false, error: msg } })
+      throw err
     }
-  }, [state.payments, setMpesaState])
+  }, [state.payments, setPartial])
 
-  // Get Transactions
+  // Transactions
   const getTransactions = useCallback(async (params = {}) => {
-    setMpesaState({ 
-      transactions: { 
-        ...state.transactions, 
-        loading: true, 
-        error: null,
-        filters: params 
-      }
-    })
-
+    setPartial({ transactions: { ...state.transactions, loading: true, error: null, filters: params } })
     try {
-      const result = await mpesaAPI.getTransactions(params)
-      
-      setMpesaState({
-        transactions: {
-          data: result,
-          loading: false,
-          error: null,
-          filters: params
-        }
-      })
-
-      return result
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch transactions'
-      
-      setMpesaState({
-        transactions: {
-          ...state.transactions,
-          loading: false,
-          error: errorMessage
-        }
-      })
-
-      throw new Error(errorMessage)
+      const res = await mpesaAPI.getTransactions(params)
+      setPartial({ transactions: { data: res, loading: false, error: null, filters: params } })
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to fetch transactions'
+      setPartial({ transactions: { ...state.transactions, loading: false, error: msg } })
+      throw err
     }
-  }, [state.transactions, setMpesaState])
+  }, [state.transactions, setPartial])
 
-  // Get Single Transaction
   const getTransaction = useCallback(async (receiptNumber) => {
-    setMpesaState({ 
-      currentTransaction: { ...initialState.currentTransaction, loading: true }
-    })
-
+    setPartial({ currentTransaction: { ...initialState.currentTransaction, loading: true } })
     try {
-      const result = await mpesaAPI.getTransaction(receiptNumber)
-      
-      setMpesaState({
-        currentTransaction: {
-          data: result,
-          loading: false,
-          error: null
-        }
-      })
-
-      return result
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch transaction'
-      
-      setMpesaState({
-        currentTransaction: {
-          ...initialState.currentTransaction,
-          error: errorMessage
-        }
-      })
-
-      throw new Error(errorMessage)
+      const res = await mpesaAPI.getTransaction(receiptNumber)
+      setPartial({ currentTransaction: { data: res, loading: false, error: null } })
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to fetch transaction'
+      setPartial({ currentTransaction: { ...initialState.currentTransaction, error: msg } })
+      throw err
     }
-  }, [setMpesaState])
+  }, [setPartial])
 
-  // Retry Payment
+  // Retry & reverse
   const retryPayment = useCallback(async (paymentId, retryData = {}) => {
     try {
-      const result = await mpesaAPI.retryPayment(paymentId, retryData)
-      
-      // Refresh payment history
-      await getPaymentHistory(state.payments.filters)
-      
-      return result
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to retry payment'
-      throw new Error(errorMessage)
+      const res = await mpesaAPI.retryPayment(paymentId, retryData)
+      // refresh history with current filters
+      await getPaymentHistory(state.payments.filters || {})
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to retry payment'
+      throw new Error(msg)
     }
-  }, [state.payments.filters, getPaymentHistory])
+  }, [getPaymentHistory, state.payments.filters])
 
-  // Reverse Payment
-  const reversePayment = useCallback(async (receiptNumber, reversalData) => {
+  const reversePayment = useCallback(async (receiptNumber, data = {}) => {
     try {
-      const result = await mpesaAPI.reversePayment(receiptNumber, reversalData)
-      
-      // Refresh transaction list
-      await getTransactions(state.transactions.filters)
-      
-      return result
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to reverse payment'
-      throw new Error(errorMessage)
+      const res = await mpesaAPI.reversePayment(receiptNumber, data)
+      // refresh transactions
+      await getTransactions(state.transactions.filters || {})
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to reverse payment'
+      throw new Error(msg)
     }
-  }, [state.transactions.filters, getTransactions])
+  }, [getTransactions, state.transactions.filters])
 
-  // Get Payment Summary
-  const getPaymentSummary = useCallback(async (days) => {
-    setMpesaState({ 
-      summary: { ...initialState.summary, loading: true }
-    })
-
+  // Summary
+  const getPaymentSummary = useCallback(async (days = 30) => {
+    setPartial({ summary: { ...initialState.summary, loading: true } })
     try {
-      const result = await mpesaAPI.getPaymentSummary(days)
-      
-      setMpesaState({
-        summary: {
-          data: result,
-          loading: false,
-          error: null
-        }
-      })
-
-      return result
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch payment summary'
-      
-      setMpesaState({
-        summary: {
-          ...initialState.summary,
-          error: errorMessage
-        }
-      })
-
-      throw new Error(errorMessage)
+      const res = await mpesaAPI.getPaymentSummary(days)
+      setPartial({ summary: { data: res, loading: false, error: null } })
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Failed to fetch summary'
+      setPartial({ summary: { ...initialState.summary, error: msg } })
+      throw err
     }
-  }, [setMpesaState])
+  }, [setPartial])
 
-  // Test Webhook
-  const testWebhook = useCallback(async (type, data) => {
-    try {
-      const result = await mpesaAPI.testWebhook(type, data)
-      return result
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to test webhook'
-      throw new Error(errorMessage)
-    }
+  const testWebhook = useCallback(async (type = 'stk_push', data = {}) => {
+    return mpesaAPI.testWebhook(type, data)
   }, [])
 
-  // Export Payments
-  const exportPayments = useCallback(async (format, params) => {
-    try {
-      const blob = await mpesaAPI.exportPayments(format, params)
-      return blob
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to export payments'
-      throw new Error(errorMessage)
-    }
+  const exportPayments = useCallback(async (format = 'csv', params = {}) => {
+    return mpesaAPI.exportPayments(format, params)
   }, [])
 
-  // Value to provide
   const value = useMemo(() => ({
-    // State
     ...state,
-    
-    // Actions
+    // actions
     initiatePayment,
     getPaymentStatus,
     pollPaymentStatus,
@@ -409,8 +200,7 @@ export const MpesaProvider = ({ children }) => {
     getPaymentSummary,
     testWebhook,
     exportPayments,
-    
-    // Clear actions
+    // clears
     clearSTKPushState,
     clearPaymentError,
     clearTransactionError,
@@ -440,11 +230,7 @@ export const MpesaProvider = ({ children }) => {
     clearAllErrors
   ])
 
-  return (
-    <MpesaContext.Provider value={value}>
-      {children}
-    </MpesaContext.Provider>
-  )
+  return <MpesaContext.Provider value={value}>{children}</MpesaContext.Provider>
 }
 
 export default MpesaContext

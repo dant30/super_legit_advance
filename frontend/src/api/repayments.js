@@ -1,61 +1,6 @@
 // frontend/src/api/repayments.js
 import axiosInstance from './axios'
 
-// Constants
-export const REPAYMENT_STATUS = {
-  PENDING: 'PENDING',
-  PROCESSING: 'PROCESSING',
-  COMPLETED: 'COMPLETED',
-  FAILED: 'FAILED',
-  CANCELLED: 'CANCELLED',
-  OVERDUE: 'OVERDUE',
-  PARTIAL: 'PARTIAL',
-  WAIVED: 'WAIVED'
-}
-
-export const SCHEDULE_STATUS = {
-  PENDING: 'PENDING',
-  PAID: 'PAID',
-  OVERDUE: 'OVERDUE',
-  SKIPPED: 'SKIPPED',
-  ADJUSTED: 'ADJUSTED',
-  CANCELLED: 'CANCELLED'
-}
-
-export const PENALTY_STATUS = {
-  PENDING: 'PENDING',
-  APPLIED: 'APPLIED',
-  WAIVED: 'WAIVED',
-  CANCELLED: 'CANCELLED',
-  PAID: 'PAID'
-}
-
-export const PAYMENT_METHOD = {
-  MPESA: 'MPESA',
-  CASH: 'CASH',
-  BANK_TRANSFER: 'BANK_TRANSFER',
-  CHEQUE: 'CHEQUE',
-  CREDIT_CARD: 'CREDIT_CARD',
-  OTHER: 'OTHER'
-}
-
-export const REPAYMENT_TYPE = {
-  PRINCIPAL: 'PRINCIPAL',
-  INTEREST: 'INTEREST',
-  PENALTY: 'PENALTY',
-  FEE: 'FEE',
-  FULL: 'FULL',
-  PARTIAL: 'PARTIAL'
-}
-
-export const PENALTY_TYPE = {
-  LATE_PAYMENT: 'LATE_PAYMENT',
-  DEFAULT: 'DEFAULT',
-  EARLY_REPAYMENT: 'EARLY_REPAYMENT',
-  ADMINISTRATIVE: 'ADMINISTRATIVE',
-  OTHER: 'OTHER'
-}
-
 class RepaymentsAPI {
   constructor() {
     this.baseURL = '/repayments'
@@ -64,7 +9,7 @@ class RepaymentsAPI {
   // ===== REPAYMENTS =====
 
   async getRepayments(params = {}) {
-    const response = await axiosInstance.get(this.baseURL, { params })
+    const response = await axiosInstance.get(`${this.baseURL}/`, { params })
     return response.data
   }
 
@@ -80,7 +25,7 @@ class RepaymentsAPI {
       if (value !== undefined && value !== null) {
         if (key === 'receipt_file' && value instanceof File) {
           formData.append(key, value)
-        } else if (typeof value === 'object') {
+        } else if (typeof value === 'object' && !(value instanceof File)) {
           formData.append(key, JSON.stringify(value))
         } else {
           formData.append(key, String(value))
@@ -103,6 +48,7 @@ class RepaymentsAPI {
 
   async deleteRepayment(id) {
     await axiosInstance.delete(`${this.baseURL}/${id}/`)
+    return { success: true }
   }
 
   async processRepayment(id, data) {
@@ -120,21 +66,7 @@ class RepaymentsAPI {
     return response.data
   }
 
-  // ===== CUSTOMER REPAYMENTS =====
-
-  async getCustomerRepayments(customerId, params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/customer/${customerId}/`, { params })
-    return response.data
-  }
-
-  // ===== LOAN REPAYMENTS =====
-
-  async getLoanRepayments(loanId, params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/loan/${loanId}/`, { params })
-    return response.data
-  }
-
-  // ===== REPAYMENT SCHEDULES =====
+  // ===== SCHEDULES =====
 
   async getSchedules(loanId, params = {}) {
     const response = await axiosInstance.get(`${this.baseURL}/loan/${loanId}/schedule/`, { params })
@@ -180,17 +112,10 @@ class RepaymentsAPI {
 
   // ===== SPECIAL VIEWS =====
 
-  async getOverdueRepayments(params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/overdue/`, { params })
+  async searchRepayments(params = {}) {
+    const response = await axiosInstance.get(`${this.baseURL}/search/`, { params })
     return response.data
   }
-
-  async getUpcomingRepayments(params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/upcoming/`, { params })
-    return response.data
-  }
-
-  // ===== STATISTICS & DASHBOARD =====
 
   async getStats() {
     const response = await axiosInstance.get(`${this.baseURL}/stats/`)
@@ -202,19 +127,22 @@ class RepaymentsAPI {
     return response.data
   }
 
-  // ===== BULK OPERATIONS =====
+  async getOverdueRepayments(params = {}) {
+    const response = await axiosInstance.get(`${this.baseURL}/overdue/`, { params })
+    return response.data
+  }
+
+  async getUpcomingRepayments(params = {}) {
+    const response = await axiosInstance.get(`${this.baseURL}/upcoming/`, { params })
+    return response.data
+  }
+
+  // ===== BULK & EXPORT =====
 
   async bulkCreateRepayments(data) {
     const response = await axiosInstance.post(`${this.baseURL}/bulk-create/`, data)
     return response.data
   }
-
-  async sendReminders(data) {
-    const response = await axiosInstance.post(`${this.baseURL}/reminders/`, data)
-    return response.data
-  }
-
-  // ===== EXPORT & SEARCH =====
 
   async exportRepayments(params = {}) {
     const response = await axiosInstance.get(`${this.baseURL}/export/`, {
@@ -224,59 +152,43 @@ class RepaymentsAPI {
     return response.data
   }
 
-  async searchRepayments(params) {
-    const response = await axiosInstance.get(`${this.baseURL}/search/`, { params })
+  // ===== CUSTOMER / LOAN SPECIFIC =====
+
+  async getCustomerRepayments(customerId, params = {}) {
+    const response = await axiosInstance.get(`${this.baseURL}/customer/${customerId}/`, { params })
     return response.data
   }
 
-  // ===== UTILITY METHODS =====
+  async getLoanRepayments(loanId, params = {}) {
+    const response = await axiosInstance.get(`${this.baseURL}/loan/${loanId}/`, { params })
+    return response.data
+  }
 
-  formatPaymentMethod(method) {
-    const methodLabels = {
-      [PAYMENT_METHOD.MPESA]: 'M-Pesa',
-      [PAYMENT_METHOD.CASH]: 'Cash',
-      [PAYMENT_METHOD.BANK_TRANSFER]: 'Bank Transfer',
-      [PAYMENT_METHOD.CHEQUE]: 'Cheque',
-      [PAYMENT_METHOD.CREDIT_CARD]: 'Credit Card',
-      [PAYMENT_METHOD.OTHER]: 'Other'
-    }
-    return methodLabels[method] || method
+  // ===== UTILITIES =====
+
+  downloadExport(blob, filename = 'repayments_export.xlsx') {
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
   }
 
   formatStatus(status) {
-    const statusLabels = {
-      [REPAYMENT_STATUS.PENDING]: 'Pending',
-      [REPAYMENT_STATUS.PROCESSING]: 'Processing',
-      [REPAYMENT_STATUS.COMPLETED]: 'Completed',
-      [REPAYMENT_STATUS.FAILED]: 'Failed',
-      [REPAYMENT_STATUS.CANCELLED]: 'Cancelled',
-      [REPAYMENT_STATUS.OVERDUE]: 'Overdue',
-      [REPAYMENT_STATUS.PARTIAL]: 'Partial',
-      [REPAYMENT_STATUS.WAIVED]: 'Waived'
+    const mapping = {
+      PENDING: 'Pending',
+      PROCESSING: 'Processing',
+      COMPLETED: 'Completed',
+      FAILED: 'Failed',
+      CANCELLED: 'Cancelled',
+      OVERDUE: 'Overdue',
+      PARTIAL: 'Partial',
+      WAIVED: 'Waived',
     }
-    return statusLabels[status] || status
-  }
-
-  getStatusColor(status) {
-    const colors = {
-      [REPAYMENT_STATUS.PENDING]: 'warning',
-      [REPAYMENT_STATUS.PROCESSING]: 'info',
-      [REPAYMENT_STATUS.COMPLETED]: 'success',
-      [REPAYMENT_STATUS.FAILED]: 'danger',
-      [REPAYMENT_STATUS.CANCELLED]: 'neutral',
-      [REPAYMENT_STATUS.OVERDUE]: 'danger',
-      [REPAYMENT_STATUS.PARTIAL]: 'warning',
-      [REPAYMENT_STATUS.WAIVED]: 'info'
-    }
-    return colors[status] || 'neutral'
-  }
-
-  calculateRemainingDays(dueDate) {
-    const today = new Date()
-    const due = new Date(dueDate)
-    const diffTime = due - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays
+    return mapping[status] || status
   }
 
   formatCurrency(amount) {
@@ -284,7 +196,7 @@ class RepaymentsAPI {
       style: 'currency',
       currency: 'KES',
       minimumFractionDigits: 2
-    }).format(amount)
+    }).format(Number(amount || 0))
   }
 }
 

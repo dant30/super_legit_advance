@@ -1,8 +1,8 @@
 // frontend/src/hooks/useCustomers.js
-import { useState, useCallback, useContext } from 'react'
-import customerAPI from '@/api/customers'
-import { AuthContext } from '@/contexts/AuthContext'
-import { useToast } from '@/contexts/ToastContext'
+import { useState, useCallback, useRef, useEffect } from 'react'
+import customerAPI from '../api/customers'
+import { useAuth } from './useAuth'
+import { useToast } from '../contexts/ToastContext'
 
 export const useCustomers = () => {
   const [state, setState] = useState({
@@ -47,506 +47,271 @@ export const useCustomers = () => {
     filters: {},
   })
 
-  const { user } = useContext(AuthContext)
-  const { showToast } = useToast()
+  const abortRef = useRef(null)
+  const { user } = useAuth()
+  const { addToast } = useToast()
 
   // Helper to update state
-  const updateState = useCallback((updates) => {
-    setState(prev => ({ ...prev, ...updates }))
+  const setStatePartial = useCallback((patch) => {
+    setState(prev => ({ ...prev, ...patch }))
   }, [])
 
   // Helper to handle API calls with loading/error states
-  const callApi = useCallback(async (apiCall, loadingKey = null, errorKey = null) => {
-    if (loadingKey) {
-      updateState({ [loadingKey]: true, [errorKey]: null })
-    }
-
+  const callApi = useCallback(async (apiFn, loadingKey = null, errorKey = null) => {
+    if (loadingKey) setStatePartial({ [loadingKey]: true, [errorKey]: null })
     try {
-      const result = await apiCall()
-      
-      if (loadingKey) {
-        updateState({ [loadingKey]: false })
+      const result = await apiFn()
+      if (loadingKey) setStatePartial({ [loadingKey]: false })
+      if (!result || result.success === false) {
+        const err = result?.error || 'Request failed'
+        if (errorKey) setStatePartial({ [errorKey]: err })
+        return { success: false, error: err }
       }
-
-      if (!result.success) {
-        if (errorKey) {
-          updateState({ [errorKey]: result.error })
-        }
-        showToast(result.error, 'error')
-        return { success: false, error: result.error }
-      }
-
-      return { success: true, data: result.data }
+      return { success: true, data: result.data, pagination: result.pagination || null, filename: result.filename || null }
     } catch (error) {
-      if (loadingKey) {
-        updateState({ [loadingKey]: false })
-      }
-      if (errorKey) {
-        updateState({ [errorKey]: error.message })
-      }
-      showToast(error.message || 'An error occurred', 'error')
-      return { success: false, error: error.message }
+      if (loadingKey) setStatePartial({ [loadingKey]: false })
+      const msg = error?.message || 'An error occurred'
+      if (errorKey) setStatePartial({ [errorKey]: msg })
+      addToast(msg, 'error')
+      return { success: false, error: msg }
     }
-  }, [updateState, showToast])
+  }, [setStatePartial, addToast])
 
   /* ===== CUSTOMER METHODS ===== */
 
   const fetchCustomers = useCallback(async (params = {}) => {
-    const mergedParams = {
+    const merged = {
       page: state.customersPagination.page,
       page_size: state.customersPagination.page_size,
       ...state.filters,
       ...params,
     }
 
-    const result = await callApi(
-      () => customerAPI.getCustomers(mergedParams),
-      'customersLoading',
-      'customersError'
-    )
-
-    if (result.success) {
-      const data = result.data
-      let customers = []
-      let pagination = { ...state.customersPagination }
-
-      if (data.data) {
-        // New format with data and pagination
-        customers = data.data
-        if (data.pagination) {
-          pagination = {
-            page: data.pagination.page || 1,
-            page_size: data.pagination.page_size || 20,
-            total: data.pagination.total || 0,
-            total_pages: data.pagination.total_pages || 0,
+    const res = await callApi(() => customerAPI.getCustomers(merged), 'customersLoading', 'customersError')
+    if (res.success) {
+      const payload = res.data || []
+      // If backend returned page object {results, pagination}
+      if (payload.results) {
+        setStatePartial({
+          customers: payload.results,
+          customersPagination: {
+            ...state.customersPagination,
+            page: payload.page || state.customersPagination.page,
+            page_size: payload.page_size || state.customersPagination.page_size,
+            total: payload.pagination?.total || payload.count || state.customersPagination.total,
+            total_pages: payload.pagination?.total_pages || Math.ceil((payload.count || 0) / (payload.page_size || state.customersPagination.page_size) || 1)
           }
-        }
-      } else if (data.results) {
-        // Old DRF format
-        customers = data.results
-        pagination = {
-          page: data.page || 1,
-          page_size: data.page_size || 20,
-          total: data.count || 0,
-          total_pages: data.total_pages || Math.ceil((data.count || 0) / 20),
-        }
+        })
+      } else if (Array.isArray(payload)) {
+        setStatePartial({ customers: payload })
       } else {
-        // Array response
-        customers = Array.isArray(data) ? data : []
+        setStatePartial({ customers: Array.isArray(payload.data) ? payload.data : [] })
       }
-
-      updateState({
-        customers,
-        customersPagination: pagination,
-      })
-
-      showToast(`Loaded ${customers.length} customers`, 'success')
+      addToast(`Loaded ${Array.isArray(state.customers) ? state.customers.length : 0} customers`, 'success')
     }
-
-    return result
-  }, [state.filters, state.customersPagination, callApi, updateState, showToast])
+    return res
+  }, [state.customersPagination, state.filters, callApi, setStatePartial, addToast, state.customers])
 
   const fetchCustomer = useCallback(async (id) => {
-    const result = await callApi(
-      () => customerAPI.getCustomer(id),
-      'selectedCustomerLoading',
-      'selectedCustomerError'
-    )
+    const res = await callApi(() => customerAPI.getCustomer(id), 'selectedCustomerLoading', 'selectedCustomerError')
+    if (res.success) setStatePartial({ selectedCustomer: res.data })
+    return res
+  }, [callApi, setStatePartial])
 
-    if (result.success) {
-      updateState({ selectedCustomer: result.data })
+  const createCustomer = useCallback(async (data) => {
+    const res = await callApi(() => customerAPI.createCustomer(data), 'customersLoading', 'customersError')
+    if (res.success) {
+      setState(prev => ({ ...prev, customers: [res.data, ...prev.customers] }))
+      addToast('Customer created', 'success')
     }
+    return res
+  }, [callApi, addToast])
 
-    return result
-  }, [callApi, updateState])
-
-  const createCustomer = useCallback(async (customerData) => {
-    const result = await callApi(
-      () => customerAPI.createCustomer(customerData),
-      'customersLoading',
-      'customersError'
-    )
-
-    if (result.success) {
-      updateState(prev => ({
-        customers: [result.data, ...prev.customers],
+  const updateCustomer = useCallback(async (id, data) => {
+    const res = await callApi(() => customerAPI.updateCustomer(id, data), 'customersLoading', 'customersError')
+    if (res.success) {
+      setState(prev => ({
+        ...prev,
+        customers: prev.customers.map(c => (c.id === id ? { ...c, ...res.data } : c)),
+        selectedCustomer: prev.selectedCustomer?.id === id ? { ...prev.selectedCustomer, ...res.data } : prev.selectedCustomer
       }))
-      showToast('Customer created successfully', 'success')
+      addToast('Customer updated', 'success')
     }
-
-    return result
-  }, [callApi, updateState, showToast])
-
-  const updateCustomer = useCallback(async (id, customerData) => {
-    const result = await callApi(
-      () => customerAPI.updateCustomer(id, customerData),
-      'customersLoading',
-      'customersError'
-    )
-
-    if (result.success) {
-      updateState(prev => ({
-        customers: prev.customers.map(customer =>
-          customer.id === id ? { ...customer, ...result.data } : customer
-        ),
-        selectedCustomer: prev.selectedCustomer?.id === id
-          ? { ...prev.selectedCustomer, ...result.data }
-          : prev.selectedCustomer,
-      }))
-      showToast('Customer updated successfully', 'success')
-    }
-
-    return result
-  }, [callApi, updateState, showToast])
+    return res
+  }, [callApi, addToast])
 
   const deleteCustomer = useCallback(async (id) => {
-    const result = await callApi(
-      () => customerAPI.deleteCustomer(id),
-      'customersLoading',
-      'customersError'
-    )
-
-    if (result.success) {
-      updateState(prev => ({
-        customers: prev.customers.filter(customer => customer.id !== id),
-        selectedCustomer: prev.selectedCustomer?.id === id ? null : prev.selectedCustomer,
-      }))
-      showToast('Customer deleted successfully', 'success')
+    const res = await callApi(() => customerAPI.deleteCustomer(id), 'customersLoading', 'customersError')
+    if (res.success) {
+      setState(prev => ({ ...prev, customers: prev.customers.filter(c => c.id !== id), selectedCustomer: prev.selectedCustomer?.id === id ? null : prev.selectedCustomer }))
+      addToast('Customer deleted', 'success')
     }
+    return res
+  }, [callApi, addToast])
 
-    return result
-  }, [callApi, updateState, showToast])
-
-  const searchCustomers = useCallback(async (query, searchType = 'basic') => {
-    const result = await callApi(
-      () => customerAPI.searchCustomers(query, searchType),
-      'searchLoading',
-      'searchError'
-    )
-
-    if (result.success) {
-      updateState({ searchResults: result.data || [] })
-    }
-
-    return result
-  }, [callApi, updateState])
+  const searchCustomers = useCallback(async (query, type = 'basic') => {
+    const res = await callApi(() => customerAPI.searchCustomers(query, type), 'searchLoading', 'searchError')
+    if (res.success) setStatePartial({ searchResults: res.data || [] })
+    return res
+  }, [callApi, setStatePartial])
 
   const getCustomerStats = useCallback(async () => {
-    const result = await callApi(
-      () => customerAPI.getCustomerStats(),
-      'statsLoading',
-      'statsError'
-    )
-
-    if (result.success) {
-      updateState({ stats: result.data })
-    }
-
-    return result
-  }, [callApi, updateState])
+    const res = await callApi(() => customerAPI.getCustomerStats(), 'statsLoading', 'statsError')
+    if (res.success) setStatePartial({ stats: res.data })
+    return res
+  }, [callApi, setStatePartial])
 
   const blacklistCustomer = useCallback(async (id, reason) => {
-    const result = await callApi(
-      () => customerAPI.blacklistCustomer(id, reason),
-      'customersLoading',
-      'customersError'
-    )
-
-    if (result.success) {
-      updateState(prev => ({
-        customers: prev.customers.map(customer =>
-          customer.id === id ? result.data : customer
-        ),
-        selectedCustomer: prev.selectedCustomer?.id === id
-          ? result.data
-          : prev.selectedCustomer,
-      }))
-      showToast('Customer blacklisted successfully', 'success')
+    const res = await callApi(() => customerAPI.blacklistCustomer(id, reason), 'customersLoading', 'customersError')
+    if (res.success) {
+      setState(prev => ({ ...prev, customers: prev.customers.map(c => c.id === id ? res.data : c), selectedCustomer: prev.selectedCustomer?.id === id ? res.data : prev.selectedCustomer }))
+      addToast('Customer blacklisted', 'success')
     }
-
-    return result
-  }, [callApi, updateState, showToast])
+    return res
+  }, [callApi, addToast])
 
   const activateCustomer = useCallback(async (id) => {
-    const result = await callApi(
-      () => customerAPI.activateCustomer(id),
-      'customersLoading',
-      'customersError'
-    )
-
-    if (result.success) {
-      updateState(prev => ({
-        customers: prev.customers.map(customer =>
-          customer.id === id ? result.data : customer
-        ),
-        selectedCustomer: prev.selectedCustomer?.id === id
-          ? result.data
-          : prev.selectedCustomer,
-      }))
-      showToast('Customer activated successfully', 'success')
+    const res = await callApi(() => customerAPI.activateCustomer(id), 'customersLoading', 'customersError')
+    if (res.success) {
+      setState(prev => ({ ...prev, customers: prev.customers.map(c => c.id === id ? res.data : c), selectedCustomer: prev.selectedCustomer?.id === id ? res.data : prev.selectedCustomer }))
+      addToast('Customer activated', 'success')
     }
-
-    return result
-  }, [callApi, updateState, showToast])
+    return res
+  }, [callApi, addToast])
 
   const exportCustomers = useCallback(async (format = 'excel', filters = {}) => {
-    const result = await callApi(() => customerAPI.exportCustomers(format, filters))
-
-    if (result.success) {
-      // Create download link
-      const url = window.URL.createObjectURL(result.data)
+    const res = await callApi(() => customerAPI.exportCustomers(format, filters))
+    if (res.success && res.filename !== undefined) {
+      const blob = res.data
+      const url = window.URL.createObjectURL(new Blob([blob]))
       const a = document.createElement('a')
       a.href = url
       a.download = `customers_export.${format === 'excel' ? 'xlsx' : 'csv'}`
       document.body.appendChild(a)
       a.click()
+      a.remove()
       window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-      showToast('Export completed successfully', 'success')
+      addToast('Export ready', 'success')
     }
-
-    return result
-  }, [callApi, showToast])
+    return res
+  }, [callApi, addToast])
 
   const importCustomers = useCallback(async (file) => {
-    const result = await callApi(() => customerAPI.importCustomers(file))
-
-    if (result.success) {
-      showToast(`Successfully imported ${result.data.imported_count || 0} customers`, 'success')
-      // Refresh customer list
+    const res = await callApi(() => customerAPI.importCustomers(file))
+    if (res.success) {
+      addToast(res.message || 'Import completed', 'success')
       fetchCustomers()
     }
-
-    return result
-  }, [callApi, showToast, fetchCustomers])
+    return res
+  }, [callApi, addToast, fetchCustomers])
 
   /* ===== EMPLOYMENT METHODS ===== */
 
   const getEmployment = useCallback(async (customerId) => {
-    const result = await callApi(
-      () => customerAPI.getEmployment(customerId),
-      'employmentLoading',
-      'employmentError'
-    )
+    const res = await callApi(() => customerAPI.getEmployment(customerId), 'employmentLoading', 'employmentError')
+    if (res.success) setStatePartial({ employment: res.data })
+    return res
+  }, [callApi, setStatePartial])
 
-    if (result.success) {
-      updateState({ employment: result.data })
+  const updateEmployment = useCallback(async (customerId, data) => {
+    const res = await callApi(() => customerAPI.updateEmployment(customerId, data), 'employmentLoading', 'employmentError')
+    if (res.success) {
+      setState(prev => ({ ...prev, employment: res.data, selectedCustomer: prev.selectedCustomer?.id === customerId ? { ...prev.selectedCustomer, employment: res.data } : prev.selectedCustomer }))
+      addToast('Employment updated', 'success')
     }
-
-    return result
-  }, [callApi, updateState])
-
-  const updateEmployment = useCallback(async (customerId, employmentData) => {
-    const result = await callApi(
-      () => customerAPI.updateEmployment(customerId, employmentData),
-      'employmentLoading',
-      'employmentError'
-    )
-
-    if (result.success) {
-      updateState({
-        employment: result.data,
-        selectedCustomer: state.selectedCustomer
-          ? { ...state.selectedCustomer, employment: result.data }
-          : state.selectedCustomer,
-      })
-      showToast('Employment information updated successfully', 'success')
-    }
-
-    return result
-  }, [callApi, updateState, showToast, state.selectedCustomer])
+    return res
+  }, [callApi, addToast])
 
   /* ===== GUARANTOR METHODS ===== */
 
   const getGuarantors = useCallback(async (customerId) => {
-    const result = await callApi(
-      () => customerAPI.getGuarantors(customerId),
-      'guarantorsLoading',
-      'guarantorsError'
-    )
+    const res = await callApi(() => customerAPI.getGuarantors(customerId), 'guarantorsLoading', 'guarantorsError')
+    if (res.success) setStatePartial({ guarantors: res.data || [] })
+    return res
+  }, [callApi, setStatePartial])
 
-    if (result.success) {
-      updateState({ guarantors: result.data || [] })
-    }
+  const createGuarantor = useCallback(async (customerId, data) => {
+    const res = await callApi(() => customerAPI.createGuarantor(customerId, data), 'guarantorsLoading', 'guarantorsError')
+    if (res.success) setState(prev => ({ ...prev, guarantors: [res.data, ...prev.guarantors] }), addToast('Guarantor created', 'success'))
+    return res
+  }, [callApi, addToast])
 
-    return result
-  }, [callApi, updateState])
-
-  const createGuarantor = useCallback(async (customerId, guarantorData) => {
-    const result = await callApi(
-      () => customerAPI.createGuarantor(customerId, guarantorData),
-      'guarantorsLoading',
-      'guarantorsError'
-    )
-
-    if (result.success) {
-      updateState(prev => ({
-        guarantors: [result.data, ...prev.guarantors],
-      }))
-      showToast('Guarantor created successfully', 'success')
-    }
-
-    return result
-  }, [callApi, updateState, showToast])
-
-  const getGuarantor = useCallback(async (id) => {
-    const result = await callApi(
-      () => customerAPI.getGuarantor(id),
-      'guarantorsLoading',
-      'guarantorsError'
-    )
-
-    if (result.success) {
-      updateState({ selectedGuarantor: result.data })
-    }
-
-    return result
-  }, [callApi, updateState])
-
-  const updateGuarantor = useCallback(async (id, guarantorData) => {
-    const result = await callApi(
-      () => customerAPI.updateGuarantor(id, guarantorData),
-      'guarantorsLoading',
-      'guarantorsError'
-    )
-
-    if (result.success) {
-      updateState(prev => ({
-        guarantors: prev.guarantors.map(guarantor =>
-          guarantor.id === id ? result.data : guarantor
-        ),
-        selectedGuarantor: prev.selectedGuarantor?.id === id
-          ? result.data
-          : prev.selectedGuarantor,
-      }))
-      showToast('Guarantor updated successfully', 'success')
-    }
-
-    return result
-  }, [callApi, updateState, showToast])
+  const updateGuarantor = useCallback(async (id, data) => {
+    const res = await callApi(() => customerAPI.updateGuarantor(id, data), 'guarantorsLoading', 'guarantorsError')
+    if (res.success) setState(prev => ({ ...prev, guarantors: prev.guarantors.map(g => g.id === id ? res.data : g), selectedGuarantor: prev.selectedGuarantor?.id === id ? res.data : prev.selectedGuarantor }), addToast('Guarantor updated', 'success'))
+    return res
+  }, [callApi, addToast])
 
   const deleteGuarantor = useCallback(async (id) => {
-    const result = await callApi(
-      () => customerAPI.deleteGuarantor(id),
-      'guarantorsLoading',
-      'guarantorsError'
-    )
+    const res = await callApi(() => customerAPI.deleteGuarantor(id), 'guarantorsLoading', 'guarantorsError')
+    if (res.success) setState(prev => ({ ...prev, guarantors: prev.guarantors.filter(g => g.id !== id) }), addToast('Guarantor removed', 'success'))
+    return res
+  }, [callApi, addToast])
 
-    if (result.success) {
-      updateState(prev => ({
-        guarantors: prev.guarantors.filter(guarantor => guarantor.id !== id),
-        selectedGuarantor: prev.selectedGuarantor?.id === id ? null : prev.selectedGuarantor,
-      }))
-      showToast('Guarantor deleted successfully', 'success')
+    const verifyGuarantor = useCallback(async (id, action, notes = '') => {
+      const res = await callApi(() => customerAPI.verifyGuarantor(id, action, notes), 'guarantorsLoading', 'guarantorsError')
+      if (res.success) {
+        setState(prev => ({ ...prev, guarantors: prev.guarantors.map(g => g.id === id ? res.data : g), selectedGuarantor: prev.selectedGuarantor?.id === id ? res.data : prev.selectedGuarantor }))
+        addToast('Guarantor verified', 'success')
+      }
+      return res
+    }, [callApi, addToast])
+  
+    return {
+      // List
+      customers: state.customers,
+      customersLoading: state.customersLoading,
+      customersError: state.customersError,
+      customersPagination: state.customersPagination,
+      fetchCustomers,
+      createCustomer,
+      updateCustomer,
+      deleteCustomer,
+  
+      // Detail
+      selectedCustomer: state.selectedCustomer,
+      selectedCustomerLoading: state.selectedCustomerLoading,
+      selectedCustomerError: state.selectedCustomerError,
+      fetchCustomer,
+  
+      // Stats
+      stats: state.stats,
+      statsLoading: state.statsLoading,
+      statsError: state.statsError,
+      getCustomerStats,
+  
+      // Employment
+      employment: state.employment,
+      employmentLoading: state.employmentLoading,
+      employmentError: state.employmentError,
+      getEmployment,
+      updateEmployment,
+  
+      // Guarantors
+      guarantors: state.guarantors,
+      selectedGuarantor: state.selectedGuarantor,
+      guarantorsLoading: state.guarantorsLoading,
+      guarantorsError: state.guarantorsError,
+      getGuarantors,
+      createGuarantor,
+      updateGuarantor,
+      deleteGuarantor,
+      verifyGuarantor,
+  
+      // Search
+      searchResults: state.searchResults,
+      searchLoading: state.searchLoading,
+      searchError: state.searchError,
+      searchCustomers,
+  
+      // Actions
+      blacklistCustomer,
+      activateCustomer,
+      exportCustomers,
+      importCustomers,
+  
+      // Filters
+      filters: state.filters,
+      setStatePartial,
     }
-
-    return result
-  }, [callApi, updateState, showToast])
-
-  const verifyGuarantor = useCallback(async (id, action, notes) => {
-    const result = await callApi(
-      () => customerAPI.verifyGuarantor(id, action, notes),
-      'guarantorsLoading',
-      'guarantorsError'
-    )
-
-    if (result.success) {
-      updateState(prev => ({
-        guarantors: prev.guarantors.map(guarantor =>
-          guarantor.id === id ? result.data : guarantor
-        ),
-        selectedGuarantor: prev.selectedGuarantor?.id === id
-          ? result.data
-          : prev.selectedGuarantor,
-      }))
-      showToast(`Guarantor ${action}ed successfully`, 'success')
-    }
-
-    return result
-  }, [callApi, updateState, showToast])
-
-  /* ===== UTILITY METHODS ===== */
-
-  const setFilters = useCallback((filters) => {
-    updateState({
-      filters: { ...state.filters, ...filters },
-      customersPagination: { ...state.customersPagination, page: 1 },
-    })
-  }, [state.filters, state.customersPagination, updateState])
-
-  const setCustomerPage = useCallback((page) => {
-    updateState({
-      customersPagination: { ...state.customersPagination, page },
-    })
-  }, [state.customersPagination, updateState])
-
-  const clearError = useCallback(() => {
-    updateState({
-      customersError: null,
-      selectedCustomerError: null,
-      statsError: null,
-      employmentError: null,
-      guarantorsError: null,
-      searchError: null,
-    })
-  }, [updateState])
-
-  const clearSelectedCustomer = useCallback(() => {
-    updateState({ selectedCustomer: null })
-  }, [updateState])
-
-  const clearSelectedGuarantor = useCallback(() => {
-    updateState({ selectedGuarantor: null })
-  }, [updateState])
-
-  const clearSearchResults = useCallback(() => {
-    updateState({ searchResults: [] })
-  }, [updateState])
-
-  return {
-    // State
-    ...state,
-    
-    // Customer methods
-    fetchCustomers,
-    fetchCustomer,
-    createCustomer,
-    updateCustomer,
-    deleteCustomer,
-    searchCustomers,
-    getCustomerStats,
-    blacklistCustomer,
-    activateCustomer,
-    exportCustomers,
-    importCustomers,
-    
-    // Employment methods
-    getEmployment,
-    updateEmployment,
-    
-    // Guarantor methods
-    getGuarantors,
-    createGuarantor,
-    getGuarantor,
-    updateGuarantor,
-    deleteGuarantor,
-    verifyGuarantor,
-    
-    // Utility methods
-    setFilters,
-    setCustomerPage,
-    clearError,
-    clearSelectedCustomer,
-    clearSelectedGuarantor,
-    clearSearchResults,
-    
-    // Derived state
-    isLoading: state.customersLoading || state.selectedCustomerLoading || 
-               state.statsLoading || state.employmentLoading || 
-               state.guarantorsLoading || state.searchLoading,
-    
-    // Permission checks (using auth context)
-    canManageCustomers: user?.is_staff || user?.role === 'admin' || user?.role === 'staff',
-    canApproveCustomers: user?.role === 'admin' || user?.role === 'manager',
   }
-}

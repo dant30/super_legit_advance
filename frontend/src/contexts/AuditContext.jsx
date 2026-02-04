@@ -7,6 +7,7 @@ const initialState = {
   logs: [],
   currentLog: null,
   stats: null,
+  summary: null,
   userActivity: null,
   securityEvents: [],
   complianceEvents: [],
@@ -14,6 +15,16 @@ const initialState = {
   error: null,
   filters: {},
   pagination: {
+    count: 0,
+    next: null,
+    previous: null,
+  },
+  securityPagination: {
+    count: 0,
+    next: null,
+    previous: null,
+  },
+  compliancePagination: {
     count: 0,
     next: null,
     previous: null,
@@ -27,6 +38,7 @@ const ACTIONS = {
   SET_LOGS: 'SET_LOGS',
   SET_CURRENT_LOG: 'SET_CURRENT_LOG',
   SET_STATS: 'SET_STATS',
+  SET_SUMMARY: 'SET_SUMMARY',
   SET_USER_ACTIVITY: 'SET_USER_ACTIVITY',
   SET_SECURITY_EVENTS: 'SET_SECURITY_EVENTS',
   SET_COMPLIANCE_EVENTS: 'SET_COMPLIANCE_EVENTS',
@@ -52,6 +64,7 @@ function auditReducer(state, action) {
         ...state,
         logs: action.payload.logs,
         pagination: action.payload.pagination,
+        summary: action.payload.summary || null,
         loading: false,
         error: null,
       }
@@ -61,6 +74,9 @@ function auditReducer(state, action) {
     
     case ACTIONS.SET_STATS:
       return { ...state, stats: action.payload, loading: false, error: null }
+
+    case ACTIONS.SET_SUMMARY:
+      return { ...state, summary: action.payload, loading: false, error: null }
     
     case ACTIONS.SET_USER_ACTIVITY:
       return { ...state, userActivity: action.payload, loading: false, error: null }
@@ -69,6 +85,7 @@ function auditReducer(state, action) {
       return {
         ...state,
         securityEvents: action.payload.events,
+        securityPagination: action.payload.pagination || initialState.securityPagination,
         loading: false,
         error: null,
       }
@@ -77,6 +94,7 @@ function auditReducer(state, action) {
       return {
         ...state,
         complianceEvents: action.payload.events,
+        compliancePagination: action.payload.pagination || initialState.compliancePagination,
         loading: false,
         error: null,
       }
@@ -153,6 +171,7 @@ export function AuditProvider({ children }) {
         type: ACTIONS.SET_LOGS,
         payload: {
           logs: response.results || [],
+          summary: response.summary || null,
           pagination: {
             count: response.count || 0,
             next: response.next,
@@ -179,14 +198,15 @@ export function AuditProvider({ children }) {
     }
   }, [setLoading, setError])
 
-  const searchLogs = useCallback(async (query, searchType = 'all', params = {}) => {
+  const searchLogs = useCallback(async (q, type = 'all', params = {}) => {
     setLoading(true)
     try {
-      const response = await auditAPI.searchAuditLogs(query, searchType, params)
+      const response = await auditAPI.searchAuditLogs(q, type, params)
       dispatch({
         type: ACTIONS.SET_LOGS,
         payload: {
           logs: response.results || [],
+          summary: response.summary || null,
           pagination: {
             count: response.count || 0,
             next: response.next,
@@ -213,13 +233,25 @@ export function AuditProvider({ children }) {
     }
   }, [setLoading, setError])
 
-  const exportAuditLogs = useCallback(async (format = 'excel', params = {}) => {
+  const exportAuditLogs = useCallback(async (format = 'excel', params = {}, options = {}) => {
     setLoading(true)
     try {
-      const blob = await auditAPI.exportAuditLogs(format, params)
+      const download = options.download !== false
+      const data = await auditAPI.exportAuditLogs(format, params)
       const filename = auditAPI.generateExportFilename(format)
-      auditAPI.downloadExportFile(blob, filename)
-      return { success: true, filename }
+
+      if (download) {
+        if (format === 'json') {
+          const jsonBlob = new Blob([JSON.stringify(data, null, 2)], {
+            type: 'application/json',
+          })
+          auditAPI.downloadExportFile(jsonBlob, filename)
+        } else {
+          auditAPI.downloadExportFile(data, filename)
+        }
+      }
+
+      return { success: true, filename, data }
     } catch (error) {
       setError(error.message || 'Failed to export audit logs')
       throw error
@@ -248,6 +280,11 @@ export function AuditProvider({ children }) {
         type: ACTIONS.SET_SECURITY_EVENTS,
         payload: {
           events: response.results || [],
+          pagination: {
+            count: response.count || 0,
+            next: response.next,
+            previous: response.previous,
+          },
         },
       })
       return response
@@ -265,6 +302,11 @@ export function AuditProvider({ children }) {
         type: ACTIONS.SET_COMPLIANCE_EVENTS,
         payload: {
           events: response.results || [],
+          pagination: {
+            count: response.count || 0,
+            next: response.next,
+            previous: response.previous,
+          },
         },
       })
       return response
@@ -285,6 +327,69 @@ export function AuditProvider({ children }) {
   const getAuditLogsByModel = useCallback(async (modelName, params = {}) => {
     return getAuditLogs({
       model_name: modelName,
+      ...params,
+    })
+  }, [getAuditLogs])
+
+  const getAuditLogsByUser = useCallback(async (userId, params = {}) => {
+    return getAuditLogs({
+      user_id: userId,
+      ...params,
+    })
+  }, [getAuditLogs])
+
+  const getAuditLogsByObject = useCallback(async (objectId, params = {}) => {
+    return getAuditLogs({
+      object_id: objectId,
+      ...params,
+    })
+  }, [getAuditLogs])
+
+  const getAuditLogsByIp = useCallback(async (ipAddress, params = {}) => {
+    return getAuditLogs({
+      ip_address: ipAddress,
+      ...params,
+    })
+  }, [getAuditLogs])
+
+  const getAuditLogsByAction = useCallback(async (action, params = {}) => {
+    return getAuditLogs({
+      action,
+      ...params,
+    })
+  }, [getAuditLogs])
+
+  const getAuditLogsBySeverity = useCallback(async (severity, params = {}) => {
+    return getAuditLogs({
+      severity,
+      ...params,
+    })
+  }, [getAuditLogs])
+
+  const getAuditLogsByStatus = useCallback(async (status, params = {}) => {
+    return getAuditLogs({
+      status,
+      ...params,
+    })
+  }, [getAuditLogs])
+
+  const getAuditLogsByModule = useCallback(async (module, params = {}) => {
+    return getAuditLogs({
+      module,
+      ...params,
+    })
+  }, [getAuditLogs])
+
+  const getComplianceFlaggedLogs = useCallback(async (isComplianceEvent = true, params = {}) => {
+    return getAuditLogs({
+      is_compliance_event: isComplianceEvent,
+      ...params,
+    })
+  }, [getAuditLogs])
+
+  const getAuditLogsByTags = useCallback(async (tags = [], params = {}) => {
+    return getAuditLogs({
+      tags,
       ...params,
     })
   }, [getAuditLogs])
@@ -326,6 +431,15 @@ export function AuditProvider({ children }) {
     getComplianceEvents,
     getAuditLogsByDateRange,
     getAuditLogsByModel,
+    getAuditLogsByUser,
+    getAuditLogsByObject,
+    getAuditLogsByIp,
+    getAuditLogsByAction,
+    getAuditLogsBySeverity,
+    getAuditLogsByStatus,
+    getAuditLogsByModule,
+    getComplianceFlaggedLogs,
+    getAuditLogsByTags,
     getFailedActions,
     getHighSeverityEvents,
   }), [
@@ -345,6 +459,15 @@ export function AuditProvider({ children }) {
     getComplianceEvents,
     getAuditLogsByDateRange,
     getAuditLogsByModel,
+    getAuditLogsByUser,
+    getAuditLogsByObject,
+    getAuditLogsByIp,
+    getAuditLogsByAction,
+    getAuditLogsBySeverity,
+    getAuditLogsByStatus,
+    getAuditLogsByModule,
+    getComplianceFlaggedLogs,
+    getAuditLogsByTags,
     getFailedActions,
     getHighSeverityEvents,
   ])
