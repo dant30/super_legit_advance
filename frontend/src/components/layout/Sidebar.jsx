@@ -24,7 +24,6 @@ import {
   Calculator,
   Upload,
   Download,
-  Search,
   AlertCircle,
   CheckCircle,
   Clock,
