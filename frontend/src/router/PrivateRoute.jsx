@@ -5,25 +5,23 @@ import Loading from '@components/shared/Loading'
 
 /**
  * 🔐 PrivateRoute
- * Waits for auth to resolve before allowing access.
- * Shows full-screen loader while checking auth.
+ * Protects routes that require authentication
  */
 const PrivateRoute = () => {
   const location = useLocation()
-  const { isAuthenticated, isLoading, user } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
 
-  // ⏳ Auth is still being resolved
+  // ⏳ Still loading auth state
   if (isLoading) {
-    return <Loading fullScreen size="xl" message="Checking authentication..." />
+    return <Loading fullScreen size="xl" message="Verifying access..." />
   }
 
-  // 🔒 Auth resolved but user not logged in
+  // 🔒 Not authenticated - redirect to login
   if (!isAuthenticated) {
-    // Redirect to login with return URL
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  // ✅ Authenticated → allow access
+  // ✅ Authenticated - allow access
   return <Outlet />
 }
 

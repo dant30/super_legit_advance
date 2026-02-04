@@ -1,4 +1,5 @@
 // frontend/src/components/layout/Sidebar.jsx
+// frontend/src/components/layout/Sidebar.jsx
 import React, { useState, useEffect } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@hooks/useAuth'
@@ -28,8 +29,13 @@ import {
   CheckCircle,
   Clock,
   PieChart,
+  FileBarChart,
+  Wrench,
+  UserCheck,
+  FolderOpen,
+  Database,
+  HeartPulse,
 } from 'lucide-react'
-import clsx from 'clsx'
 import { cn } from '@utils/cn'
 
 const Sidebar = ({ onClose }) => {
@@ -89,7 +95,7 @@ const Sidebar = ({ onClose }) => {
     }
   }, [statsData])
 
-  // Menu configuration
+  // Menu configuration - UPDATED TO MATCH ACTUAL ROUTES
   const menuItems = [
     // Dashboard
     {
@@ -101,7 +107,7 @@ const Sidebar = ({ onClose }) => {
       roles: ['admin', 'staff', 'officer', 'customer'],
     },
 
-    // Customers
+    // Customers - UPDATED ROUTES
     {
       id: 'customers',
       title: 'Customers',
@@ -112,14 +118,12 @@ const Sidebar = ({ onClose }) => {
       subItems: [
         { title: 'All Customers', path: '/customers', icon: <Users className="h-4 w-4" /> },
         { title: 'Add New', path: '/customers/create', icon: <UserPlus className="h-4 w-4" /> },
-        { title: 'Search', path: '/customers/search', icon: <Search className="h-4 w-4" /> },
-        { title: 'Blacklisted', path: '/customers?status=blacklisted', icon: <AlertCircle className="h-4 w-4" />, badge: stats.blacklistedCustomers },
         { title: 'Import', path: '/customers/import', icon: <Upload className="h-4 w-4" /> },
         { title: 'Export', path: '/customers/export', icon: <Download className="h-4 w-4" /> },
       ],
     },
 
-    // Loans
+    // Loans - UPDATED ROUTES
     {
       id: 'loans',
       title: 'Loans',
@@ -130,14 +134,12 @@ const Sidebar = ({ onClose }) => {
       subItems: [
         { title: 'All Loans', path: '/loans', icon: <CreditCard className="h-4 w-4" /> },
         { title: 'New Application', path: '/loans/create', icon: <FileText className="h-4 w-4" /> },
-        { title: 'Approvals', path: '/loans/approvals', icon: <CheckCircle className="h-4 w-4" />, badge: stats.pendingApprovals },
-        { title: 'Active Loans', path: '/loans?status=active', icon: <TrendingUp className="h-4 w-4" /> },
-        { title: 'Overdue', path: '/loans?status=overdue', icon: <Clock className="h-4 w-4" /> },
-        { title: 'Calculator', path: '/loans/calculator', icon: <Calculator className="h-4 w-4" /> },
+        { title: 'Pending Approvals', path: '/loans/approvals', icon: <CheckCircle className="h-4 w-4" />, badge: stats.pendingApprovals },
+        { title: 'Loan Calculator', path: '/loans/calculator', icon: <Calculator className="h-4 w-4" /> },
       ],
     },
 
-    // Repayments
+    // Repayments - UPDATED ROUTES
     {
       id: 'repayments',
       title: 'Repayments',
@@ -147,13 +149,13 @@ const Sidebar = ({ onClose }) => {
       badge: stats.overdueRepayments,
       subItems: [
         { title: 'All Payments', path: '/repayments', icon: <DollarSign className="h-4 w-4" /> },
-        { title: 'Collect Payment', path: '/repayments/collect', icon: <DollarSign className="h-4 w-4" /> },
-        { title: 'Schedule', path: '/repayments/schedule', icon: <Calendar className="h-4 w-4" /> },
-        { title: 'Overdue', path: '/repayments?status=overdue', icon: <AlertCircle className="h-4 w-4" />, badge: stats.overdueRepayments },
+        { title: 'Collect Payment', path: '/repayments/create', icon: <DollarSign className="h-4 w-4" /> },
+        { title: 'Payment History', path: '/repayments/history', icon: <Calendar className="h-4 w-4" /> },
+        { title: 'Overdue Payments', path: '/repayments/overdue', icon: <AlertCircle className="h-4 w-4" />, badge: stats.overdueRepayments },
       ],
     },
 
-    // Reports
+    // Reports - UPDATED ROUTES
     {
       id: 'reports',
       title: 'Reports',
@@ -161,25 +163,13 @@ const Sidebar = ({ onClose }) => {
       path: '/reports',
       roles: ['admin', 'staff'],
       subItems: [
-        { title: 'Overview', path: '/reports', icon: <PieChart className="h-4 w-4" /> },
+        { title: 'Reports Dashboard', path: '/reports', icon: <PieChart className="h-4 w-4" /> },
         { title: 'Loans Report', path: '/reports/loans', icon: <CreditCard className="h-4 w-4" /> },
         { title: 'Payments Report', path: '/reports/payments', icon: <DollarSign className="h-4 w-4" /> },
         { title: 'Customer Report', path: '/reports/customers', icon: <Users className="h-4 w-4" /> },
+        { title: 'Performance Report', path: '/reports/performance', icon: <TrendingUp className="h-4 w-4" /> },
         { title: 'Collection Report', path: '/reports/collection', icon: <BarChart3 className="h-4 w-4" /> },
-      ],
-    },
-
-    // M-Pesa
-    {
-      id: 'mpesa',
-      title: 'M-Pesa',
-      icon: <Smartphone className="h-5 w-5" />,
-      path: '/mpesa',
-      roles: ['admin', 'staff'],
-      subItems: [
-        { title: 'Transactions', path: '/mpesa/transactions', icon: <Smartphone className="h-4 w-4" /> },
-        { title: 'STK Push', path: '/mpesa/stk-push', icon: <Smartphone className="h-4 w-4" /> },
-        { title: 'Settings', path: '/mpesa/settings', icon: <Settings className="h-4 w-4" /> },
+        { title: 'Audit Report', path: '/reports/audit', icon: <FileBarChart className="h-4 w-4" /> },
       ],
     },
 
@@ -193,7 +183,7 @@ const Sidebar = ({ onClose }) => {
     },
   ]
 
-  // Add admin-only items
+  // Add admin-only items - UPDATED TO MATCH ACTUAL ADMIN ROUTES
   if (isAdmin()) {
     menuItems.push(
       {
@@ -203,22 +193,24 @@ const Sidebar = ({ onClose }) => {
         path: '/admin',
         roles: ['admin'],
         subItems: [
-          { title: 'Staff Management', path: '/admin/staff', icon: <Users className="h-4 w-4" /> },
-          { title: 'Audit Log', path: '/admin/audit', icon: <FileText className="h-4 w-4" /> },
-          { title: 'System Health', path: '/admin/health', icon: <BarChart3 className="h-4 w-4" /> },
+          { title: 'Admin Dashboard', path: '/admin/dashboard', icon: <Home className="h-4 w-4" /> },
+          { title: 'Staff Management', path: '/admin/staff', icon: <UserCheck className="h-4 w-4" /> },
+          { title: 'Audit Logs', path: '/admin/audit', icon: <FileText className="h-4 w-4" /> },
+          { title: 'System Health', path: '/admin/settings/health', icon: <HeartPulse className="h-4 w-4" /> },
         ],
       },
       {
         id: 'settings',
         title: 'Settings',
         icon: <Settings className="h-5 w-5" />,
-        path: '/settings',
+        path: '/admin/settings',
         roles: ['admin'],
         subItems: [
-          { title: 'General', path: '/settings/general', icon: <Settings className="h-4 w-4" /> },
-          { title: 'Loan Products', path: '/settings/loan-products', icon: <CreditCard className="h-4 w-4" /> },
-          { title: 'Interest Rates', path: '/settings/interest-rates', icon: <DollarSign className="h-4 w-4" /> },
-          { title: 'System Config', path: '/settings/system', icon: <Settings className="h-4 w-4" /> },
+          { title: 'System Settings', path: '/admin/settings', icon: <Settings className="h-4 w-4" /> },
+          { title: 'Loan Products', path: '/admin/settings/products', icon: <CreditCard className="h-4 w-4" /> },
+          { title: 'Interest Rates', path: '/admin/settings/rates', icon: <DollarSign className="h-4 w-4" /> },
+          { title: 'Backup & Restore', path: '/admin/settings/backup', icon: <Database className="h-4 w-4" /> },
+          { title: 'Role Management', path: '/admin/roles', icon: <FolderOpen className="h-4 w-4" /> },
         ],
       }
     )
@@ -233,15 +225,28 @@ const Sidebar = ({ onClose }) => {
   // Auto-expand based on current route
   useEffect(() => {
     const currentPath = location.pathname
-    const parentItem = filteredMenuItems.find(item => 
-      item.subItems?.some(subItem => subItem.path === currentPath) ||
-      (item.exact ? item.path === currentPath : currentPath.startsWith(item.path))
-    )
     
-    if (parentItem && !expandedItems.includes(parentItem.id)) {
-      setExpandedItems(prev => [...prev, parentItem.id])
-    }
-  }, [location.pathname])
+    // Check which parent menu item should be expanded
+    filteredMenuItems.forEach(item => {
+      if (item.subItems) {
+        const shouldExpand = item.subItems.some(subItem => {
+          if (subItem.path === '/admin') {
+            return currentPath.startsWith('/admin') && currentPath !== '/admin/dashboard'
+          }
+          return currentPath.startsWith(subItem.path)
+        })
+        
+        if (shouldExpand && !expandedItems.includes(item.id)) {
+          setExpandedItems(prev => [...prev, item.id])
+        }
+      } else if (currentPath.startsWith(item.path) && item.path !== '/') {
+        // Expand parent for direct links
+        if (!expandedItems.includes(item.id)) {
+          setExpandedItems(prev => [...prev, item.id])
+        }
+      }
+    })
+  }, [location.pathname, filteredMenuItems])
 
   const toggleExpand = (id) => {
     setExpandedItems(prev =>
@@ -253,6 +258,31 @@ const Sidebar = ({ onClose }) => {
 
   const handleNavClick = () => {
     if (onClose) onClose()
+  }
+
+  // Helper function to check if a menu item is active
+  const isMenuItemActive = (item) => {
+    if (item.exact) {
+      return location.pathname === item.path
+    }
+    
+    // For admin routes, check if we're in admin section
+    if (item.path === '/admin') {
+      return location.pathname.startsWith('/admin') && location.pathname !== '/admin/dashboard'
+    }
+    
+    // For other routes
+    if (item.path === '/') {
+      return location.pathname === '/' || location.pathname === '/admin/dashboard'
+    }
+    
+    return location.pathname.startsWith(item.path)
+  }
+
+  // Helper function to check if submenu item is active
+  const isSubMenuItemActive = (subItemPath) => {
+    return location.pathname === subItemPath || 
+           (subItemPath === '/admin' && location.pathname.startsWith('/admin') && location.pathname !== '/admin/dashboard')
   }
 
   return (
@@ -304,10 +334,7 @@ const Sidebar = ({ onClose }) => {
       <nav className="flex-1 overflow-y-auto py-4">
         <div className="px-2 space-y-1">
           {filteredMenuItems.map((item) => {
-            const isActive = item.exact 
-              ? location.pathname === item.path
-              : location.pathname.startsWith(item.path)
-            
+            const isActive = isMenuItemActive(item)
             const isExpanded = expandedItems.includes(item.id)
 
             return (
@@ -350,17 +377,17 @@ const Sidebar = ({ onClose }) => {
                     {isExpanded && (
                       <div className="ml-9 mt-1 space-y-1">
                         {item.subItems.map((subItem) => {
-                          const isSubActive = location.pathname === subItem.path
+                          const isSubActive = isSubMenuItemActive(subItem.path)
                           return (
                             <NavLink
                               key={`${item.id}-${subItem.path}`}
                               to={subItem.path}
                               onClick={handleNavClick}
-                              className={({ isActive }) =>
+                              className={({ isActive: navActive }) =>
                                 cn(
                                   "flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors",
                                   "hover:bg-gray-50 dark:hover:bg-slate-700/30",
-                                  isActive || isSubActive
+                                  (isSubActive || navActive)
                                     ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium"
                                     : "text-gray-600 dark:text-gray-400"
                                 )

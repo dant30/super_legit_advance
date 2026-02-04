@@ -1,9 +1,9 @@
-// frontend/src/lib/utils/reportUtils.ts
+// frontend/src/lib/utils/reportUtils.js
 
 /**
  * Download blob as file
  */
-export const downloadBlob = (blob: Blob, filename: string) => {
+export const downloadBlob = (blob, filename) => {
   const url = window.URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
@@ -17,7 +17,7 @@ export const downloadBlob = (blob: Blob, filename: string) => {
 /**
  * Format file size
  */
-export const formatFileSize = (bytes: number): string => {
+export const formatFileSize = (bytes) => {
   if (bytes === 0) return '0 Bytes'
   const k = 1024
   const sizes = ['Bytes', 'KB', 'MB', 'GB']
@@ -28,7 +28,7 @@ export const formatFileSize = (bytes: number): string => {
 /**
  * Format date for display
  */
-export const formatDate = (dateString: string): string => {
+export const formatDate = (dateString) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -42,8 +42,8 @@ export const formatDate = (dateString: string): string => {
 /**
  * Get report type display name
  */
-export const getReportTypeDisplay = (type: string): string => {
-  const displayNames: Record<string, string> = {
+export const getReportTypeDisplay = (type) => {
+  const displayNames = {
     'loans_summary': 'Loans Summary',
     'payments_detailed': 'Payments Detailed',
     'customers_portfolio': 'Customers Portfolio',
@@ -60,8 +60,8 @@ export const getReportTypeDisplay = (type: string): string => {
 /**
  * Get report category color
  */
-export const getReportCategoryColor = (category: string): string => {
-  const colors: Record<string, string> = {
+export const getReportCategoryColor = (category) => {
+  const colors = {
     'loans': 'bg-blue-100 text-blue-800',
     'payments': 'bg-green-100 text-green-800',
     'customers': 'bg-purple-100 text-purple-800',
@@ -77,7 +77,7 @@ export const getReportCategoryColor = (category: string): string => {
 /**
  * Generate default date range for reports
  */
-export const getDefaultDateRange = (range: 'today' | 'week' | 'month' | 'quarter' | 'year' = 'month') => {
+export const getDefaultDateRange = (range = 'month') => {
   const today = new Date()
   const startDate = new Date()
   
@@ -108,8 +108,8 @@ export const getDefaultDateRange = (range: 'today' | 'week' | 'month' | 'quarter
 /**
  * Validate report parameters
  */
-export const validateReportParameters = (reportType: string, parameters: any): string[] => {
-  const errors: string[] = []
+export const validateReportParameters = (reportType, parameters) => {
+  const errors = []
   
   // Check required parameters based on report type
   switch (reportType) {
@@ -150,4 +150,58 @@ export const validateReportParameters = (reportType: string, parameters: any): s
   }
   
   return errors
+}
+
+// Optional: Add more utility functions for report generation
+
+/**
+ * Get report file extension based on format
+ */
+export const getReportFileExtension = (format) => {
+  const extensions = {
+    'excel': '.xlsx',
+    'csv': '.csv',
+    'pdf': '.pdf',
+    'json': '.json',
+  }
+  return extensions[format] || '.txt'
+}
+
+/**
+ * Generate report filename with timestamp
+ */
+export const generateReportFilename = (reportType, format) => {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+  const extension = getReportFileExtension(format)
+  return `${reportType}_${timestamp}${extension}`
+}
+
+/**
+ * Debounce function for report generation
+ */
+export const debounce = (func, wait) => {
+  let timeout
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
+
+/**
+ * Sanitize report parameters for API request
+ */
+export const sanitizeReportParams = (params) => {
+  const sanitized = {}
+  
+  for (const key in params) {
+    if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+      sanitized[key] = params[key]
+    }
+  }
+  
+  return sanitized
 }

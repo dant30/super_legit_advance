@@ -5,7 +5,7 @@ frontend/
 ├── vite.config.js
 ├── tailwind.config.js
 ├── postcss.config.js
-├── jsconfig.json                # Changed from tsconfig.json
+├── jsconfig.json
 ├── index.html
 ├── .env.example
 ├── .gitignore
@@ -14,272 +14,378 @@ frontend/
 │   ├── logo.png
 │   ├── logo-dark.png
 │   └── manifest.json
+│
 └── src/
-    ├──vite-env.d.js
     ├── main.jsx
     ├── App.jsx
+    ├── vite-env.d.ts
     │
-    ├── api/                      # API services (all .js files)
-    │   ├── axios.js             # Single axios instance with interceptors
-    │   ├── auth.js              # Authentication API
-    │   ├── customers.js         # Customer management API
-    │   ├── loans.js             # Loan management API
-    │   ├── repayments.js        # Repayment API
-    │   ├── mpesa.js             # M-Pesa payment API
-    │   ├── notifications.js     # Notifications API
-    │   ├── reports.js           # Reports API
-    │   ├── audit.js             # Audit logs API
-    │   ├── admin.js             # Admin management API
-    │   └── index.js             # Export all API services
+    ├── api/                          # API Layer - Backend Integration
+    │   ├── axios.js                  # Axios instance with interceptors
+    │   ├── auth.js                   # Authentication endpoints
+    │   ├── customers.js              # Customer CRUD & management
+    │   ├── loans.js                  # Loan management
+    │   ├── repayments.js             # Repayment processing
+    │   ├── mpesa.js                  # M-Pesa integration
+    │   ├── notifications.js          # Notification endpoints
+    │   ├── reports.js                # Reporting endpoints
+    │   ├── audit.js                  # Audit log endpoints
+    │   ├── admin.js                  # Admin endpoints (staff, settings)
+    │   └── index.js                  # Export all API services
     │
-    ├── hooks/                    # Custom hooks (retained as requested)
-    │   ├── useAuth.js
-    │   ├── useMediaQuery.js
-    │   ├── useLoans.js
-    │   ├── useAudit.js
-    │   ├── useNotifications.js
-    │   ├── useRepayments.js
-    │   ├── useReports.js
-    │   ├── useCustomers.js
-    │   ├── useMpesa.js
-    │   ├── useApi.js            # Generic API hook
-    │   └── index.js
+    ├── contexts/                     # Global State Management
+    │   ├── AuthContext.jsx           # Authentication & user state
+    │   ├── ThemeContext.jsx          # Dark/Light mode
+    │   ├── ToastContext.jsx          # Toast notifications
+    │   ├── CustomerContext.jsx       # Customer module state
+    │   ├── LoanContext.jsx           # Loan module state
+    │   ├── RepaymentContext.jsx      # Repayment module state
+    │   ├── ReportContext.jsx         # Report generation state
+    │   ├── MpesaContext.jsx          # M-Pesa payment state
+    │   ├── AuditContext.jsx          # Audit log state
+    │   ├── NotificationContext.jsx   # Notifications state
+    │   └── index.js                  # Export all contexts
     │
-    ├── utils/                    # Utility functions (retained as requested)
-    │   ├── formatters.js
-    │   ├── theme.js
-    │   ├── reportUtils.js
-    │   ├── validators.js
-    │   ├── cn.js
-    │   ├── constants.js
-    │   ├── helpers.js           # Added helpers.js
-    │   └── index.js
+    ├── hooks/                        # Custom React Hooks
+    │   ├── useAuth.js                # Authentication utilities
+    │   ├── useCustomers.js           # Customer operations
+    │   ├── useLoans.js               # Loan operations
+    │   ├── useRepayments.js          # Repayment operations
+    │   ├── useReports.js             # Report generation
+    │   ├── useMpesa.js               # M-Pesa operations
+    │   ├── useAudit.js               # Audit log queries
+    │   ├── useNotifications.js       # Notification handling
+    │   ├── useMediaQuery.js          # Responsive design
+    │   ├── useApi.js                 # Generic API hook
+    │   └── index.js                  # Export all hooks
     │
-    ├── styles/                   # Tailwind styles
-    │   ├── tailwind.css
-    │   ├── globals.css
-    │   ├── components.css       # Retained as requested
-    │   └── animations.css       # Retained as requested
+    ├── router/                       # Route Configuration
+    │   ├── routes.jsx                # Route definitions (public & protected)
+    │   ├── PrivateRoute.jsx          # Authenticated users only
+    │   ├── StaffRoute.jsx            # Staff + Admin access
+    │   ├── AdminRoute.jsx            # Admin only access
+    │   └── index.js                  # Router exports
     │
-    ├── components/
-    │   ├── layout/               # Layout components
-    │   │   ├── Header.jsx
-    │   │   ├── Sidebar.jsx
-    │   │   ├── Footer.jsx
-    │   │   ├── Layout.jsx
-    │   │   └── index.js
-    │   │
-    │   ├── ui/                   # UI components (structured as requested)
-    │   │   ├── Button.jsx
-    │   │   ├── Card.jsx
-    │   │   ├── Table.jsx
-    │   │   ├── Input.jsx
-    │   │   ├── Modal.jsx
-    │   │   ├── Checkbox.jsx
-        │   ├── Accordion.jsx
-    │   │   ├── Badge.jsx
-    │   │   ├── Alert.jsx
-    │   │   ├── Tooltip.jsx
-    |   |   ├── ThemeInitializer.jsx
-    │   │   ├── Tabs.jsx
-    │   │   ├── Label.jsx
-    │   │   ├── Select.jsx
-    │   │   ├── Breadcrumb.jsx    # Breadcrumb navigation
-    │   │   ├── Radio.jsx        # Added Radio component
-    │   │   ├── Switch.jsx       # Added Switch component
-    │   │   └── index.js
-    │   │
-    │   ├── shared/               # Shared components
-    │   │   ├── Loading.jsx
-    │   │   ├── ErrorBoundary.jsx
-    │   │   ├── EmptyState.jsx
-    │   │   ├── ConfirmDialog.jsx
-    │   │   ├── Pagination.jsx
-    │   │   ├── ProgressBar.jsx
-    │   │   ├── FileUpload.jsx
-    │   │   ├── Toast.jsx         # Moved here as single file
-    │   │   ├── StatusBadge.jsx   # Status indicator badge
-    │   │   ├── SearchBar.jsx     # Search input
-    │   │   ├── DatePicker.jsx    # Date picker component
-    │   │   ├── TimePicker.jsx   # Added TimePicker
-    │   │   ├── Avatar.jsx       # Added Avatar component
-    │   │   ├── Divider.jsx      # Added Divider
-    │   │   └── index.js
-    |   |
-    │   ├── dashboard/
-|   │   │   ├── staff/
-|   │   │   |   ├── StatCards.jsx      # With mini-charts
-|   │   │   │   ├── Repayment.jsx
-|   │   │   │   ├── MyLoans.jsx
-|   │   │   │   ├── MyCustomers.jsx
-|   │   │   │   ├── QuickActions.jsx
-|   │   │   │   ├── Performance.jsx
-|   │   │   │   └── etc.jsx
-|   │   │   └── admin/
-|   │   │       ├── StatCards.jsx      # With mini-charts
-|   │   │       ├── RecentActivity.jsx
-|   │   │       ├── PerformanceChart.jsx  # Staff performance
-|   │   │       ├── LoanStats.jsx
-|   │   │       ├── CustomerStats.jsx
-|   │   │       ├── QuickActions.jsx
-|   │   │       ├── RepaymentStats.jsx
-|   │   │       ├── RevenueChart.jsx     # Added revenue chart
-|   │   │       ├── CollectionEfficiency.jsx  # Added collection metrics
-|   │   │       └── index.js  etc.jsx
-|   │   │
-|   │   ├── reports/              # Reports components (structured)
-|   │   │   ├── ReportFilters.jsx
-|   │   │   ├── ReportChart.jsx
-|   │   │   ├── ReportCard.jsx
-|   │   │   ├── ExportOptions.jsx
-|   │   │   ├── ReportGenerator.jsx
-|   │   │   ├── ReportPreview.jsx    
-|   │   │   └── index.js
-    │   │
-    │   ├── loans/                # Loan components (structured)
-    │   │   ├── LoanTable.jsx
-    │   │   ├── LoanForm.jsx
-    │   │   ├── LoanCard.jsx
-    │   │   ├── LoanCalculator.jsx
-    │   │   ├── LoanFilters.jsx
-    │   │   ├── CollateralForm.jsx
-    │   │   ├── AmortizationSchedule.jsx
-    │   │   ├── LoanStatusBadge.jsx
-    |   │   ├── LoanApplication.jsx   # Added application form
-    │   │   ├── LoanApproval.jsx      # Added approval workflow
-    │   │   └── index.js
-    │   │
-    │   ├── admin/                 # Admin components
-    │   │   ├── Staff/
-    │   │   │   ├── List.jsx
-    │   │   │   ├── Create.jsx
-    │   │   │   ├── Edit.jsx
-    │   │   │   ├── Detail.jsx
-    │   │   │   ├── Performance.jsx
-    │   │   │   ├── Tasks.jsx
-    │   │   │   └── Schedule.jsx
-    │   │   ├── settings/         # System settings moved to admin features
-    │   │   │   ├── Configuration.jsx
-    │   │   │   ├── LoanProducts.jsx
-    │   │   │   ├── InterestRates.jsx
-    │   │   │   └── BackupRestore.jsx
-    │   │   ├── Roles/
-    │   │   │   ├── List.jsx
-    │   │   │   ├── Create.jsx
-    │   │   │   └── Assign.jsx
-    │   │   ├── AuditLogs/
-    │   │   │   ├── List.jsx
-    │   │   │   ├── Detail.jsx
-    │   │   │   └── Filter.jsx
-    │   │   └── index.js
-    │   │
-    │   ├── customers/            # Customer components
-    │   │   ├── CustomerTable.jsx
-    │   │   ├── CustomerCard.jsx
-    │   │   ├── CustomerFilters.jsx
-    │   │   ├── CustomerForm.jsx
-    │   │   ├── CustomerProfile.jsx
-    │   │   ├── EmploymentForm.jsx
-    │   │   ├── GuarantorForm.jsx
-    │   │   ├── GuarantorsList.jsx
-    │   │   ├── CustomerStats.jsx
-    │   │   ├── CustomerSearch.jsx
-    │   │   ├── DocumentUpload.jsx
-    │   │   ├── StatusBadge.jsx
-    │   │   ├── RiskIndicator.jsx
-|   │   │   ├── ImportDialog.jsx 
-    │   │   └── ExportDialog.jsx
-    │   │
-    │   ├── notifications/        # Notification components
-    │   │   ├── NotificationList.jsx
-    │   │   ├── NotificationCard.jsx
-    │   │   |── NotificationSettings.jsx
-    │   │   └── index.js
-    │   │
-    │   ├── payments/             # Payment components
-    │   │   ├── PaymentForm.jsx
-    │   │   ├── PaymentTable.jsx
-    │   │   ├── PaymentReceipt.jsx 
-    │   │   ├── MpesaPayment.jsx
-    │   │   ├── PaymentVerification.jsx
-    │   │   └── PaymentHistory.jsx
-    │   │
-    │   └── index.js              # Main components export
+    ├── utils/                        # Utility Functions
+    │   ├── formatters.js             # Data formatting (currency, dates)
+    │   ├── validators.js             # Form & data validation
+    │   ├── constants.js              # App-wide constants
+    │   ├── helpers.js                # Helper functions
+    │   ├── cn.js                     # Class name utility
+    │   ├── env.js                    # Environment config
+    │   ├── theme.js                  # Theme utilities
+    │   ├── reportUtils.js            # Report-specific utilities
+    │   └── index.js                  # Export all utilities
     │
-    ├── pages/                    # All page components
-    │   ├── NotFound.jsx          # 404 page
-    │   ├── Unauthorized.jsx      # 403 page
-    │   ├── Maintenance.jsx       # Maintenance mode page
-    │   │
-    │   ├── auth/                 # Authentication pages
-    │   │   ├── Login.jsx
-    │   │   ├── ForgotPassword.jsx
-    │   │   ├── ResetPassword.jsx
-    │   │   ├── Profile.jsx
-    │   │   └── TwoFactorAuth.jsx
-    │   │
-    │   ├── customers/            # Customer module
-    │   │   ├── CustomerDashboard.jsx  # Single dashboard with tabs
-    │   │   └── index.js
-    │   │
-    │   ├── loans/                # Loan module
-    │   │   ├── LoanDashboard.jsx      # Single dashboard with tabs
-    │   │   └── index.js
-    │   │
-    │   ├── repayments/           # Repayment module
-    │   │   ├── RepaymentDashboard.jsx # Single dashboard with tabs
-    │   │   └── index.js
-    │   │
-    │   ├── dashboard/                # dashboards module
-    │   │   ├── StaffDashboard.jsx     # for all staff including the admin but admin can switch to theirs via sidebar
-    │   │   ├── AdminDashboard.jsx     # for admin only
-    │   │   └── index.js
-    │   │
-    │   ├── reports/              # Reports module
-    │   │   ├── ReportDashboard.jsx    # Single dashboard with tabs
-    │   │   └── index.js
-    │   │
-    │   ├── notifications/        # Notifications module
-    │   │   ├── NotificationDashboard.jsx
-    │   │   └── index.js
-    │   │
-    │   ├── docs/                 # Documentation pages
-    │   │   ├── ApiDocumentation.jsx
-    │   │   ├── UserGuide.jsx
-    │   │   ├── SystemGuide.jsx
-    │   │   ├── Tutorials.jsx
-    │   │   └── index.js
-    │   │
-    │   ├── legal/                # Legal pages
-    │   │   ├── TermsOfService.jsx
-    │   │   ├── PrivacyPolicy.jsx
-    │   │   ├── DataProtection.jsx
-    │   │   ├── AcceptableUse.jsx
-    │   │   └── index.js
-    │   │
-    │   ├── support/              # Support pages
-    │   │   ├── HelpCenter.jsx
-    │   │   ├── ContactSupport.jsx
-    │   │   ├── SystemStatus.jsx
-    │   │   ├── FeatureRequest.jsx
-    │   │   └── index.js
-    │   │
-    │   └── index.js              # Pages export
+    ├── styles/                       # Global Styles
+    │   ├── tailwind.css              # Tailwind directives
+    │   ├── globals.css               # Global styles
+    │   ├── components.css            # Component-specific styles
+    │   └── animations.css            # Animation utilities
     │
-    ├── router/                   # Routing configuration
-    │   ├── routes.jsx
-    │   ├── PrivateRoute.jsx
-    │   ├── StaffRoute.jsx
-    │   ├── AdminRoute.jsx
-    │   └── index.js
+    ├── components/                   # Reusable Components
+    │   │
+    │   ├── layout/                   # Layout Components
+    │   │   ├── Header.jsx            # Top navigation bar
+    │   │   ├── Sidebar.jsx           # Side navigation (role-aware)
+    │   │   ├── Footer.jsx            # Footer
+    │   │   ├── Layout.jsx            # Main layout wrapper
+    │   │   └── index.js              # Layout exports
+    │   │
+    │   ├── ui/                       # UI/Base Components
+    │   │   ├── Button.jsx            # Button component
+    │   │   ├── Card.jsx              # Card component
+    │   │   ├── Input.jsx             # Input field
+    │   │   ├── Label.jsx             # Form label
+    │   │   ├── Select.jsx            # Select dropdown
+    │   │   ├── Checkbox.jsx          # Checkbox
+    │   │   ├── Radio.jsx             # Radio button
+    │   │   ├── Switch.jsx            # Toggle switch
+    │   │   ├── Modal.jsx             # Modal dialog
+    │   │   ├── Tabs.jsx              # Tab navigation
+    │   │   ├── Accordion.jsx         # Accordion
+    │   │   ├── Badge.jsx             # Status badge
+    │   │   ├── Alert.jsx             # Alert message
+    │   │   ├── Tooltip.jsx           # Tooltip
+    │   │   ├── Breadcrumb.jsx        # Breadcrumb navigation
+    │   │   ├── Table.jsx             # Data table
+    │   │   ├── Pagination.jsx        # Pagination
+    │   │   ├── ThemeInitializer.jsx  # Theme initialization
+    │   │   └── index.js              # UI exports
+    │   │
+    │   ├── shared/                   # Shared Components
+    │   │   ├── Loading.jsx           # Loading spinner
+    │   │   ├── Error.jsx             # Error display
+    │   │   ├── ErrorBoundary.jsx     # Error boundary
+    │   │   ├── EmptyState.jsx        # Empty state message
+    │   │   ├── ConfirmDialog.jsx     # Confirmation modal
+    │   │   ├── Toast.jsx             # Toast notification
+    │   │   ├── SearchBar.jsx         # Search input
+    │   │   ├── FileUpload.jsx        # File upload
+    │   │   ├── DatePicker.jsx        # Date picker
+    │   │   ├── TimePicker.jsx        # Time picker
+    │   │   ├── Avatar.jsx            # User avatar
+    │   │   ├── StatusBadge.jsx       # Status indicator
+    │   │   ├── ProgressBar.jsx       # Progress bar
+    │   │   ├── Divider.jsx           # Divider
+    │   │   └── index.js              # Shared exports
+    |   |        
+    │   │
+    │   ├── dashboard/                # Dashboard Components
+    │   │   │
+    │   │   ├── common/               # Shared dashboard components
+    │   │   │   ├── StatCard.jsx      # Stat card with icon
+    │   │   │   ├── ChartCard.jsx     # Chart container
+    │   │   │   ├── QuickActions.jsx  # Quick action buttons
+    │   │   │   └── index.js
+    │   │   │
+    │   │   ├── staff/                # Staff Dashboard
+    │   │   │   ├── OverviewCards.jsx # Key metrics
+    │   │   │   ├── MyLoans.jsx       # Assigned loans
+    │   │   │   ├── MyCustomers.jsx   # Assigned customers
+    │   │   │   ├── RecentActivity.jsx # Activity feed
+    │   │   │   ├── Performance.jsx   # Performance metrics
+    │   │   │   ├── PendingApprovals.jsx # Loans awaiting approval
+    │   │   │   ├── Collections.jsx   # Collection metrics
+    │   │   │   └── index.js
+    │   │   │
+    │   │   └── admin/                # Admin Dashboard
+    │   │       ├── SystemOverview.jsx # System-wide metrics
+    │   │       ├── StaffPerformance.jsx # Staff KPIs
+    │   │       ├── LoanPortfolio.jsx   # Portfolio analytics
+    │   │       ├── RepaymentMetrics.jsx # Repayment stats
+    │   │       ├── FinancialSummary.jsx # Financial overview
+    │   │       ├── UserActivity.jsx    # User activity tracking
+    │   │       ├── SystemHealth.jsx    # System status
+    │   │       └── index.js
+    │   │
+    │   ├── customers/                # Customer Module
+    │   │   ├── CustomerTable.jsx     # Customer list table
+    │   │   ├── CustomerCard.jsx      # Customer card view
+    │   │   ├── CustomerForm.jsx      # Create/Edit customer form
+    │   │   ├── CustomerProfile.jsx   # Customer detail view
+    │   │   ├── CustomerFilters.jsx   # Filter controls
+    │   │   ├── CustomerSearch.jsx    # Search functionality
+    │   │   ├── EmploymentForm.jsx    # Employment details
+    │   │   ├── GuarantorForm.jsx     # Guarantor details
+    │   │   ├── GuarantorsList.jsx    # Guarantors list
+    │   │   ├── DocumentUpload.jsx    # Document upload
+    │   │   ├── CustomerStats.jsx     # Customer statistics
+    │   │   ├── RiskIndicator.jsx     # Risk assessment
+    │   │   ├── ImportDialog.jsx      # Bulk import
+    │   │   ├── ExportDialog.jsx      # Bulk export
+    │   │   └── index.js              # Customer exports
+    │   │
+    │   ├── loans/                    # Loan Module
+    │   │   ├── LoanTable.jsx         # Loan list table
+    │   │   ├── LoanCard.jsx          # Loan card view
+    │   │   ├── LoanForm.jsx          # Create/Edit form
+    │   │   ├── LoanDetails.jsx       # Loan detail view
+    │   │   ├── LoanFilters.jsx       # Filter controls
+    │   │   ├── LoanSearch.jsx        # Search functionality
+    │   │   ├── LoanCalculator.jsx    # Loan calculator
+    │   │   ├── LoanApplication.jsx   # Application form
+    │   │   ├── LoanApproval.jsx      # Approval workflow
+    │   │   ├── CollateralForm.jsx    # Collateral details
+    │   │   ├── AmortizationSchedule.jsx # Payment schedule
+    │   │   ├── LoanStatusBadge.jsx   # Status indicator
+    │   │   ├── LoanStats.jsx         # Loan statistics
+    │   │   └── index.js              # Loan exports
+    │   │
+    │   ├── repayments/               # Repayment Module
+    │   │   ├── RepaymentTable.jsx    # Repayment list
+    │   │   ├── RepaymentForm.jsx     # Create/Edit form
+    │   │   ├── RepaymentDetails.jsx  # Detail view
+    │   │   ├── RepaymentFilters.jsx  # Filter controls
+    │   │   ├── PaymentSchedule.jsx   # Schedule view
+    │   │   ├── PaymentReceipt.jsx    # Payment receipt
+    │   │   ├── OverdueAlerts.jsx     # Overdue items
+    │   │   ├── RepaymentStats.jsx    # Statistics
+    │   │   └── index.js              # Repayment exports
+    │   │
+    │   ├── payments/                 # Payment Components
+    │   │   ├── MpesaPayment.jsx      # M-Pesa STK push
+    │   │   ├── PaymentForm.jsx       # Payment form
+    │   │   ├── PaymentHistory.jsx    # Payment history
+    │   │   ├── PaymentVerification.jsx # Verification
+    │   │   ├── ReceiptGenerator.jsx 
+    │   │   ├── MpesaCallbackHandler.jsx 
+    │   │   ├── TransactionTable.jsx  # Transaction list
+    │   │   └── index.js              # Payment exports
+    │   │
+    │   ├── reports/                  # Reports Module
+    │   │   ├── ReportGenerator.jsx   # Report builder
+    │   │   ├── ReportPreview.jsx     # Report preview
+    │   │   ├── ReportFilters.jsx     # Filter controls
+    │   │   ├── ReportChart.jsx       # Chart visualization
+    │   │   ├── ExportOptions.jsx     # Export formats (PDF, Excel)
+    │   │   ├── LoansReport.jsx       # Loans report
+    │   │   ├── PaymentsReport.jsx    # Payments report
+    │   │   ├── CustomersReport.jsx   # Customers report
+    │   │   ├── PerformanceReport.jsx # Performance metrics
+    │   │   ├── CollectionReport.jsx  # Collection analytics
+    │   │   ├── AuditReport.jsx       # Audit trail report
+    │   │   └── index.js              # Reports exports
+    │   │
+    │   ├── notifications/            # Notification Components
+    │   │   ├── NotificationList.jsx  # Notification list
+    │   │   ├── NotificationCard.jsx  # Notification item
+    │   │   ├── NotificationBell.jsx  # Bell icon with badge
+    │   │   ├── NotificationSettings.jsx # Preferences
+    │   │   ├── BulkMessenger.jsx
+    │   │   └── index.js              # Notification exports
+    │   │
+    │   ├── admin/                    # Admin-Only Components
+    │   │   │
+    │   │   ├── staff/                # Staff Management
+    │   │   │   ├── StaffTable.jsx    # Staff list
+    │   │   │   ├── StaffForm.jsx     # Create/Edit staff
+    │   │   │   ├── StaffDetail.jsx   # Staff detail view
+    │   │   │   ├── StaffFilters.jsx  # Filter controls
+    │   │   │   ├── StaffPerformance.jsx # Performance rating
+    │   │   │   ├── TaskAssignment.jsx # Task assignment
+    │   │   │   ├── WorkSchedule.jsx  # Shift scheduling
+    │   │   │   └── index.js
+    │   │   │
+    │   │   ├── settings/             # System Settings
+    │   │   │   ├── Configuration.jsx # General settings
+    │   │   │   ├── LoanProducts.jsx  # Loan product setup
+    │   │   │   ├── InterestRates.jsx # Interest rate config
+    │   │   │   ├── BackupRestore.jsx # Data backup/restore
+    │   │   │   ├── SystemHealth.jsx  # System monitoring
+    │   │   │   └── index.js
+    │   │   │
+    │   │   ├── roles/                # Role Management
+    │   │   │   ├── RoleList.jsx      # Role list
+    │   │   │   ├── RoleForm.jsx      # Create/Edit role
+    │   │   │   ├── PermissionEditor.jsx # Permission assignment
+    │   │   │   └── index.js
+    │   │   │
+    │   │   ├── audit/                # Audit Logging
+    │   │   │   ├── AuditLogList.jsx  # Log viewer
+    │   │   │   ├── AuditDetail.jsx   # Log detail
+    │   │   │   ├── AuditFilters.jsx  # Filter controls
+    │   │   │   └── index.js
+    │   │   │
+    │   │   └── index.js              # Admin component exports
+    │   │
+    │   └── index.js                  # All component exports
     │
-    └── contexts/                 # React Context for global state
-        ├── AuthContext.jsx       # Authentication context
-        ├── ThemeContext.jsx      # Theme context (dark/light mode)
-        ├── ToastContext.jsx      # Toast notifications context
-        ├── NotificationContext.jsx 
-        ├── MpesaContext.jsx
-        ├── CustomerContext.jsx
-        ├── ReportContext.jsx
-        ├── AuditContext.jsx    
+    ├── pages/                        # Page Components
+    │   │
+    │   ├── auth/                     # Authentication Pages
+    │   │   ├── Login.jsx             # Login page
+    │   │   ├── ForgotPassword.jsx    # Password reset request
+    │   │   ├── ResetPassword.jsx     # Password reset confirm
+    │   │   ├── Profile.jsx           # User profile
+    │   │   ├── TwoFactorAuth.jsx     # 2FA setup
+    │   │   ├── VerifyEmail.jsx
+    │   │   └── index.js              # Auth page exports
+    │   │
+    │   ├── dashboard/                # Dashboard Pages
+    │   │   ├── StaffDashboard.jsx    # Staff main dashboard
+    │   │   ├── AdminDashboard.jsx    # Admin main dashboard
+    │   │   └── index.js
+    │   │
+    │   ├── customers/                # Customer Pages
+    │   │   ├── CustomerList.jsx      # Customer list page
+    │   │   ├── CustomerCreate.jsx    # Create new customer
+    │   │   ├── CustomerEdit.jsx      # Edit customer
+    │   │   ├── CustomerDetail.jsx    # Customer detail page
+    │   │   ├── CustomerImport.jsx    # Bulk import page
+    │   │   ├── CustomerExport.jsx    # Bulk export page
+    │   │   └── index.js
+    │   │
+    │   ├── loans/                    # Loan Pages
+    │   │   ├── LoanList.jsx          # Loan list page
+    │   │   ├── LoanCreate.jsx        # Create new loan
+    │   │   ├── LoanEdit.jsx          # Edit loan
+    │   │   ├── LoanDetail.jsx        # Loan detail page
+    │   │   ├── LoanApprovals.jsx     # Pending approvals
+    │   │   ├── LoanCalculator.jsx    # Calculator page
+    │   │   └── index.js
+    │   │
+    │   ├── repayments/               # Repayment Pages
+    │   │   ├── RepaymentList.jsx     # Repayment list page
+    │   │   ├── RepaymentCreate.jsx   # Create payment
+    │   │   ├── RepaymentDetail.jsx   # Detail page
+    │   │   ├── PaymentHistory.jsx    # History page
+    │   │   ├── OverdueRepayments.jsx # Overdue list
+    │   │   └── index.js
+    │   │
+    │   ├── reports/                  # Report Pages
+    │   │   ├── ReportDashboard.jsx   # Reports main page
+    │   │   ├── LoansReport.jsx       # Loans report page
+    │   │   ├── PaymentsReport.jsx    # Payments report page
+    │   │   ├── CustomersReport.jsx   # Customers report page
+    │   │   ├── PerformanceReport.jsx # Performance report page
+    │   │   ├── CollectionReport.jsx  # Collection report page
+    │   │   ├── AuditReport.jsx       # Audit report page
+    │   │   └── index.js
+    │   │
+    │   ├── notifications/            # Notification Pages
+    │   │   ├── NotificationCenter.jsx # All notifications
+    │   │   ├── NotificationSettings.jsx # Preferences
+    │   │   └── index.js
+    │   │
+    │   ├── admin/                    # Admin-Only Pages
+    │   │   │
+    │   │   ├── staff/                # Staff Management Pages
+    │   │   │   ├── StaffList.jsx     # Staff list page
+    │   │   │   ├── StaffCreate.jsx   # Create staff
+    │   │   │   ├── StaffEdit.jsx     # Edit staff
+    │   │   │   ├── StaffDetail.jsx   # Staff detail page
+    │   │   │   └── index.js
+    │   │   │
+    │   │   ├── settings/             # Settings Pages
+    │   │   │   ├── SystemSettings.jsx # General settings
+    │   │   │   ├── LoanProducts.jsx  # Loan products
+    │   │   │   ├── InterestRates.jsx # Interest rates
+    │   │   │   ├── BackupRestore.jsx # Backup/Restore
+    │   │   │   ├── SystemHealth.jsx  # System health
+    │   │   │   └── index.js
+    │   │   │
+    │   │   ├── roles/                # Role Management Pages
+    │   │   │   ├── RoleList.jsx      # Role list page
+    │   │   │   ├── RoleCreate.jsx    # Create role
+    │   │   │   ├── RoleEdit.jsx      # Edit role
+    │   │   │   └── index.js
+    │   │   │
+    │   │   ├── audit/                # Audit Pages
+    │   │   │   ├── AuditLogs.jsx     # Audit log page
+    │   │   │   ├── AuditDetail.jsx   # Log detail page
+    │   │   │   └── index.js
+    │   │   │
+    │   │   └── index.js              # Admin page exports
+    │   │
+    │   ├── docs/                     # Documentation Pages
+    │   │   ├── ApiDocumentation.jsx  # API docs
+    │   │   ├── UserGuide.jsx         # User guide
+    │   │   ├── SystemGuide.jsx       # System guide
+    │   │   ├── Tutorials.jsx         # Tutorials
+    │   │   └── index.js
+    │   │
+    │   ├── legal/                    # Legal Pages
+    │   │   ├── TermsOfService.jsx    # Terms
+    │   │   ├── PrivacyPolicy.jsx     # Privacy policy
+    │   │   ├── DataProtection.jsx    # Data protection
+    │   │   ├── AcceptableUse.jsx     # Acceptable use
+    │   │   └── index.js
+    │   │
+    │   ├── support/                  # Support Pages
+    │   │   ├── HelpCenter.jsx        # Help center
+    │   │   ├── ContactSupport.jsx    # Contact support
+    │   │   ├── SystemStatus.jsx      # System status
+    │   │   ├── FeatureRequest.jsx    # Feature requests
+    │   │   └── index.js
+    │   │
+    │   ├── NotFound.jsx              # 404 page
+    │   ├── Unauthorized.jsx          # 403 page
+    │   ├── Maintenance.jsx           # Maintenance page
+    │   └── index.js                  # Page exports
+    │
+    └── config/                       # Configuration (Optional)
+        ├── api.config.js             # API configuration
+        ├── app.config.js             # App configuration
+        ├── feature.flags.js          # Feature flags
         └── index.js

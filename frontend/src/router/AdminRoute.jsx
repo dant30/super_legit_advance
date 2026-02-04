@@ -5,29 +5,29 @@ import Loading from '@components/shared/Loading'
 import Unauthorized from '@pages/Unauthorized'
 
 /**
- * 👑 AdminRoute
- * Only allows access to administrators
+ * 🔐 AdminRoute
+ * Only allows admin users
  */
 const AdminRoute = () => {
   const location = useLocation()
   const { isAuthenticated, isLoading, isAdmin } = useAuth()
 
-  // ⏳ Auth is still being resolved
+  // ⏳ Still loading auth state
   if (isLoading) {
-    return <Loading fullScreen size="xl" message="Checking authentication..." />
+    return <Loading fullScreen size="xl" message="Checking admin access..." />
   }
 
-  // 🔒 Auth resolved but user not logged in
+  // 🔒 Not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  // 🔐 User is not admin
+  // 🚫 Not admin
   if (!isAdmin()) {
     return <Unauthorized />
   }
 
-  // ✅ Admin → allow access
+  // ✅ Is admin - allow access
   return <Outlet />
 }
 

@@ -6,28 +6,28 @@ import Unauthorized from '@pages/Unauthorized'
 
 /**
  * 👥 StaffRoute
- * Only allows access to staff members (admin, staff, officer)
+ * Only allows staff members (admin, staff, officer roles)
  */
 const StaffRoute = () => {
   const location = useLocation()
   const { isAuthenticated, isLoading, isStaff } = useAuth()
 
-  // ⏳ Auth is still being resolved
+  // ⏳ Still loading auth state
   if (isLoading) {
-    return <Loading fullScreen size="xl" message="Checking authentication..." />
+    return <Loading fullScreen size="xl" message="Checking permissions..." />
   }
 
-  // 🔒 Auth resolved but user not logged in
+  // 🔒 Not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  // 🔐 User is not staff
+  // 🚫 Not staff member
   if (!isStaff()) {
     return <Unauthorized />
   }
 
-  // ✅ Staff member → allow access
+  // ✅ Is staff - allow access
   return <Outlet />
 }
 
