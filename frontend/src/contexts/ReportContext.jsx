@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useReducer, useCallback, useMemo } from 'react'
 import { useToast } from './ToastContext'
-import { reportsAPI } from '../api/reports'
+import { reportsAPI } from '@api/reports'
 
 // Initial state
 const initialState = {
@@ -83,7 +83,7 @@ const reportReducer = (state, action) => {
     case ActionTypes.SET_GENERATION_PROGRESS:
       return { 
         ...state, 
-        generationProgress: Math.min(action.payload, 100) 
+        generationProgress: Math.min(100, action.payload) 
       }
     
     case ActionTypes.CLEAR_ERROR:
@@ -113,258 +113,151 @@ const ReportContext = createContext()
 export const ReportProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reportReducer, initialState)
   const { addToast } = useToast()
-  const downloadAbortRef = React.useRef(null)
+
+  const dispatchAction = useCallback((type, payload) => dispatch({ type, payload }), [])
 
   // ==================== DISPATCH HELPERS ====================
 
-  const dispatchAction = useCallback((type, payload) => {
-    dispatch({ type, payload })
-  }, [])
-
-  const setLoading = useCallback((loading) => {
-    dispatchAction(ActionTypes.SET_LOADING, loading)
-  }, [dispatchAction])
-
-  const setGenerating = useCallback((generating) => {
-    dispatchAction(ActionTypes.SET_GENERATING, generating)
-  }, [dispatchAction])
-
-  const setExporting = useCallback((exporting) => {
-    dispatchAction(ActionTypes.SET_EXPORTING, exporting)
-  }, [dispatchAction])
-
-  const setError = useCallback((error) => {
-    dispatchAction(ActionTypes.SET_ERROR, error)
-  }, [dispatchAction])
-
-  const setSuccess = useCallback((success) => {
-    dispatchAction(ActionTypes.SET_SUCCESS, success)
-  }, [dispatchAction])
-
-  const setReports = useCallback((reports) => {
-    dispatchAction(ActionTypes.SET_REPORTS, reports)
-  }, [dispatchAction])
-
-  const setCurrentReport = useCallback((report) => {
-    dispatchAction(ActionTypes.SET_CURRENT_REPORT, report)
-  }, [dispatchAction])
-
-  const setReportHistory = useCallback((history) => {
-    dispatchAction(ActionTypes.SET_REPORT_HISTORY, history)
-  }, [dispatchAction])
-
-  const setSchedules = useCallback((schedules) => {
-    dispatchAction(ActionTypes.SET_SCHEDULES, schedules)
-  }, [dispatchAction])
-
-  const setFilterParams = useCallback((params) => {
-    dispatchAction(ActionTypes.SET_FILTER_PARAMS, params)
-  }, [dispatchAction])
-
-  const setFormat = useCallback((format) => {
-    dispatchAction(ActionTypes.SET_FORMAT, format)
-  }, [dispatchAction])
-
-  const setGenerationProgress = useCallback((progress) => {
-    dispatchAction(ActionTypes.SET_GENERATION_PROGRESS, progress)
-  }, [dispatchAction])
-
-  const clearError = useCallback(() => {
-    dispatchAction(ActionTypes.CLEAR_ERROR)
-  }, [dispatchAction])
-
-  const clearSuccess = useCallback(() => {
-    dispatchAction(ActionTypes.CLEAR_SUCCESS)
-  }, [dispatchAction])
-
-  const clearCurrentReport = useCallback(() => {
-    dispatchAction(ActionTypes.CLEAR_CURRENT_REPORT)
-  }, [dispatchAction])
-
-  const clearFilters = useCallback(() => {
-    dispatchAction(ActionTypes.CLEAR_FILTERS)
-  }, [dispatchAction])
-
-  const resetProgress = useCallback(() => {
-    dispatchAction(ActionTypes.RESET_PROGRESS)
-  }, [dispatchAction])
+  const setLoading = useCallback((v) => dispatchAction(ActionTypes.SET_LOADING, v), [dispatchAction])
+  const setGenerating = useCallback((v) => dispatchAction(ActionTypes.SET_GENERATING, v), [dispatchAction])
+  const setExporting = useCallback((v) => dispatchAction(ActionTypes.SET_EXPORTING, v), [dispatchAction])
+  const setError = useCallback((v) => dispatchAction(ActionTypes.SET_ERROR, v), [dispatchAction])
+  const setSuccess = useCallback((v) => dispatchAction(ActionTypes.SET_SUCCESS, v), [dispatchAction])
+  const setReports = useCallback((v) => dispatchAction(ActionTypes.SET_REPORTS, v), [dispatchAction])
+  const setCurrentReport = useCallback((v) => dispatchAction(ActionTypes.SET_CURRENT_REPORT, v), [dispatchAction])
+  const setReportHistory = useCallback((v) => dispatchAction(ActionTypes.SET_REPORT_HISTORY, v), [dispatchAction])
+  const setSchedules = useCallback((v) => dispatchAction(ActionTypes.SET_SCHEDULES, v), [dispatchAction])
+  const setFilterParams = useCallback((v) => dispatchAction(ActionTypes.SET_FILTER_PARAMS, v), [dispatchAction])
+  const setFormat = useCallback((v) => dispatchAction(ActionTypes.SET_FORMAT, v), [dispatchAction])
+  const setGenerationProgress = useCallback((v) => dispatchAction(ActionTypes.SET_GENERATION_PROGRESS, v), [dispatchAction])
+  const clearError = useCallback(() => dispatchAction(ActionTypes.CLEAR_ERROR), [dispatchAction])
+  const clearSuccess = useCallback(() => dispatchAction(ActionTypes.CLEAR_SUCCESS), [dispatchAction])
+  const clearCurrentReport = useCallback(() => dispatchAction(ActionTypes.CLEAR_CURRENT_REPORT), [dispatchAction])
+  const clearFilters = useCallback(() => dispatchAction(ActionTypes.CLEAR_FILTERS), [dispatchAction])
+  const resetProgress = useCallback(() => dispatchAction(ActionTypes.RESET_PROGRESS), [dispatchAction])
 
   // ==================== API METHODS ====================
 
   const getAvailableReports = useCallback(async () => {
+    setLoading(true); clearError()
     try {
-      setLoading(true)
-      clearError()
-      const reports = await reportsAPI.getReportTypes()
-      setReports(reports)
-      addToast('Reports loaded successfully', 'success')
-      return reports
-    } catch (error) {
-      const message = error.response?.data?.error || 'Failed to fetch reports'
-      setError(message)
-      addToast(message, 'error')
-      throw error
-    } finally {
-      setLoading(false)
-    }
+      const types = await reportsAPI.getReportTypes()
+      setReports(types)
+      addToast('Reports loaded', 'success')
+      return types
+    } catch (err) {
+      const msg = err?.response?.data?.error || err.message || 'Failed to fetch reports'
+      setError(msg); addToast(msg, 'error'); throw err
+    } finally { setLoading(false) }
   }, [setLoading, clearError, setReports, setError, addToast])
 
   const generateReportByType = useCallback(async (reportType, format = 'json', parameters = {}) => {
+    setGenerating(true); clearError(); setGenerationProgress(10)
     try {
-      setGenerating(true)
-      clearError()
-      setGenerationProgress(10)
-
-      const payload = {
-        report_type: reportType,
-        format,
-        parameters: reportsAPI.buildParams(parameters)
-      }
-
-      const response = await reportsAPI.generateReport(payload)
-      
+      const payload = { report_type: reportType, format, parameters: reportsAPI.buildParams(parameters) }
+      const resp = await reportsAPI.generateReport(payload)
       setGenerationProgress(100)
-      setCurrentReport(response.report || response)
-      setSuccess('Report generated successfully')
-      addToast('Report generated successfully', 'success')
-
-      setTimeout(() => {
-        resetProgress()
-      }, 2000)
-
-      return response
-    } catch (error) {
-      const message = error.response?.data?.error || 'Failed to generate report'
-      setError(message)
-      resetProgress()
-      addToast(message, 'error')
-      throw error
-    } finally {
-      setGenerating(false)
-    }
+      if (format === 'json') {
+        setCurrentReport(resp.report || resp)
+        setSuccess('Report generated')
+        addToast('Report generated', 'success')
+        setTimeout(() => resetProgress(), 800)
+        return resp
+      } else {
+        // blob download
+        const filename = reportsAPI.generateFilename(reportType, format === 'excel' ? 'excel' : 'pdf')
+        reportsAPI.downloadFile(resp, filename)
+        setSuccess('Report downloaded')
+        addToast('Report downloaded', 'success')
+        return { filename }
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.error || err.message || 'Failed to generate report'
+      setError(msg); setGenerationProgress(0); addToast(msg, 'error'); throw err
+    } finally { setGenerating(false) }
   }, [setGenerating, clearError, setGenerationProgress, setCurrentReport, setSuccess, resetProgress, setError, addToast])
 
   const fetchReport = useCallback(async (reportType, params = {}) => {
+    setLoading(true); clearError()
     try {
-      setLoading(true)
-      clearError()
-
-      const apiMethod = reportsAPI[`get${reportType.charAt(0).toUpperCase() + reportType.slice(1)}Report`]
-      if (!apiMethod) {
-        throw new Error(`Report type ${reportType} not supported`)
+      const map = {
+        loans: reportsAPI.getLoansReport.bind(reportsAPI),
+        payments: reportsAPI.getPaymentsReport.bind(reportsAPI),
+        customers: reportsAPI.getCustomersReport.bind(reportsAPI),
+        performance: reportsAPI.getPerformanceReport.bind(reportsAPI),
+        dailySummary: reportsAPI.getDailySummary.bind(reportsAPI),
+        monthlySummary: reportsAPI.getMonthlySummary.bind(reportsAPI),
+        audit: reportsAPI.getAuditReport.bind(reportsAPI),
+        collection: reportsAPI.getCollectionReport.bind(reportsAPI),
+        riskAssessment: reportsAPI.getRiskAssessment.bind(reportsAPI),
       }
-
-      const response = await apiMethod.call(reportsAPI, reportsAPI.buildParams(params))
-      setCurrentReport(response)
-      return response
-    } catch (error) {
-      const message = error.response?.data?.error || `Failed to fetch ${reportType} report`
-      setError(message)
-      addToast(message, 'error')
-      throw error
-    } finally {
-      setLoading(false)
-    }
+      const fn = map[reportType]
+      if (!fn) throw new Error('Unsupported report type')
+      const res = await fn(reportsAPI.buildParams(params))
+      setCurrentReport(res)
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err.message || `Failed to fetch ${reportType}`
+      setError(msg); addToast(msg, 'error'); throw err
+    } finally { setLoading(false) }
   }, [setLoading, clearError, setCurrentReport, setError, addToast])
 
-  const exportData = useCallback(async (dataType, format, filters = {}) => {
+  const exportData = useCallback(async (dataType, format = 'pdf', filters = {}) => {
+    setExporting(true); clearError(); setGenerationProgress(15)
     try {
-      setExporting(true)
-      clearError()
-      setGenerationProgress(20)
-
-      const payload = {
-        data_type: dataType,
-        filters: reportsAPI.buildParams(filters)
-      }
-
-      const apiMethod = format === 'pdf' ? 'exportToPDF' : 'exportToExcel'
-      const blob = await reportsAPI[apiMethod](payload)
-
-      setGenerationProgress(100)
-      
-      const filename = reportsAPI.generateFilename(`${dataType}_export`, format)
+      const payload = { data_type: dataType, filters: reportsAPI.buildParams(filters) }
+      const apiMethod = format === 'pdf' ? reportsAPI.exportToPDF.bind(reportsAPI) : reportsAPI.exportToExcel.bind(reportsAPI)
+      const blob = await apiMethod(payload)
+      const filename = reportsAPI.generateFilename(`${dataType}_export`, format === 'excel' ? 'excel' : 'pdf')
       reportsAPI.downloadFile(blob, filename)
-
-      setSuccess(`${format.toUpperCase()} exported successfully`)
-      addToast(`${format.toUpperCase()} exported successfully`, 'success')
-
-      setTimeout(() => {
-        resetProgress()
-      }, 2000)
-
-      return { success: true, filename }
-    } catch (error) {
-      const message = error.response?.data?.error || `Failed to export ${format}`
-      setError(message)
-      resetProgress()
-      addToast(message, 'error')
-      throw error
-    } finally {
-      setExporting(false)
-    }
+      setGenerationProgress(100); setSuccess(`${format.toUpperCase()} exported`); addToast(`${format.toUpperCase()} exported`, 'success'); setTimeout(() => resetProgress(), 800)
+      return { filename }
+    } catch (err) {
+      const msg = err?.response?.data?.error || err.message || `Failed to export ${format}`
+      setError(msg); setGenerationProgress(0); addToast(msg, 'error'); throw err
+    } finally { setExporting(false) }
   }, [setExporting, clearError, setGenerationProgress, setSuccess, resetProgress, setError, addToast])
 
   const fetchReportHistory = useCallback(async (params = {}) => {
+    setLoading(true); clearError()
     try {
-      setLoading(true)
-      clearError()
-      const history = await reportsAPI.getReportHistory(params)
-      setReportHistory(history)
-      return history
-    } catch (error) {
-      const message = error.response?.data?.error || 'Failed to fetch report history'
-      setError(message)
-      addToast(message, 'error')
-      throw error
-    } finally {
-      setLoading(false)
-    }
+      const h = await reportsAPI.getReportHistory(reportsAPI.buildParams(params))
+      setReportHistory(h)
+      return h
+    } catch (err) {
+      const msg = err?.response?.data?.error || err.message || 'Failed to fetch history'
+      setError(msg); addToast(msg, 'error'); throw err
+    } finally { setLoading(false) }
   }, [setLoading, clearError, setReportHistory, setError, addToast])
 
   const fetchSchedules = useCallback(async () => {
+    setLoading(true); clearError()
     try {
-      setLoading(true)
-      clearError()
-      const schedules = await reportsAPI.getSchedules()
-      setSchedules(schedules)
-      return schedules
-    } catch (error) {
-      const message = error.response?.data?.error || 'Failed to fetch schedules'
-      setError(message)
-      addToast(message, 'error')
-      throw error
-    } finally {
-      setLoading(false)
-    }
+      const s = await reportsAPI.getSchedules()
+      setSchedules(s)
+      return s
+    } catch (err) {
+      const msg = err?.response?.data?.error || err.message || 'Failed to fetch schedules'
+      setError(msg); addToast(msg, 'error'); throw err
+    } finally { setLoading(false) }
   }, [setLoading, clearError, setSchedules, setError, addToast])
 
   const createSchedule = useCallback(async (data) => {
+    setLoading(true); clearError()
     try {
-      setLoading(true)
-      clearError()
-      const schedule = await reportsAPI.scheduleReport(data)
-      setSchedules(prev => [...prev, schedule])
-      addToast('Schedule created successfully', 'success')
-      return schedule
-    } catch (error) {
-      const message = error.response?.data?.error || 'Failed to create schedule'
-      setError(message)
-      addToast(message, 'error')
-      throw error
-    } finally {
-      setLoading(false)
-    }
-  }, [setLoading, clearError, setSchedules, setError, addToast])
+      const res = await reportsAPI.scheduleReport(data)
+      await fetchSchedules()
+      addToast('Schedule created', 'success')
+      return res
+    } catch (err) {
+      const msg = err?.response?.data?.error || err.message || 'Failed to create schedule'
+      setError(msg); addToast(msg, 'error'); throw err
+    } finally { setLoading(false) }
+  }, [setLoading, clearError, setSchedules, setError, addToast, fetchSchedules])
 
   const cancelExport = useCallback(() => {
-    if (downloadAbortRef.current) {
-      downloadAbortRef.current.abort()
-      downloadAbortRef.current = null
-    }
-    setExporting(false)
-    resetProgress()
-    addToast('Export cancelled', 'warning')
+    // no-op for now; downloads handled by reportsAPI.downloadFile
+    setExporting(false); resetProgress(); addToast('Export cancelled', 'warning')
   }, [setExporting, resetProgress, addToast])
 
   // ==================== CONVENIENCE METHODS ====================
@@ -432,78 +325,31 @@ export const ReportProvider = ({ children }) => {
     ...state,
 
     // Dispatch helpers
-    setFilterParams,
-    setCurrentReport,
-    setFormat,
-    setGenerationProgress,
+    setFilterParams, setCurrentReport, setFormat, setGenerationProgress,
 
     // Actions
-    getAvailableReports,
-    generateReportByType,
-    
-    // Specialized reports
-    fetchLoansReport,
-    fetchPaymentsReport,
-    fetchCustomersReport,
-    fetchPerformanceReport,
-    fetchDailySummary,
-    fetchMonthlySummary,
-    fetchAuditReport,
-    fetchCollectionReport,
-    fetchRiskAssessment,
-
-    // Exports
-    exportPDF,
-    exportExcel,
-    quickExport,
-
-    // Filters & State
-    updateFilters,
-    clearFilters,
-    selectReport,
-    clearCurrentReport,
-    clearError,
-    clearSuccess,
-    resetProgress,
-
-    // History & Schedules
-    fetchReportHistory,
-    fetchSchedules,
-    createSchedule,
-
-    // Cancellation
-    cancelExport
+    getAvailableReports, generateReportByType, fetchReport,
+    fetchLoansReport: (p) => fetchReport('loans', p),
+    fetchPaymentsReport: (p) => fetchReport('payments', p),
+    fetchCustomersReport: (p) => fetchReport('customers', p),
+    fetchPerformanceReport: (p) => fetchReport('performance', p),
+    fetchDailySummary: (p) => fetchReport('dailySummary', p),
+    fetchMonthlySummary: (p) => fetchReport('monthlySummary', p),
+    fetchAuditReport: (p) => fetchReport('audit', p),
+    fetchCollectionReport: (p) => fetchReport('collection', p),
+    fetchRiskAssessment: (p) => fetchReport('riskAssessment', p),
+    exportPDF: (t, f) => exportData(t, 'pdf', f),
+    exportExcel: (t, f) => exportData(t, 'excel', f),
+    quickExport: (t, fmt, f) => exportData(t, fmt, f),
+    updateFilters: (n) => setFilterParams(n),
+    clearFilters, selectReport: setCurrentReport, clearCurrentReport,
+    clearError, clearSuccess, resetProgress,
+    fetchReportHistory, fetchSchedules, createSchedule, cancelExport
   }), [
-    state,
-    setFilterParams,
-    setCurrentReport,
-    setFormat,
-    setGenerationProgress,
-    getAvailableReports,
-    generateReportByType,
-    fetchLoansReport,
-    fetchPaymentsReport,
-    fetchCustomersReport,
-    fetchPerformanceReport,
-    fetchDailySummary,
-    fetchMonthlySummary,
-    fetchAuditReport,
-    fetchCollectionReport,
-    fetchRiskAssessment,
-    exportPDF,
-    exportExcel,
-    quickExport,
-    updateFilters,
-    clearFilters,
-    selectReport,
-    clearCurrentReport,
-    clearError,
-    clearSuccess,
-    resetProgress,
-    fetchReportHistory,
-    fetchSchedules,
-    createSchedule,
-    cancelExport
+    state, setFilterParams, setCurrentReport, setFormat, setGenerationProgress,
+    getAvailableReports, generateReportByType, fetchReport, exportData,
+    fetchReportHistory, fetchSchedules, createSchedule, cancelExport,
+    clearFilters, clearError, clearSuccess, resetProgress
   ])
 
   return (
@@ -515,11 +361,9 @@ export const ReportProvider = ({ children }) => {
 
 // Custom hook to use the report context
 export const useReport = () => {
-  const context = useContext(ReportContext)
-  if (!context) {
-    throw new Error('useReport must be used within a ReportProvider')
-  }
-  return context
+  const ctx = useContext(ReportContext)
+  if (!ctx) throw new Error('useReport must be used within ReportProvider')
+  return ctx
 }
 
 export default ReportContext

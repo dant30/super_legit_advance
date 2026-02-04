@@ -7,237 +7,120 @@ class ReportsAPI {
     this.baseURL = '/reports'
   }
 
-  // ==================== LIST & RETRIEVE ====================
-
+  // List available report types
   async getReportTypes() {
-    try {
-      const response = await axios.get(`${this.baseURL}/`)
-      return response.data
-    } catch (error) {
-      console.error('Error fetching report types:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/`)
+    return resp.data
   }
 
+  // Generic list / retrieve
   async getReports(params = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/`, { params })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching reports:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/`, { params })
+    return resp.data
   }
 
-  // ==================== REPORT GENERATION ====================
-
-  async generateReport(data) {
-    try {
-      const response = await axios.post(`${this.baseURL}/generate/`, data)
-      return response.data
-    } catch (error) {
-      console.error('Error generating report:', error)
-      throw error
-    }
+  // Generate report: backend returns JSON for 'json' and blob for pdf/excel
+  async generateReport({ report_type, format = 'json', parameters = {} } = {}) {
+    const cfg = {}
+    if (format !== 'json') cfg.responseType = 'blob'
+    const resp = await axios.post(`${this.baseURL}/generate/`, { report_type, format, parameters }, cfg)
+    return resp.data
   }
 
-  // ==================== SPECIALIZED REPORTS ====================
-
+  // Specialized report endpoints (GET)
   async getLoansReport(params = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/loans/`, { params })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching loans report:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/loans/`, { params })
+    return resp.data
   }
 
   async getPaymentsReport(params = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/payments/`, { params })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching payments report:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/payments/`, { params })
+    return resp.data
   }
 
   async getCustomersReport(params = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/customers/`, { params })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching customers report:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/customers/`, { params })
+    return resp.data
   }
 
   async getPerformanceReport(params = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/performance/`, { params })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching performance report:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/performance/`, { params })
+    return resp.data
   }
 
   async getDailySummary(params = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/daily-summary/`, { params })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching daily summary:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/daily-summary/`, { params })
+    return resp.data
   }
 
   async getMonthlySummary(params = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/monthly-summary/`, { params })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching monthly summary:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/monthly-summary/`, { params })
+    return resp.data
   }
 
   async getAuditReport(params = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/audit/`, { params })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching audit report:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/audit/`, { params })
+    return resp.data
   }
 
   async getCollectionReport(params = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/collection/`, { params })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching collection report:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/collection/`, { params })
+    return resp.data
   }
 
   async getRiskAssessment(params = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/risk-assessment/`, { params })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching risk assessment:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/risk-assessment/`, { params })
+    return resp.data
   }
 
-  // ==================== EXPORTS ====================
-
-  async exportToPDF(data) {
-    try {
-      const response = await axios.post(`${this.baseURL}/export/pdf/`, data, {
-        responseType: 'blob'
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error exporting to PDF:', error)
-      throw error
-    }
+  // Export endpoints (POST -> blob)
+  async exportToPDF(payload = {}) {
+    const resp = await axios.post(`${this.baseURL}/export/pdf/`, payload, { responseType: 'blob' })
+    return resp.data
   }
 
-  async exportToExcel(data) {
-    try {
-      const response = await axios.post(`${this.baseURL}/export/excel/`, data, {
-        responseType: 'blob'
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error exporting to Excel:', error)
-      throw error
-    }
+  async exportToExcel(payload = {}) {
+    const resp = await axios.post(`${this.baseURL}/export/excel/`, payload, { responseType: 'blob' })
+    return resp.data
   }
 
-  // ==================== HISTORY & MANAGEMENT ====================
-
+  // History / schedule / download
   async getReportHistory(params = {}) {
-    try {
-      const response = await axios.get(`${this.baseURL}/history/`, { params })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching report history:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/history/`, { params })
+    return resp.data
   }
 
-  async scheduleReport(data) {
-    try {
-      const response = await axios.post(`${this.baseURL}/schedule/`, data)
-      return response.data
-    } catch (error) {
-      console.error('Error scheduling report:', error)
-      throw error
-    }
+  async scheduleReport(data = {}) {
+    const resp = await axios.post(`${this.baseURL}/schedule/`, data)
+    return resp.data
   }
 
   async downloadReport(reportId) {
-    try {
-      const response = await axios.get(`${this.baseURL}/download/${reportId}/`, {
-        responseType: 'blob'
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error downloading report:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/download/${reportId}/`, { responseType: 'blob' })
+    return resp.data
   }
 
   async deleteReport(reportId) {
-    try {
-      const response = await axios.delete(`${this.baseURL}/${reportId}/`)
-      return response.data
-    } catch (error) {
-      console.error('Error deleting report:', error)
-      throw error
-    }
+    const resp = await axios.delete(`${this.baseURL}/${reportId}/`)
+    return resp.data
   }
 
   async getSchedules() {
-    try {
-      const response = await axios.get(`${this.baseURL}/schedules/`)
-      return response.data
-    } catch (error) {
-      console.error('Error fetching schedules:', error)
-      throw error
-    }
+    const resp = await axios.get(`${this.baseURL}/schedules/`)
+    return resp.data
   }
 
   async updateSchedule(scheduleId, data) {
-    try {
-      const response = await axios.put(`${this.baseURL}/schedules/${scheduleId}/`, data)
-      return response.data
-    } catch (error) {
-      console.error('Error updating schedule:', error)
-      throw error
-    }
+    const resp = await axios.put(`${this.baseURL}/schedules/${scheduleId}/`, data)
+    return resp.data
   }
 
   async deleteSchedule(scheduleId) {
-    try {
-      const response = await axios.delete(`${this.baseURL}/schedules/${scheduleId}/`)
-      return response.data
-    } catch (error) {
-      console.error('Error deleting schedule:', error)
-      throw error
-    }
+    const resp = await axios.delete(`${this.baseURL}/schedules/${scheduleId}/`)
+    return resp.data
   }
 
-  // ==================== UTILITY METHODS ====================
-
-  /**
-   * Download file with automatic naming
-   */
+  // Helpers
   downloadFile(blob, filename) {
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -249,43 +132,24 @@ class ReportsAPI {
     window.URL.revokeObjectURL(url)
   }
 
-  /**
-   * Generate filename with timestamp
-   */
-  generateFilename(reportName, format = 'pdf') {
-    const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
-    const extension = format === 'excel' ? 'xlsx' : 'pdf'
-    return `${reportName}_${timestamp}.${extension}`
+  generateFilename(baseName = 'report', format = 'pdf') {
+    const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
+    const ext = format === 'excel' ? 'xlsx' : format === 'json' ? 'json' : 'pdf'
+    return `${baseName}_${ts}.${ext}`
   }
 
-  /**
-   * Format date for API parameters
-   */
   formatDate(date) {
-    return date ? new Date(date).toISOString().split('T')[0] : null
+    if (!date) return null
+    return new Date(date).toISOString().split('T')[0]
   }
 
-  /**
-   * Build query parameters from filters
-   */
   buildParams(filters = {}) {
     const params = { ...filters }
-    
-    // Format date fields if present
-    if (params.start_date) {
-      params.start_date = this.formatDate(params.start_date)
-    }
-    if (params.end_date) {
-      params.end_date = this.formatDate(params.end_date)
-    }
-    
-    // Remove undefined or null values
-    Object.keys(params).forEach(key => {
-      if (params[key] === undefined || params[key] === null || params[key] === '') {
-        delete params[key]
-      }
+    if (params.start_date) params.start_date = this.formatDate(params.start_date)
+    if (params.end_date) params.end_date = this.formatDate(params.end_date)
+    Object.keys(params).forEach(k => {
+      if (params[k] === undefined || params[k] === null || params[k] === '') delete params[k]
     })
-    
     return params
   }
 }
