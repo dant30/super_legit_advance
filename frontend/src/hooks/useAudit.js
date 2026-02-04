@@ -3,13 +3,10 @@ import { useAudit as useAuditContext } from '../contexts/AuditContext'
 
 /**
  * Hook for accessing audit functionality
- * This is now just a wrapper around the context for consistency
+ * Thin wrapper around AuditContext for consistent hook API.
  */
 export function useAudit() {
-  const audit = useAuditContext()
-  
-  // Return the entire context value
-  return audit
+  return useAuditContext()
 }
 
 export default useAudit

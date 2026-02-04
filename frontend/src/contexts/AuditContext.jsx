@@ -1,6 +1,7 @@
 // frontend/src/contexts/AuditContext.jsx 
 import React, { createContext, useContext, useReducer, useCallback, useMemo } from 'react'
 import { auditAPI } from '../api/audit'
+import { useToast } from './ToastContext'
 
 // Initial state
 const initialState = {
@@ -50,15 +51,13 @@ const ACTIONS = {
   RESET: 'RESET',
 }
 
-// Reducer function
+// Reducer
 function auditReducer(state, action) {
   switch (action.type) {
     case ACTIONS.SET_LOADING:
       return { ...state, loading: action.payload }
-    
     case ACTIONS.SET_ERROR:
       return { ...state, error: action.payload, loading: false }
-    
     case ACTIONS.SET_LOGS:
       return {
         ...state,
@@ -68,19 +67,14 @@ function auditReducer(state, action) {
         loading: false,
         error: null,
       }
-    
     case ACTIONS.SET_CURRENT_LOG:
       return { ...state, currentLog: action.payload, loading: false, error: null }
-    
     case ACTIONS.SET_STATS:
       return { ...state, stats: action.payload, loading: false, error: null }
-
     case ACTIONS.SET_SUMMARY:
       return { ...state, summary: action.payload, loading: false, error: null }
-    
     case ACTIONS.SET_USER_ACTIVITY:
       return { ...state, userActivity: action.payload, loading: false, error: null }
-    
     case ACTIONS.SET_SECURITY_EVENTS:
       return {
         ...state,
@@ -89,7 +83,6 @@ function auditReducer(state, action) {
         loading: false,
         error: null,
       }
-    
     case ACTIONS.SET_COMPLIANCE_EVENTS:
       return {
         ...state,
@@ -98,69 +91,38 @@ function auditReducer(state, action) {
         loading: false,
         error: null,
       }
-    
     case ACTIONS.SET_FILTERS:
-      return {
-        ...state,
-        filters: { ...state.filters, ...action.payload },
-        pagination: initialState.pagination,
-      }
-    
+      return { ...state, filters: { ...state.filters, ...action.payload }, pagination: initialState.pagination }
     case ACTIONS.SET_PAGINATION:
       return { ...state, pagination: action.payload }
-    
     case ACTIONS.CLEAR_ERROR:
       return { ...state, error: null }
-    
     case ACTIONS.CLEAR_CURRENT_LOG:
       return { ...state, currentLog: null }
-    
     case ACTIONS.CLEAR_FILTERS:
       return { ...state, filters: {}, pagination: initialState.pagination }
-    
     case ACTIONS.RESET:
       return initialState
-    
     default:
       return state
   }
 }
 
-// Create context
+// Context
 const AuditContext = createContext()
 
-// Provider component
 export function AuditProvider({ children }) {
   const [state, dispatch] = useReducer(auditReducer, initialState)
+  const { addToast } = useToast()
 
   // Action creators
-  const setLoading = useCallback((loading) => {
-    dispatch({ type: ACTIONS.SET_LOADING, payload: loading })
-  }, [])
-
-  const setError = useCallback((error) => {
-    dispatch({ type: ACTIONS.SET_ERROR, payload: error })
-  }, [])
-
-  const clearError = useCallback(() => {
-    dispatch({ type: ACTIONS.CLEAR_ERROR })
-  }, [])
-
-  const setFilters = useCallback((filters) => {
-    dispatch({ type: ACTIONS.SET_FILTERS, payload: filters })
-  }, [])
-
-  const clearFilters = useCallback(() => {
-    dispatch({ type: ACTIONS.CLEAR_FILTERS })
-  }, [])
-
-  const clearCurrentLog = useCallback(() => {
-    dispatch({ type: ACTIONS.CLEAR_CURRENT_LOG })
-  }, [])
-
-  const reset = useCallback(() => {
-    dispatch({ type: ACTIONS.RESET })
-  }, [])
+  const setLoading = useCallback((loading) => dispatch({ type: ACTIONS.SET_LOADING, payload: loading }), [])
+  const setError = useCallback((error) => dispatch({ type: ACTIONS.SET_ERROR, payload: error }), [])
+  const clearError = useCallback(() => dispatch({ type: ACTIONS.CLEAR_ERROR }), [])
+  const setFilters = useCallback((filters) => dispatch({ type: ACTIONS.SET_FILTERS, payload: filters }), [])
+  const clearFilters = useCallback(() => dispatch({ type: ACTIONS.CLEAR_FILTERS }), [])
+  const clearCurrentLog = useCallback(() => dispatch({ type: ACTIONS.CLEAR_CURRENT_LOG }), [])
+  const reset = useCallback(() => dispatch({ type: ACTIONS.RESET }), [])
 
   // API methods
   const getAuditLogs = useCallback(async (params = {}) => {
@@ -181,10 +143,12 @@ export function AuditProvider({ children }) {
       })
       return response
     } catch (error) {
-      setError(error.message || 'Failed to fetch audit logs')
+      const msg = error?.message || error?.message || 'Failed to fetch audit logs'
+      setError(msg)
+      addToast?.({ type: 'error', title: 'Audit', message: msg })
       throw error
     }
-  }, [setLoading, setError])
+  }, [addToast])
 
   const getAuditLog = useCallback(async (id) => {
     setLoading(true)
@@ -193,10 +157,12 @@ export function AuditProvider({ children }) {
       dispatch({ type: ACTIONS.SET_CURRENT_LOG, payload: log })
       return log
     } catch (error) {
-      setError(error.message || `Failed to fetch audit log ${id}`)
+      const msg = error?.message || `Failed to fetch audit log ${id}`
+      setError(msg)
+      addToast?.({ type: 'error', title: 'Audit', message: msg })
       throw error
     }
-  }, [setLoading, setError])
+  }, [addToast])
 
   const searchLogs = useCallback(async (q, type = 'all', params = {}) => {
     setLoading(true)
@@ -216,10 +182,12 @@ export function AuditProvider({ children }) {
       })
       return response
     } catch (error) {
-      setError(error.message || 'Failed to search audit logs')
+      const msg = error?.message || 'Failed to search audit logs'
+      setError(msg)
+      addToast?.({ type: 'error', title: 'Audit', message: msg })
       throw error
     }
-  }, [setLoading, setError])
+  }, [addToast])
 
   const getAuditStats = useCallback(async (days = 30) => {
     setLoading(true)
@@ -228,10 +196,12 @@ export function AuditProvider({ children }) {
       dispatch({ type: ACTIONS.SET_STATS, payload: stats })
       return stats
     } catch (error) {
-      setError(error.message || 'Failed to fetch audit statistics')
+      const msg = error?.message || 'Failed to fetch audit statistics'
+      setError(msg)
+      addToast?.({ type: 'error', title: 'Audit', message: msg })
       throw error
     }
-  }, [setLoading, setError])
+  }, [addToast])
 
   const exportAuditLogs = useCallback(async (format = 'excel', params = {}, options = {}) => {
     setLoading(true)
@@ -242,23 +212,26 @@ export function AuditProvider({ children }) {
 
       if (download) {
         if (format === 'json') {
-          const jsonBlob = new Blob([JSON.stringify(data, null, 2)], {
-            type: 'application/json',
-          })
-          auditAPI.downloadExportFile(jsonBlob, filename)
+          // JSON response (already parsed)
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+          auditAPI.downloadExportFile(blob, filename)
         } else {
+          // Binary blob (excel/csv)
           auditAPI.downloadExportFile(data, filename)
         }
       }
 
+      addToast?.({ type: 'success', title: 'Export', message: `Export ready: ${filename}` })
       return { success: true, filename, data }
     } catch (error) {
-      setError(error.message || 'Failed to export audit logs')
+      const msg = error?.message || 'Failed to export audit logs'
+      setError(msg)
+      addToast?.({ type: 'error', title: 'Export Failed', message: msg })
       throw error
     } finally {
       setLoading(false)
     }
-  }, [setLoading, setError])
+  }, [addToast])
 
   const getUserActivity = useCallback(async (userId, days = 30) => {
     setLoading(true)
@@ -267,10 +240,12 @@ export function AuditProvider({ children }) {
       dispatch({ type: ACTIONS.SET_USER_ACTIVITY, payload: activity })
       return activity
     } catch (error) {
-      setError(error.message || `Failed to fetch user activity for user ${userId}`)
+      const msg = error?.message || `Failed to fetch user activity for user ${userId}`
+      setError(msg)
+      addToast?.({ type: 'error', title: 'Audit', message: msg })
       throw error
     }
-  }, [setLoading, setError])
+  }, [addToast])
 
   const getSecurityEvents = useCallback(async (days = 30, params = {}) => {
     setLoading(true)
@@ -279,20 +254,22 @@ export function AuditProvider({ children }) {
       dispatch({
         type: ACTIONS.SET_SECURITY_EVENTS,
         payload: {
-          events: response.results || [],
+          events: response.results || response || [],
           pagination: {
-            count: response.count || 0,
-            next: response.next,
-            previous: response.previous,
+            count: response.count || (response.results?.length ?? 0),
+            next: response.next || null,
+            previous: response.previous || null,
           },
         },
       })
       return response
     } catch (error) {
-      setError(error.message || 'Failed to fetch security events')
+      const msg = error?.message || 'Failed to fetch security events'
+      setError(msg)
+      addToast?.({ type: 'error', title: 'Security Events', message: msg })
       throw error
     }
-  }, [setLoading, setError])
+  }, [addToast])
 
   const getComplianceEvents = useCallback(async (days = 90, params = {}) => {
     setLoading(true)
@@ -301,125 +278,88 @@ export function AuditProvider({ children }) {
       dispatch({
         type: ACTIONS.SET_COMPLIANCE_EVENTS,
         payload: {
-          events: response.results || [],
+          events: response.results || response || [],
           pagination: {
-            count: response.count || 0,
-            next: response.next,
-            previous: response.previous,
+            count: response.count || (response.results?.length ?? 0),
+            next: response.next || null,
+            previous: response.previous || null,
           },
         },
       })
       return response
     } catch (error) {
-      setError(error.message || 'Failed to fetch compliance events')
+      const msg = error?.message || 'Failed to fetch compliance events'
+      setError(msg)
+      addToast?.({ type: 'error', title: 'Compliance Events', message: msg })
       throw error
     }
-  }, [setLoading, setError])
+  }, [addToast])
 
+  // Convenience wrappers (delegating to getAuditLogs)
   const getAuditLogsByDateRange = useCallback(async (startDate, endDate, params = {}) => {
-    return getAuditLogs({
-      start_date: startDate,
-      end_date: endDate,
-      ...params,
-    })
+    return getAuditLogs({ start_date: startDate, end_date: endDate, ...params })
   }, [getAuditLogs])
 
   const getAuditLogsByModel = useCallback(async (modelName, params = {}) => {
-    return getAuditLogs({
-      model_name: modelName,
-      ...params,
-    })
+    return getAuditLogs({ model_name: modelName, ...params })
   }, [getAuditLogs])
 
   const getAuditLogsByUser = useCallback(async (userId, params = {}) => {
-    return getAuditLogs({
-      user_id: userId,
-      ...params,
-    })
+    return getAuditLogs({ user_id: userId, ...params })
   }, [getAuditLogs])
 
   const getAuditLogsByObject = useCallback(async (objectId, params = {}) => {
-    return getAuditLogs({
-      object_id: objectId,
-      ...params,
-    })
+    return getAuditLogs({ object_id: objectId, ...params })
   }, [getAuditLogs])
 
   const getAuditLogsByIp = useCallback(async (ipAddress, params = {}) => {
-    return getAuditLogs({
-      ip_address: ipAddress,
-      ...params,
-    })
+    return getAuditLogs({ ip_address: ipAddress, ...params })
   }, [getAuditLogs])
 
   const getAuditLogsByAction = useCallback(async (action, params = {}) => {
-    return getAuditLogs({
-      action,
-      ...params,
-    })
+    return getAuditLogs({ action, ...params })
   }, [getAuditLogs])
 
   const getAuditLogsBySeverity = useCallback(async (severity, params = {}) => {
-    return getAuditLogs({
-      severity,
-      ...params,
-    })
+    return getAuditLogs({ severity, ...params })
   }, [getAuditLogs])
 
   const getAuditLogsByStatus = useCallback(async (status, params = {}) => {
-    return getAuditLogs({
-      status,
-      ...params,
-    })
+    return getAuditLogs({ status, ...params })
   }, [getAuditLogs])
 
   const getAuditLogsByModule = useCallback(async (module, params = {}) => {
-    return getAuditLogs({
-      module,
-      ...params,
-    })
+    return getAuditLogs({ module, ...params })
   }, [getAuditLogs])
 
   const getComplianceFlaggedLogs = useCallback(async (isComplianceEvent = true, params = {}) => {
-    return getAuditLogs({
-      is_compliance_event: isComplianceEvent,
-      ...params,
-    })
+    return getAuditLogs({ is_compliance_event: isComplianceEvent, ...params })
   }, [getAuditLogs])
 
   const getAuditLogsByTags = useCallback(async (tags = [], params = {}) => {
-    return getAuditLogs({
-      tags,
-      ...params,
-    })
+    return getAuditLogs({ tags, ...params })
   }, [getAuditLogs])
 
   const getFailedActions = useCallback(async (params = {}) => {
-    return getAuditLogs({
-      status: 'FAILURE',
-      ...params,
-    })
+    return getAuditLogs({ status: 'FAILURE', ...params })
   }, [getAuditLogs])
 
   const getHighSeverityEvents = useCallback(async (params = {}) => {
-    return getAuditLogs({
-      high_severity: true,
-      ...params,
-    })
+    return getAuditLogs({ high_severity: true, ...params })
   }, [getAuditLogs])
 
   // Context value
   const value = useMemo(() => ({
     // State
     ...state,
-    
+
     // Actions
     setFilters,
     clearFilters,
     clearCurrentLog,
     clearError,
     reset,
-    
+
     // API methods
     getAuditLogs,
     getAuditLog,
@@ -483,3 +423,5 @@ export function useAudit() {
   }
   return context
 }
+
+export default AuditContext

@@ -67,7 +67,8 @@ class AuditAPI {
   }
 
   /**
-   * Export audit logs to various formats
+   * Export audit logs to various formats.
+   * Returns blob for binary formats (excel/csv) and JSON for json.
    */
   async exportAuditLogs(format = 'excel', params = {}) {
     try {
@@ -128,239 +129,57 @@ class AuditAPI {
     }
   }
 
-  /**
-   * Get audit logs by date range
-   */
+  // Convenience list/filter helpers (delegating to list endpoint)
   async getAuditLogsByDateRange(startDate, endDate, params = {}) {
-    try {
-      const response = await axiosInstance.get(`${this.baseURL}/`, {
-        params: {
-          start_date: startDate,
-          end_date: endDate,
-          ...params,
-        },
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching audit logs by date range:', error)
-      throw this.formatError(error)
-    }
+    return this.getAuditLogs({ start_date: startDate, end_date: endDate, ...params })
   }
 
-  /**
-   * Get audit logs for specific model
-   */
   async getAuditLogsByModel(modelName, params = {}) {
-    try {
-      const response = await axiosInstance.get(`${this.baseURL}/`, {
-        params: {
-          model_name: modelName,
-          ...params,
-        },
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching audit logs by model:', error)
-      throw this.formatError(error)
-    }
+    return this.getAuditLogs({ model_name: modelName, ...params })
   }
 
-  /**
-   * Get audit logs for specific user
-   */
   async getAuditLogsByUser(userId, params = {}) {
-    try {
-      const response = await axiosInstance.get(`${this.baseURL}/`, {
-        params: {
-          user_id: userId,
-          ...params,
-        },
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching audit logs by user:', error)
-      throw this.formatError(error)
-    }
+    return this.getAuditLogs({ user_id: userId, ...params })
   }
 
-  /**
-   * Get audit logs for specific object
-   */
   async getAuditLogsByObject(objectId, params = {}) {
-    try {
-      const response = await axiosInstance.get(`${this.baseURL}/`, {
-        params: {
-          object_id: objectId,
-          ...params,
-        },
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching audit logs by object:', error)
-      throw this.formatError(error)
-    }
+    return this.getAuditLogs({ object_id: objectId, ...params })
   }
 
-  /**
-   * Get audit logs by IP address
-   */
   async getAuditLogsByIp(ipAddress, params = {}) {
-    try {
-      const response = await axiosInstance.get(`${this.baseURL}/`, {
-        params: {
-          ip_address: ipAddress,
-          ...params,
-        },
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching audit logs by IP:', error)
-      throw this.formatError(error)
-    }
+    return this.getAuditLogs({ ip_address: ipAddress, ...params })
   }
 
-  /**
-   * Get audit logs by action
-   */
   async getAuditLogsByAction(action, params = {}) {
-    try {
-      const response = await axiosInstance.get(`${this.baseURL}/`, {
-        params: {
-          action,
-          ...params,
-        },
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching audit logs by action:', error)
-      throw this.formatError(error)
-    }
+    return this.getAuditLogs({ action, ...params })
   }
 
-  /**
-   * Get audit logs by severity
-   */
   async getAuditLogsBySeverity(severity, params = {}) {
-    try {
-      const response = await axiosInstance.get(`${this.baseURL}/`, {
-        params: {
-          severity,
-          ...params,
-        },
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching audit logs by severity:', error)
-      throw this.formatError(error)
-    }
+    return this.getAuditLogs({ severity, ...params })
   }
 
-  /**
-   * Get audit logs by status
-   */
   async getAuditLogsByStatus(status, params = {}) {
-    try {
-      const response = await axiosInstance.get(`${this.baseURL}/`, {
-        params: {
-          status,
-          ...params,
-        },
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching audit logs by status:', error)
-      throw this.formatError(error)
-    }
+    return this.getAuditLogs({ status, ...params })
   }
 
-  /**
-   * Get audit logs by module
-   */
   async getAuditLogsByModule(module, params = {}) {
-    try {
-      const response = await axiosInstance.get(`${this.baseURL}/`, {
-        params: {
-          module,
-          ...params,
-        },
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching audit logs by module:', error)
-      throw this.formatError(error)
-    }
+    return this.getAuditLogs({ module, ...params })
   }
 
-  /**
-   * Get audit logs by compliance event flag
-   */
   async getComplianceFlaggedLogs(isComplianceEvent = true, params = {}) {
-    try {
-      const response = await axiosInstance.get(`${this.baseURL}/`, {
-        params: {
-          is_compliance_event: isComplianceEvent,
-          ...params,
-        },
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching compliance flagged logs:', error)
-      throw this.formatError(error)
-    }
+    return this.getAuditLogs({ is_compliance_event: isComplianceEvent, ...params })
   }
 
-  /**
-   * Get audit logs by tags
-   */
   async getAuditLogsByTags(tags = [], params = {}) {
-    try {
-      const response = await axiosInstance.get(`${this.baseURL}/`, {
-        params: {
-          tags,
-          ...params,
-        },
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching audit logs by tags:', error)
-      throw this.formatError(error)
-    }
+    return this.getAuditLogs({ tags, ...params })
   }
 
-  /**
-   * Get failed actions only
-   */
   async getFailedActions(params = {}) {
-    try {
-      const response = await axiosInstance.get(`${this.baseURL}/`, {
-        params: {
-          status: 'FAILURE',
-          ...params,
-        },
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching failed actions:', error)
-      throw this.formatError(error)
-    }
+    return this.getAuditLogs({ status: 'FAILURE', ...params })
   }
 
-  /**
-   * Get high severity events
-   */
   async getHighSeverityEvents(params = {}) {
-    try {
-      const response = await axiosInstance.get(`${this.baseURL}/`, {
-        params: {
-          high_severity: true,
-          ...params,
-        },
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching high severity events:', error)
-      throw this.formatError(error)
-    }
+    return this.getAuditLogs({ high_severity: true, ...params })
   }
 
   /**
@@ -386,10 +205,7 @@ class AuditAPI {
    * Generate filename for export with timestamp
    */
   generateExportFilename(format) {
-    const timestamp = new Date()
-      .toISOString()
-      .slice(0, 19)
-      .replace(/:/g, '-')
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
     return `audit_logs_${timestamp}.${format}`
   }
 
@@ -398,24 +214,18 @@ class AuditAPI {
    */
   formatError(error) {
     if (error.response) {
-      // Server responded with error status
       return {
-        message:
-          error.response.data?.detail ||
-          error.response.data?.message ||
-          'An error occurred',
+        message: error.response.data?.detail || error.response.data?.message || 'An error occurred',
         details: error.response.data,
         status: error.response.status,
       }
     } else if (error.request) {
-      // Request made but no response
       return {
         message: 'No response from server. Please check your connection.',
         details: null,
         status: null,
       }
     } else {
-      // Error in setting up request
       return {
         message: error.message || 'An unexpected error occurred',
         details: null,
