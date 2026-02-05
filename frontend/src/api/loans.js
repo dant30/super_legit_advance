@@ -326,16 +326,3 @@ class LoanAPI {
 
 export const loanAPI = new LoanAPI()
 
-export {
-  LOAN_STATUS,
-  LOAN_APPLICATION_STATUS,
-  LOAN_TYPE,
-  INTEREST_TYPE,
-  REPAYMENT_FREQUENCY,
-  RISK_LEVEL,
-  LOAN_STATUS_LABELS,
-  LOAN_TYPE_LABELS,
-  getLoanStatusColor,
-  formatCurrency,
-  calculateDaysBetween
-}

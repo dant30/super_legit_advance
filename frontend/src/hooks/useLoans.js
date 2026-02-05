@@ -6,7 +6,7 @@ import { useToast } from '@contexts/ToastContext'
 
 export const useLoans = () => {
   const queryClient = useQueryClient()
-  const { showToast } = useToast()
+  const toast = useToast()
   const [loanFilters, setLoanFilters] = useState({})
   const [applicationFilters, setApplicationFilters] = useState({})
 
@@ -18,7 +18,7 @@ export const useLoans = () => {
       keepPreviousData: true,
       staleTime: 1000 * 60 * 5,
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data?.detail || 'Failed to fetch loans', status: 'error' })
+        toast.error(err?.response?.data?.detail || 'Failed to fetch loans', { title: 'Error' })
       }
     })
 
@@ -29,7 +29,7 @@ export const useLoans = () => {
       enabled: !!id,
       staleTime: 1000 * 60 * 10,
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data?.detail || 'Failed to fetch loan', status: 'error' })
+        toast.error(err?.response?.data?.detail || 'Failed to fetch loan', { title: 'Error' })
       }
     })
 
@@ -38,7 +38,7 @@ export const useLoans = () => {
       queryKey: ['loanStats'],
       queryFn: () => loanAPI.getLoanStats(),
       staleTime: 1000 * 60 * 2,
-      onError: () => showToast({ title: 'Error', description: 'Failed to fetch loan stats', status: 'error' })
+      onError: () => toast.error('Failed to fetch loan stats', { title: 'Error' })
     })
 
   const useLoanApplicationsQuery = (overrides = {}) =>
@@ -47,7 +47,7 @@ export const useLoans = () => {
       queryFn: () => loanAPI.getLoanApplications({ ...applicationFilters, ...overrides }),
       keepPreviousData: true,
       staleTime: 1000 * 60 * 5,
-      onError: (err) => showToast({ title: 'Error', description: err?.response?.data?.detail || 'Failed to fetch applications', status: 'error' })
+      onError: (err) => toast.error(err?.response?.data?.detail || 'Failed to fetch applications', { title: 'Error' })
     })
 
   const useLoanApplicationQuery = (id) =>
@@ -56,147 +56,158 @@ export const useLoans = () => {
       queryFn: () => loanAPI.getLoanApplication(id),
       enabled: !!id,
       staleTime: 1000 * 60 * 10,
-      onError: (err) => showToast({ title: 'Error', description: err?.response?.data?.detail || 'Failed to fetch application', status: 'error' })
+      onError: (err) => toast.error(err?.response?.data?.detail || 'Failed to fetch application', { title: 'Error' })
     })
 
   // ---------- Mutations ----------
   const useCreateLoan = () =>
-    useMutation((data) => loanAPI.createLoan(data), {
+    useMutation({
+      mutationFn: (data) => loanAPI.createLoan(data),
       onSuccess: (res) => {
-        queryClient.invalidateQueries(['loans'])
-        showToast({ title: 'Success', description: 'Loan created', status: 'success' })
+        queryClient.invalidateQueries({ queryKey: ['loans'] })
+        toast.success('Loan created', { title: 'Success' })
         return res
       },
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to create loan', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to create loan', { title: 'Error' })
         throw err
       }
     })
 
   const useUpdateLoan = () =>
-    useMutation(({ id, data }) => loanAPI.updateLoan(id, data), {
+    useMutation({
+      mutationFn: ({ id, data }) => loanAPI.updateLoan(id, data),
       onSuccess: (_, vars) => {
-        queryClient.invalidateQueries(['loans'])
-        queryClient.invalidateQueries(['loan', vars.id])
-        showToast({ title: 'Success', description: 'Loan updated', status: 'success' })
+        queryClient.invalidateQueries({ queryKey: ['loans'] })
+        queryClient.invalidateQueries({ queryKey: ['loan', vars.id] })
+        toast.success('Loan updated', { title: 'Success' })
       },
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to update loan', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to update loan', { title: 'Error' })
         throw err
       }
     })
 
   const useDeleteLoan = () =>
-    useMutation((id) => loanAPI.deleteLoan(id), {
+    useMutation({
+      mutationFn: (id) => loanAPI.deleteLoan(id),
       onSuccess: () => {
-        queryClient.invalidateQueries(['loans'])
-        showToast({ title: 'Success', description: 'Loan deleted', status: 'success' })
+        queryClient.invalidateQueries({ queryKey: ['loans'] })
+        toast.success('Loan deleted', { title: 'Success' })
       },
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to delete loan', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to delete loan', { title: 'Error' })
         throw err
       }
     })
 
   const useApproveLoan = () =>
-    useMutation(({ id, data }) => loanAPI.approveLoan(id, data), {
+    useMutation({
+      mutationFn: ({ id, data }) => loanAPI.approveLoan(id, data),
       onSuccess: (res, vars) => {
-        queryClient.invalidateQueries(['loans'])
-        queryClient.invalidateQueries(['loan', vars.id])
-        showToast({ title: 'Success', description: res?.message || 'Loan approved', status: 'success' })
+        queryClient.invalidateQueries({ queryKey: ['loans'] })
+        queryClient.invalidateQueries({ queryKey: ['loan', vars.id] })
+        toast.success(res?.message || 'Loan approved', { title: 'Success' })
         return res
       },
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to approve loan', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to approve loan', { title: 'Error' })
         throw err
       }
     })
 
   const useRejectLoan = () =>
-    useMutation(({ id, reason }) => loanAPI.rejectLoan(id, reason), {
+    useMutation({
+      mutationFn: ({ id, reason }) => loanAPI.rejectLoan(id, reason),
       onSuccess: (res, vars) => {
-        queryClient.invalidateQueries(['loans'])
-        queryClient.invalidateQueries(['loan', vars.id])
-        showToast({ title: 'Success', description: res?.message || 'Loan rejected', status: 'info' })
+        queryClient.invalidateQueries({ queryKey: ['loans'] })
+        queryClient.invalidateQueries({ queryKey: ['loan', vars.id] })
+        toast.info(res?.message || 'Loan rejected', { title: 'Success' })
         return res
       },
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to reject loan', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to reject loan', { title: 'Error' })
         throw err
       }
     })
 
   const useDisburseLoan = () =>
-    useMutation(({ id, data }) => loanAPI.disburseLoan(id, data), {
+    useMutation({
+      mutationFn: ({ id, data }) => loanAPI.disburseLoan(id, data),
       onSuccess: (res, vars) => {
-        queryClient.invalidateQueries(['loans'])
-        queryClient.invalidateQueries(['loan', vars.id])
-        showToast({ title: 'Success', description: res?.message || 'Loan disbursed', status: 'success' })
+        queryClient.invalidateQueries({ queryKey: ['loans'] })
+        queryClient.invalidateQueries({ queryKey: ['loan', vars.id] })
+        toast.success(res?.message || 'Loan disbursed', { title: 'Success' })
         return res
       },
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to disburse loan', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to disburse loan', { title: 'Error' })
         throw err
       }
     })
 
   const useCalculateLoan = () =>
-    useMutation((payload) => loanAPI.calculateLoan(payload), {
+    useMutation({
+      mutationFn: (payload) => loanAPI.calculateLoan(payload),
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to calculate loan', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to calculate loan', { title: 'Error' })
         throw err
       }
     })
 
   // Applications mutations
   const useCreateLoanApplication = () =>
-    useMutation((data) => loanAPI.createLoanApplication(data), {
+    useMutation({
+      mutationFn: (data) => loanAPI.createLoanApplication(data),
       onSuccess: () => {
-        queryClient.invalidateQueries(['loanApplications'])
-        showToast({ title: 'Success', description: 'Application created', status: 'success' })
+        queryClient.invalidateQueries({ queryKey: ['loanApplications'] })
+        toast.success('Application created', { title: 'Success' })
       },
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to create application', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to create application', { title: 'Error' })
         throw err
       }
     })
 
   const useSubmitLoanApplication = () =>
-    useMutation((id) => loanAPI.submitLoanApplication(id), {
+    useMutation({
+      mutationFn: (id) => loanAPI.submitLoanApplication(id),
       onSuccess: (_, id) => {
-        queryClient.invalidateQueries(['loanApplications'])
-        queryClient.invalidateQueries(['loanApplication', id])
-        showToast({ title: 'Success', description: 'Application submitted', status: 'success' })
+        queryClient.invalidateQueries({ queryKey: ['loanApplications'] })
+        queryClient.invalidateQueries({ queryKey: ['loanApplication', id] })
+        toast.success('Application submitted', { title: 'Success' })
       },
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to submit application', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to submit application', { title: 'Error' })
         throw err
       }
     })
 
   const useApproveLoanApplication = () =>
-    useMutation(({ id, data }) => loanAPI.approveLoanApplication(id, data), {
+    useMutation({
+      mutationFn: ({ id, data }) => loanAPI.approveLoanApplication(id, data),
       onSuccess: (res) => {
-        queryClient.invalidateQueries(['loanApplications'])
-        queryClient.invalidateQueries(['loans'])
-        showToast({ title: 'Success', description: res?.message || 'Application approved', status: 'success' })
+        queryClient.invalidateQueries({ queryKey: ['loanApplications'] })
+        queryClient.invalidateQueries({ queryKey: ['loans'] })
+        toast.success(res?.message || 'Application approved', { title: 'Success' })
         return res
       },
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to approve application', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to approve application', { title: 'Error' })
         throw err
       }
     })
 
   const useRejectLoanApplication = () =>
-    useMutation(({ id, reason }) => loanAPI.rejectLoanApplication(id, reason), {
+    useMutation({
+      mutationFn: ({ id, reason }) => loanAPI.rejectLoanApplication(id, reason),
       onSuccess: (res) => {
-        queryClient.invalidateQueries(['loanApplications'])
-        showToast({ title: 'Success', description: res?.message || 'Application rejected', status: 'info' })
+        queryClient.invalidateQueries({ queryKey: ['loanApplications'] })
+        toast.info(res?.message || 'Application rejected', { title: 'Success' })
         return res
       },
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to reject application', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to reject application', { title: 'Error' })
         throw err
       }
     })
@@ -207,17 +218,18 @@ export const useLoans = () => {
       queryKey: ['collaterals', loanId, filters],
       queryFn: () => loanAPI.getCollaterals(loanId, filters),
       enabled: !!loanId,
-      onError: (err) => showToast({ title: 'Error', description: err?.response?.data?.detail || 'Failed to fetch collateral', status: 'error' })
+      onError: (err) => toast.error(err?.response?.data?.detail || 'Failed to fetch collateral', { title: 'Error' })
     })
 
   const useCreateCollateral = () =>
-    useMutation(({ loanId, data }) => loanAPI.createCollateral(loanId, data), {
+    useMutation({
+      mutationFn: ({ loanId, data }) => loanAPI.createCollateral(loanId, data),
       onSuccess: () => {
-        showToast({ title: 'Success', description: 'Collateral created', status: 'success' })
-        queryClient.invalidateQueries(['collaterals'])
+        toast.success('Collateral created', { title: 'Success' })
+        queryClient.invalidateQueries({ queryKey: ['collaterals'] })
       },
       onError: (err) => {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to create collateral', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to create collateral', { title: 'Error' })
         throw err
       }
     })
@@ -229,13 +241,13 @@ export const useLoans = () => {
         const blob = await loanAPI.exportLoans(format, filters)
         const ext = format === 'csv' ? 'csv' : 'xlsx'
         loanAPI.downloadExport(blob, `loans_export.${ext}`)
-        showToast({ title: 'Export', description: 'Export started', status: 'success' })
+        toast.success('Export started', { title: 'Export' })
       } catch (err) {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to export loans', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to export loans', { title: 'Error' })
         throw err
       }
     },
-    [showToast]
+    [toast]
   )
 
   const searchLoans = useCallback(
@@ -243,11 +255,11 @@ export const useLoans = () => {
       try {
         return await loanAPI.searchLoans(query, type, params)
       } catch (err) {
-        showToast({ title: 'Error', description: err?.response?.data || 'Failed to search loans', status: 'error' })
+        toast.error(err?.response?.data || 'Failed to search loans', { title: 'Error' })
         throw err
       }
     },
-    [showToast]
+    [toast]
   )
 
   // Filters
@@ -306,7 +318,7 @@ export const useLoans = () => {
  * Hook for loan-related utilities without React Query
  */
 export const useLoanUtils = () => {
-  const { showToast } = useToast()
+  const toast = useToast()
 
   const calculateRepaymentProgress = (loan) => {
     if (!loan || !loan.amount_approved || !loan.outstanding_balance) return 0

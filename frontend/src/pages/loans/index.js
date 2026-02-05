@@ -1,1 +1,6 @@
-// frontend/src/pages/loans/index.tsx
+export { default as LoanList } from './LoanList'
+export { default as LoanCreate } from './LoanCreate'
+export { default as LoanEdit } from './LoanEdit'
+export { default as LoanDetail } from './LoanDetail'
+export { default as LoanApprovals } from './LoanApprovals'
+export { default as LoanCalculator } from './LoanCalculator'

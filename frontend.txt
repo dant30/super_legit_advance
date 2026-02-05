@@ -125,6 +125,8 @@ frontend/
             ├── Timeline.jsx           # Timeline component
             ├── Tooltip.jsx            # Tooltip
             ├── Upload.jsx             # File upload UI
+            ├── Result.jsx
+            ├── Steps
             └── index.js               # UI exports
     │   │
     │   ├── shared/                   # Shared Components
