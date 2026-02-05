@@ -11,8 +11,9 @@ import {
   Loader2,
   Sparkles,
 } from 'lucide-react'
-import Particles from 'react-tsparticles'
-import { loadFull } from 'tsparticles'
+
+import Particles from '@tsparticles/react'
+import { loadSlim } from '@tsparticles/slim'
 
 import { useAuth } from '@hooks/useAuth'
 
