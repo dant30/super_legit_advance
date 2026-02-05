@@ -6,7 +6,8 @@ import { useToast } from '@contexts/ToastContext'
 const Toast = ({ 
   title, 
   message, 
-  variant = 'info', 
+  variant = 'info',
+  type,
   duration = 5000,
   onClose,
   className 
@@ -17,7 +18,8 @@ const Toast = ({
     const id = addToast({
       title,
       message,
-      variant,
+      type: type || variant,
+      variant: type || variant,
       duration,
       onClose,
     })

@@ -1,5 +1,5 @@
 // frontend/src/pages/customers/CustomerList.jsx
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { 
   Button, Space, Card, Row, Col, 
   Statistic, Tabs, Badge, Modal 
@@ -15,9 +15,9 @@ import { useToast } from '@contexts/ToastContext'
 
 const CustomerList = () => {
   const { 
-    customers, 
+    customers = [],
     customersLoading, 
-    customersPagination,
+    customersPagination = { page: 1, page_size: 20, total: 0, total_pages: 0 },
     fetchCustomers, 
     deleteCustomer,
     blacklistCustomer,
@@ -37,27 +37,30 @@ const CustomerList = () => {
   const [showFilters, setShowFilters] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
-  const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [actionModal, setActionModal] = useState({ open: false, type: '', title: '' })
+  const page = customersPagination?.page ?? 1
+  const pageSize = customersPagination?.page_size ?? 20
+
+  const loadCustomers = useCallback(async () => {
+    if (typeof fetchCustomers !== 'function') return
+    const params = {
+      ...filters,
+      status: activeTab === 'all' ? '' : activeTab.toUpperCase(),
+      page,
+      page_size: pageSize,
+    }
+    await fetchCustomers(params)
+  }, [fetchCustomers, filters, activeTab, page, pageSize])
+
+  const loadStats = useCallback(async () => {
+    if (typeof getCustomerStats !== 'function') return
+    await getCustomerStats()
+  }, [getCustomerStats])
 
   useEffect(() => {
     loadCustomers()
     loadStats()
-  }, [filters, activeTab])
-
-  const loadCustomers = async () => {
-    const params = {
-      ...filters,
-      status: activeTab === 'all' ? '' : activeTab.toUpperCase(),
-      page: customersPagination.page,
-      page_size: customersPagination.page_size,
-    }
-    await fetchCustomers(params)
-  }
-
-  const loadStats = async () => {
-    await getCustomerStats()
-  }
+  }, [filters, activeTab, loadCustomers, loadStats])
 
   const handlePageChange = (page, pageSize) => {
     setStatePartial({
@@ -67,7 +70,14 @@ const CustomerList = () => {
         page_size: pageSize,
       },
     })
-    loadCustomers()
+    if (typeof fetchCustomers === 'function') {
+      fetchCustomers({
+        ...filters,
+        status: activeTab === 'all' ? '' : activeTab.toUpperCase(),
+        page,
+        page_size: pageSize,
+      })
+    }
   }
 
   const handleSearch = async (query) => {
@@ -137,7 +147,7 @@ const CustomerList = () => {
     addToast(`Imported ${result.imported_count} customers successfully`, 'success')
   }
 
-  const tabs = [
+  const tabs = useMemo(() => ([
     {
       key: 'all',
       label: 'All',
@@ -163,52 +173,55 @@ const CustomerList = () => {
       label: 'High Risk',
       count: 0,
     },
-  ]
+  ]), [stats])
 
-  const renderStats = () => (
-    <Row gutter={16} className="mb-6">
-      <Col span={6}>
-        <Card>
-          <Statistic
-            title="Total Customers"
-            value={stats?.total_customers || 0}
-            prefix={<Users size={20} />}
-            valueStyle={{ color: '#3f51b5' }}
-          />
-        </Card>
-      </Col>
-      <Col span={6}>
-        <Card>
-          <Statistic
-            title="Active"
-            value={stats?.active_customers || 0}
-            valueStyle={{ color: '#10b981' }}
-          />
-        </Card>
-      </Col>
-      <Col span={6}>
-        <Card>
-          <Statistic
-            title="Blacklisted"
-            value={stats?.blacklisted_customers || 0}
-            valueStyle={{ color: '#ef4444' }}
-          />
-        </Card>
-      </Col>
-      <Col span={6}>
-        <Card>
-          <Statistic
-            title="Avg. Credit Score"
-            value={stats?.average_credit_score || 0}
-            valueStyle={{ 
-              color: (stats?.average_credit_score || 0) >= 700 ? '#10b981' : 
-                     (stats?.average_credit_score || 0) >= 500 ? '#f59e0b' : '#ef4444'
-            }}
-          />
-        </Card>
-      </Col>
-    </Row>
-  )
+  const renderStats = () => {
+    if (typeof getCustomerStats !== 'function') return null
+    return (
+      <Row gutter={16} className="mb-6">
+        <Col span={6}>
+          <Card>
+            <Statistic
+              title="Total Customers"
+              value={stats?.total_customers || 0}
+              prefix={<Users size={20} />}
+              valueStyle={{ color: '#3f51b5' }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card>
+            <Statistic
+              title="Active"
+              value={stats?.active_customers || 0}
+              valueStyle={{ color: '#10b981' }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card>
+            <Statistic
+              title="Blacklisted"
+              value={stats?.blacklisted_customers || 0}
+              valueStyle={{ color: '#ef4444' }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card>
+            <Statistic
+              title="Avg. Credit Score"
+              value={stats?.average_credit_score || 0}
+              valueStyle={{ 
+                color: (stats?.average_credit_score || 0) >= 700 ? '#10b981' : 
+                       (stats?.average_credit_score || 0) >= 500 ? '#f59e0b' : '#ef4444'
+              }}
+            />
+          </Card>
+        </Col>
+      </Row>
+    )
+  }
 
   return (
     <div className="space-y-6">

@@ -1,5 +1,5 @@
 //  frontend/src/components/customers/ImportDialog.jsx
-import React, { useState, useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useCustomerContext } from '../../contexts/CustomerContext';
 import { useToast } from '../../contexts/ToastContext';
 import {
@@ -10,7 +10,7 @@ import {
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
 
-const ImportDialog = ({ onClose, onSuccess }) => {
+const ImportDialog = ({ open = false, onClose, onSuccess }) => {
   const { importCustomers } = useCustomerContext();
   const { addToast } = useToast();
   
@@ -19,6 +19,16 @@ const ImportDialog = ({ onClose, onSuccess }) => {
   const [importResults, setImportResults] = useState(null);
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
+  const canImport = typeof importCustomers === 'function';
+
+  const fileMeta = useMemo(() => {
+    if (!file) return null;
+    return {
+      name: file.name,
+      sizeMb: (file.size / 1024 / 1024).toFixed(2),
+      type: file.type || 'unknown',
+    };
+  }, [file]);
 
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files[0];
@@ -51,6 +61,10 @@ const ImportDialog = ({ onClose, onSuccess }) => {
   };
 
   const handleImport = async () => {
+    if (!canImport) {
+      setError('Import is not available right now');
+      return;
+    }
     if (!file) {
       setError('Please select a file to import');
       return;
@@ -66,9 +80,7 @@ const ImportDialog = ({ onClose, onSuccess }) => {
         setImportResults(result.data);
         addToast('Customer import completed successfully', 'success');
         
-        if (onSuccess) {
-          onSuccess(result.data);
-        }
+        onSuccess?.(result.data);
       } else {
         setError(result.error || 'Import failed');
       }
@@ -122,8 +134,10 @@ Jane,Smith,Anne,87654321,NATIONAL_ID,1985-05-15,F,MARRIED,0787654321,jane.smith@
     URL.revokeObjectURL(url);
   };
 
+  if (!open) return null;
+
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-[1px] flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -176,9 +190,9 @@ Jane,Smith,Anne,87654321,NATIONAL_ID,1985-05-15,F,MARRIED,0787654321,jane.smith@
                 <div className="space-y-4">
                   <CheckCircleIcon className="h-12 w-12 text-green-500 mx-auto" />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                    <p className="text-sm font-medium text-gray-900">{fileMeta?.name}</p>
                     <p className="text-xs text-gray-500">
-                      {(file.size / 1024 / 1024).toFixed(2)} MB • {file.type}
+                      {fileMeta?.sizeMb} MB • {fileMeta?.type}
                     </p>
                   </div>
                   <div className="flex justify-center space-x-3">
@@ -214,6 +228,11 @@ Jane,Smith,Anne,87654321,NATIONAL_ID,1985-05-15,F,MARRIED,0787654321,jane.smith@
                   <p className="text-xs text-gray-500">
                     Excel (.xlsx, .xls) or CSV files up to 10MB
                   </p>
+                  {!canImport && (
+                    <p className="text-xs text-red-600">
+                      Import is temporarily unavailable.
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -311,9 +330,9 @@ Jane,Smith,Anne,87654321,NATIONAL_ID,1985-05-15,F,MARRIED,0787654321,jane.smith@
                 </button>
                 <button
                   onClick={handleImport}
-                  disabled={isUploading || !file}
+                  disabled={isUploading || !file || !canImport}
                   className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
-                    isUploading || !file ? 'bg-primary-400' : 'bg-primary-600 hover:bg-primary-700'
+                    isUploading || !file || !canImport ? 'bg-primary-400' : 'bg-primary-600 hover:bg-primary-700'
                   }`}
                 >
                   {isUploading ? (

@@ -1,15 +1,14 @@
 // frontend/src/components/customers/ExportDialog.jsx
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useCustomerContext } from '../../contexts/CustomerContext';
 import { useToast } from '../../contexts/ToastContext';
 import {
   DocumentArrowDownIcon,
   XMarkIcon,
-  CalendarIcon,
-  CheckCircleIcon
+  CalendarIcon
 } from '@heroicons/react/24/outline';
 
-const ExportDialog = ({ onClose, filters = {} }) => {
+const ExportDialog = ({ open = false, onClose, filters = {} }) => {
   const { exportCustomers } = useCustomerContext();
   const { addToast } = useToast();
   
@@ -20,8 +19,22 @@ const ExportDialog = ({ onClose, filters = {} }) => {
   });
   const [status, setStatus] = useState('');
   const [isExporting, setIsExporting] = useState(false);
+  const canExport = typeof exportCustomers === 'function';
+
+  const isInvalidRange = useMemo(() => {
+    if (!dateRange.start_date || !dateRange.end_date) return false;
+    return new Date(dateRange.start_date) > new Date(dateRange.end_date);
+  }, [dateRange.start_date, dateRange.end_date]);
 
   const handleExport = async () => {
+    if (!canExport) {
+      addToast('Export is not available right now', 'error');
+      return;
+    }
+    if (isInvalidRange) {
+      addToast('Start date must be before end date', 'error');
+      return;
+    }
     setIsExporting(true);
     
     try {
@@ -33,7 +46,7 @@ const ExportDialog = ({ onClose, filters = {} }) => {
 
       await exportCustomers(format, exportFilters);
       addToast('Export completed successfully', 'success');
-      onClose();
+      onClose?.();
     } catch (error) {
       console.error('Export error:', error);
       addToast('Failed to export customers', 'error');
@@ -46,8 +59,10 @@ const ExportDialog = ({ onClose, filters = {} }) => {
     setDateRange(prev => ({ ...prev, [field]: value }));
   };
 
+  if (!open) return null;
+
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-[1px] flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -138,6 +153,9 @@ const ExportDialog = ({ onClose, filters = {} }) => {
                 </div>
               </div>
             </div>
+            {isInvalidRange && (
+              <p className="mt-2 text-xs text-red-600">Start date must be before end date.</p>
+            )}
           </div>
 
           {/* Status Filter */}
@@ -176,6 +194,24 @@ const ExportDialog = ({ onClose, filters = {} }) => {
               </ul>
             </div>
           </div>
+
+          {/* Summary */}
+          <div className="mt-6 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
+            <div className="flex items-center justify-between">
+              <span>Format</span>
+              <span className="font-medium text-gray-900">{format === 'excel' ? 'Excel (.xlsx)' : 'CSV (.csv)'}</span>
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <span>Status</span>
+              <span className="font-medium text-gray-900">{status || 'All'}</span>
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <span>Date Range</span>
+              <span className="font-medium text-gray-900">
+                {dateRange.start_date || dateRange.end_date ? `${dateRange.start_date || 'Any'} - ${dateRange.end_date || 'Any'}` : 'Any'}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Footer */}
@@ -189,7 +225,7 @@ const ExportDialog = ({ onClose, filters = {} }) => {
           </button>
           <button
             onClick={handleExport}
-            disabled={isExporting}
+            disabled={isExporting || isInvalidRange || !canExport}
             className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
               isExporting ? 'bg-primary-400' : 'bg-primary-600 hover:bg-primary-700'
             }`}

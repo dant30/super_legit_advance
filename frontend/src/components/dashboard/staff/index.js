@@ -1,0 +1,7 @@
+export { default as OverviewCards } from './OverviewCards'
+export { default as MyLoans } from './MyLoans'
+export { default as MyCustomers } from './MyCustomers'
+export { default as RecentActivity } from './RecentActivity'
+export { default as Performance } from './Performance'
+export { default as PendingApprovals } from './PendingApprovals'
+export { default as Collections } from './Collections'

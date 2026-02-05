@@ -32,10 +32,10 @@ const CustomerTable = ({
   const [sortDirection, setSortDirection] = useState('desc');
 
   useEffect(() => {
-    if (customers.length === 0) {
+    if (customers.length === 0 && !customersLoading) {
       fetchCustomers();
     }
-  }, [customers.length, fetchCustomers]);
+  }, [customers.length, customersLoading, fetchCustomers]);
 
   const handleSort = (field) => {
     if (sortField === field) {

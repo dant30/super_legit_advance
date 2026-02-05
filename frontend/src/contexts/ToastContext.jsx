@@ -21,12 +21,13 @@ export const ToastProvider = ({ children, position = 'top-right', maxToasts = 5 
 
   const addToast = useCallback((toast) => {
     const id = Math.random().toString(36).substr(2, 9)
+    const normalizedType = toast.type || toast.variant || 'info'
     const newToast = {
       id,
       title: toast.title,
       message: toast.message,
-      type: toast.type || 'info',
-      variant: toast.variant || 'info',
+      type: normalizedType,
+      variant: normalizedType,
       duration: toast.duration || 5000,
       onClose: toast.onClose,
       createdAt: Date.now(),
@@ -57,7 +58,7 @@ export const ToastProvider = ({ children, position = 'top-right', maxToasts = 5 
     return addToast({ 
       message, 
       type: 'error', 
-      variant: 'danger',
+      variant: 'error',
       ...options 
     })
   }, [addToast])
@@ -158,7 +159,7 @@ const ToastItem = ({
     warning: 'bg-warning-50 border-warning-200 text-warning-800 dark:bg-warning-900/30 dark:border-warning-800 dark:text-warning-200',
   }
 
-  const Icon = typeIcons[type]
+  const Icon = typeIcons[type] || Info
 
   const handleClose = useCallback(() => {
     setIsVisible(false)
@@ -232,7 +233,7 @@ const ToastItem = ({
     <div
       className={cn(
         'w-80 rounded-lg border p-4 shadow-lg animate-slide-up pointer-events-auto',
-        typeClasses[variant],
+        typeClasses[type] || typeClasses.info,
         className
       )}
       role="alert"
@@ -247,10 +248,10 @@ const ToastItem = ({
           <div
             className={cn(
               'h-full transition-all duration-100',
-              variant === 'success' && 'bg-success-500',
-              variant === 'danger' && 'bg-danger-500',
-              variant === 'info' && 'bg-blue-500',
-              variant === 'warning' && 'bg-warning-500',
+              type === 'success' && 'bg-success-500',
+              type === 'error' && 'bg-danger-500',
+              type === 'info' && 'bg-blue-500',
+              type === 'warning' && 'bg-warning-500',
             )}
             style={{ width: `${progress}%` }}
           />
@@ -261,10 +262,10 @@ const ToastItem = ({
       <div className="flex items-start gap-3">
         <Icon className={cn(
           'h-5 w-5 flex-shrink-0 mt-0.5',
-          variant === 'success' && 'text-success-600',
-          variant === 'danger' && 'text-danger-600',
-          variant === 'info' && 'text-blue-600',
-          variant === 'warning' && 'text-warning-600',
+          type === 'success' && 'text-success-600',
+          type === 'error' && 'text-danger-600',
+          type === 'info' && 'text-blue-600',
+          type === 'warning' && 'text-warning-600',
         )} />
         
         <div className="flex-1">
