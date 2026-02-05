@@ -17,18 +17,16 @@ import {
   Inbox,
   HelpCircle,
   X,
-  Mail,
   AlertCircle,
   CheckCircle,
   Clock,
 } from 'lucide-react'
-import clsx from 'clsx'
 import { cn } from '@utils/cn'
 
 const Header = ({ onMenuClick }) => {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
-  const { theme, toggleTheme, isDark } = useTheme()
+  const { toggleTheme, isDark } = useTheme()
   
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
@@ -189,6 +187,7 @@ const Header = ({ onMenuClick }) => {
                 onClick={onMenuClick}
                 className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors lg:hidden"
                 aria-label="Toggle menu"
+                aria-controls="app-sidebar"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -218,6 +217,7 @@ const Header = ({ onMenuClick }) => {
               onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
               className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
               aria-label="Search"
+              aria-expanded={isMobileSearchOpen}
             >
               <Search className="h-5 w-5" />
             </button>
@@ -240,6 +240,7 @@ const Header = ({ onMenuClick }) => {
                 }}
                 className="relative p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                 aria-label={`Notifications (${unreadCount} unread)`}
+                aria-expanded={isNotificationsOpen}
               >
                 <Bell className="h-5 w-5" />
                 {unreadCount > 0 && (
@@ -372,14 +373,14 @@ const Header = ({ onMenuClick }) => {
                 <div className="h-9 w-9 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold shadow-md group-hover:shadow-lg transition-shadow">
                   {user?.first_name?.charAt(0) || 'U'}
                 </div>
-                <ChevronDown className={clsx(
+                <ChevronDown className={cn(
                   "h-4 w-4 hidden sm:block transition-transform duration-200",
                   isProfileOpen && "rotate-180"
                 )} />
               </button>
 
               {isProfileOpen && (
-                <div className={clsx(
+                <div className={cn(
                   "fixed md:absolute right-4 md:right-0 top-16 md:top-full mt-2",
                   "w-[calc(100vw-2rem)] md:w-64",
                   "bg-white dark:bg-slate-800 rounded-lg shadow-hard border",

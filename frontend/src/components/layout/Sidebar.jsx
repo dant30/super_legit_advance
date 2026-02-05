@@ -1,6 +1,6 @@
 // frontend/src/components/layout/Sidebar.jsx
 // frontend/src/components/layout/Sidebar.jsx
-import React, { useState, useEffect } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@hooks/useAuth'
 import { useQuery } from '@tanstack/react-query'
@@ -38,7 +38,7 @@ import {
 import { cn } from '@utils/cn'
 
 const Sidebar = ({ onClose }) => {
-  const { user, isAdmin, isStaff } = useAuth()
+  const { user, isAdmin } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [expandedItems, setExpandedItems] = useState([])
@@ -95,7 +95,7 @@ const Sidebar = ({ onClose }) => {
   }, [statsData])
 
   // Menu configuration - UPDATED TO MATCH ACTUAL ROUTES
-  const menuItems = [
+  const menuItems = useMemo(() => ([
     // Dashboard
     {
       id: 'dashboard',
@@ -180,46 +180,46 @@ const Sidebar = ({ onClose }) => {
       path: '/notifications',
       roles: ['admin', 'staff', 'officer', 'customer'],
     },
-  ]
+  ]), [stats.blacklistedCustomers, stats.overdueRepayments, stats.pendingApprovals, stats.pendingLoans])
 
-  // Add admin-only items - UPDATED TO MATCH ACTUAL ADMIN ROUTES
-  if (isAdmin()) {
-    menuItems.push(
-      {
-        id: 'admin',
-        title: 'Admin',
-        icon: <Shield className="h-5 w-5" />,
-        path: '/admin',
-        roles: ['admin'],
-        subItems: [
-          { title: 'Admin Dashboard', path: '/admin/dashboard', icon: <Home className="h-4 w-4" /> },
-          { title: 'Staff Management', path: '/admin/staff', icon: <UserCheck className="h-4 w-4" /> },
-          { title: 'Audit Logs', path: '/admin/audit', icon: <FileText className="h-4 w-4" /> },
-          { title: 'System Health', path: '/admin/settings/health', icon: <HeartPulse className="h-4 w-4" /> },
-        ],
-      },
-      {
-        id: 'settings',
-        title: 'Settings',
-        icon: <Settings className="h-5 w-5" />,
-        path: '/admin/settings',
-        roles: ['admin'],
-        subItems: [
-          { title: 'System Settings', path: '/admin/settings', icon: <Settings className="h-4 w-4" /> },
-          { title: 'Loan Products', path: '/admin/settings/products', icon: <CreditCard className="h-4 w-4" /> },
-          { title: 'Interest Rates', path: '/admin/settings/rates', icon: <DollarSign className="h-4 w-4" /> },
-          { title: 'Backup & Restore', path: '/admin/settings/backup', icon: <Database className="h-4 w-4" /> },
-          { title: 'Role Management', path: '/admin/roles', icon: <FolderOpen className="h-4 w-4" /> },
-        ],
-      }
-    )
-  }
+  const adminItems = useMemo(() => ([
+    {
+      id: 'admin',
+      title: 'Admin',
+      icon: <Shield className="h-5 w-5" />,
+      path: '/admin',
+      roles: ['admin'],
+      subItems: [
+        { title: 'Admin Dashboard', path: '/admin/dashboard', icon: <Home className="h-4 w-4" /> },
+        { title: 'Staff Management', path: '/admin/staff', icon: <UserCheck className="h-4 w-4" /> },
+        { title: 'Audit Logs', path: '/admin/audit', icon: <FileText className="h-4 w-4" /> },
+        { title: 'System Health', path: '/admin/settings/health', icon: <HeartPulse className="h-4 w-4" /> },
+      ],
+    },
+    {
+      id: 'settings',
+      title: 'Settings',
+      icon: <Settings className="h-5 w-5" />,
+      path: '/admin/settings',
+      roles: ['admin'],
+      subItems: [
+        { title: 'System Settings', path: '/admin/settings', icon: <Settings className="h-4 w-4" /> },
+        { title: 'Loan Products', path: '/admin/settings/products', icon: <CreditCard className="h-4 w-4" /> },
+        { title: 'Interest Rates', path: '/admin/settings/rates', icon: <DollarSign className="h-4 w-4" /> },
+        { title: 'Backup & Restore', path: '/admin/settings/backup', icon: <Database className="h-4 w-4" /> },
+        { title: 'Role Management', path: '/admin/roles', icon: <FolderOpen className="h-4 w-4" /> },
+      ],
+    },
+  ]), [])
 
   // Filter menu items based on user role
-  const filteredMenuItems = menuItems.filter(item => {
-    if (!item.roles) return true
-    return item.roles.includes(user?.role || 'customer')
-  })
+  const filteredMenuItems = useMemo(() => {
+    const items = isAdmin() ? [...menuItems, ...adminItems] : menuItems
+    return items.filter(item => {
+      if (!item.roles) return true
+      return item.roles.includes(user?.role || 'customer')
+    })
+  }, [menuItems, adminItems, isAdmin, user?.role])
 
   // Auto-expand based on current route
   useEffect(() => {
@@ -330,7 +330,7 @@ const Sidebar = ({ onClose }) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4">
+      <nav id="app-sidebar" className="flex-1 overflow-y-auto py-4" aria-label="Primary">
         <div className="px-2 space-y-1">
           {filteredMenuItems.map((item) => {
             const isActive = isMenuItemActive(item)
@@ -349,6 +349,8 @@ const Sidebar = ({ onClose }) => {
                         isActive && "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300",
                         !isActive && "text-gray-700 dark:text-gray-300"
                       )}
+                      aria-expanded={isExpanded}
+                      aria-controls={`submenu-${item.id}`}
                     >
                       <div className="flex items-center gap-3">
                         <span className={cn(
@@ -374,7 +376,7 @@ const Sidebar = ({ onClose }) => {
 
                     {/* Submenu Items */}
                     {isExpanded && (
-                      <div className="ml-9 mt-1 space-y-1">
+                      <div id={`submenu-${item.id}`} className="ml-9 mt-1 space-y-1">
                         {item.subItems.map((subItem) => {
                           const isSubActive = isSubMenuItemActive(subItem.path)
                           return (

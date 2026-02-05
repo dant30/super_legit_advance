@@ -9,12 +9,16 @@ const Footer = () => {
   const { isDark } = useTheme()
 
   return (
-    <footer className={cn(
+    <footer
+      role="contentinfo"
+      aria-label="Site footer"
+      className={cn(
       "mt-8",
       "bg-white dark:bg-slate-800",
       "border-t border-gray-200 dark:border-slate-700",
       "shadow-sm"
-    )}>
+    )}
+    >
       <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Left side - Brand and copyright */}
@@ -33,43 +37,43 @@ const Footer = () => {
           </div>
 
           {/* Center - System status */}
-          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-500">
+          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-500" aria-label="System status">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300">
-              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
               <span>System Online</span>
             </div>
             <div className="hidden sm:flex items-center gap-1.5">
-              <Globe className="h-3 w-3" />
+              <Globe className="h-3 w-3" aria-hidden="true" />
               <span>API v2</span>
             </div>
           </div>
 
           {/* Right side - Security and info */}
-          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-500">
+          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-500" aria-label="Security and uptime">
             <div className="hidden md:flex items-center gap-1.5" title="256-bit Encryption">
-              <Lock className="h-3 w-3" />
+              <Lock className="h-3 w-3" aria-hidden="true" />
               <span>Secure</span>
             </div>
             <div className="flex items-center gap-1.5" title="System Health">
-              <Cpu className="h-3 w-3" />
+              <Cpu className="h-3 w-3" aria-hidden="true" />
               <span>99.9% Uptime</span>
             </div>
             <div className="hidden lg:flex items-center gap-1.5" title="Made with ❤️">
-              <Heart className="h-3 w-3 text-red-400" />
+              <Heart className="h-3 w-3 text-red-400" aria-hidden="true" />
               <span>Team SLA</span>
             </div>
           </div>
         </div>
 
         {/* Mobile-only additional info */}
-        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700 md:hidden">
+        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700 md:hidden" aria-label="Additional info">
           <div className="grid grid-cols-2 gap-4 text-xs text-gray-500 dark:text-gray-500">
             <div className="flex items-center justify-center gap-1.5">
-              <Shield className="h-3 w-3" />
+              <Shield className="h-3 w-3" aria-hidden="true" />
               <span>GDPR Compliant</span>
             </div>
             <div className="flex items-center justify-center gap-1.5">
-              <Wifi className="h-3 w-3" />
+              <Wifi className="h-3 w-3" aria-hidden="true" />
               <span>Real-time Sync</span>
             </div>
           </div>

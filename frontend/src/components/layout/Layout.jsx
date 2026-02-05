@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Menu, X, ArrowUp } from 'lucide-react'
-import clsx from 'clsx'
 import { useAuth } from '@hooks/useAuth'
 import { useMediaQuery } from '@hooks/useMediaQuery'
 import Header from './Header'
@@ -26,11 +25,16 @@ const Layout = () => {
   // Initialize on mount
   useEffect(() => {
     setMounted(true)
-    // Auto-open sidebar on desktop by default
+  }, [])
+
+  // Sync sidebar with breakpoint changes
+  useEffect(() => {
     if (isDesktop) {
       setSidebarOpen(true)
+    } else {
+      setSidebarOpen(false)
     }
-  }, [])
+  }, [isDesktop])
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -49,12 +53,24 @@ const Layout = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (!isDesktop && sidebarOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'auto'
+    }
+    return () => {
+      document.body.style.overflow = 'auto'
+    }
+  }, [isDesktop, sidebarOpen])
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen)
+    setSidebarOpen(prev => !prev)
   }
 
   const closeSidebar = () => {
@@ -62,9 +78,7 @@ const Layout = () => {
   }
 
   // Don't render until mounted to avoid hydration mismatch
-  if (!mounted) {
-    return null
-  }
+  if (!mounted) return null
 
   return (
     <div className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
@@ -89,7 +103,7 @@ const Layout = () => {
             </span>
           </div>
 
-          <div className="w-10" /> {/* Spacer for alignment */}
+          <div className="w-10" aria-hidden="true" /> {/* Spacer for alignment */}
         </header>
       )}
 
@@ -124,6 +138,7 @@ const Layout = () => {
             )}
             role="navigation"
             aria-label="Mobile navigation"
+            aria-hidden={!sidebarOpen}
           >
             <div className="h-full bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden">
               <Sidebar onClose={closeSidebar} />
