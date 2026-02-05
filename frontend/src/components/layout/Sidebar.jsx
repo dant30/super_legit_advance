@@ -300,7 +300,7 @@ const Sidebar = ({ onClose }) => {
         {onClose && (
           <button
             onClick={onClose}
-            className="lg:hidden p-1.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+            className="lg:hidden p-1.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
             aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />

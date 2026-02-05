@@ -185,7 +185,7 @@ const Header = ({ onMenuClick }) => {
             {onMenuClick && (
               <button
                 onClick={onMenuClick}
-                className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors lg:hidden"
+                className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors lg:hidden"
                 aria-label="Toggle menu"
                 aria-controls="app-sidebar"
               >
@@ -215,7 +215,7 @@ const Header = ({ onMenuClick }) => {
             {/* Mobile Search */}
             <button
               onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-              className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+              className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
               aria-label="Search"
               aria-expanded={isMobileSearchOpen}
             >
@@ -225,7 +225,7 @@ const Header = ({ onMenuClick }) => {
             {/* Help */}
             <button
               onClick={() => navigate('/help')}
-              className="hidden sm:flex p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+              className="hidden sm:flex p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
               aria-label="Help"
             >
               <HelpCircle className="h-5 w-5" />
@@ -238,7 +238,7 @@ const Header = ({ onMenuClick }) => {
                   setIsNotificationsOpen(!isNotificationsOpen)
                   setIsProfileOpen(false)
                 }}
-                className="relative p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                className="relative p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
                 aria-label={`Notifications (${unreadCount} unread)`}
                 aria-expanded={isNotificationsOpen}
               >
@@ -339,7 +339,7 @@ const Header = ({ onMenuClick }) => {
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+              className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
               aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
             >
               {isDark ? (
@@ -356,7 +356,7 @@ const Header = ({ onMenuClick }) => {
                   setIsProfileOpen(!isProfileOpen)
                   setIsNotificationsOpen(false)
                 }}
-                className="flex items-center gap-2 p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors group"
+                className="flex items-center gap-2 p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors group"
                 aria-label="Profile menu"
                 aria-expanded={isProfileOpen}
               >

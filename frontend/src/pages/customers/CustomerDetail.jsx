@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { 
-  PageHeader, Card, Button, Space, Tabs, 
+  Card, Button, Space, Tabs, 
   Alert, Spin, Modal, Descriptions, Badge 
 } from '@components/ui'
+import PageHeader from '@components/shared/PageHeader'
 import { 
   ArrowLeft, Edit, Trash2, UserCheck, UserX, 
   FileText, Download, Printer, Share2, MoreVertical,

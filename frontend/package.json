@@ -48,8 +48,10 @@
     "react-phone-input-2": "^2.15.1",
     "react-router-dom": "^6.20.0",
     "react-select": "^5.8.0",
+    "react-tsparticles": "^2.12.2",
     "recharts": "^2.11.0",
     "tailwind-merge": "^2.2.1",
+    "tsparticles": "^3.9.1",
     "xlsx": "^0.18.5",
     "yup": "^1.7.1"
   },
