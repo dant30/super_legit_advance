@@ -1,7 +1,8 @@
 // frontend/src/pages/customers/CustomerEdit.jsx
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { PageHeader, Card, Alert, Spin } from '@components/ui'
+import { PageHeader, Card, Alert } from '@components/ui'
+import { Loading } from '@components/shared'
 import { ArrowLeft, Save } from 'lucide-react'
 import { useCustomerContext } from '@contexts/CustomerContext'
 import { CustomerForm } from '@components/customers'
@@ -42,7 +43,7 @@ const CustomerEdit = () => {
   if (selectedCustomerLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Spin size="large" />
+        <Loading size="large" />
       </div>
     )
   }
