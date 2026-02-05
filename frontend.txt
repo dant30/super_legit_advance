@@ -93,42 +93,58 @@ frontend/
     │   │   └── index.js              # Layout exports
     │   │
     │   ├── ui/                       # UI/Base Components
-    │   │   ├── Button.jsx            # Button component
-    │   │   ├── Card.jsx              # Card component
-    │   │   ├── Input.jsx             # Input field
-    │   │   ├── Label.jsx             # Form label
-    │   │   ├── Select.jsx            # Select dropdown
-    │   │   ├── Checkbox.jsx          # Checkbox
-    │   │   ├── Radio.jsx             # Radio button
-    │   │   ├── Switch.jsx            # Toggle switch
-    │   │   ├── Modal.jsx             # Modal dialog
-    │   │   ├── Tabs.jsx              # Tab navigation
-    │   │   ├── Accordion.jsx         # Accordion
-    │   │   ├── Badge.jsx             # Status badge
-    │   │   ├── Alert.jsx             # Alert message
-    │   │   ├── Tooltip.jsx           # Tooltip
-    │   │   ├── Breadcrumb.jsx        # Breadcrumb navigation
-    │   │   ├── Table.jsx             # Data table
-    │   │   ├── Pagination.jsx        # Pagination
-    │   │   ├── ThemeInitializer.jsx  # Theme initialization
-    │   │   └── index.js              # UI exports
+    │   │   ├── Accordion.jsx          # Accordion component
+            ├── Alert.jsx              # Alert message
+            ├── Badge.jsx              # Badge / label
+            ├── Breadcrumb.jsx         # Breadcrumb navigation
+            ├── Button.jsx             # Button component
+            ├── Card.jsx               # Card container
+            ├── Checkbox.jsx           # Checkbox input
+            ├── Col.jsx                # Grid column
+            ├── Descriptions.jsx       # Description list
+            ├── Dropdown.jsx           # Dropdown menu
+            ├── Form.jsx               # Form wrapper
+            ├── Input.jsx              # Input field
+            ├── Label.jsx              # Form label
+            ├── List.jsx               # List component
+            ├── Menu.jsx               # Navigation / menu
+            ├── message.jsx            # Message / notification helper
+            ├── Modal.jsx              # Modal dialog
+            ├── Pagination.jsx         # Pagination component
+            ├── Popconfirm.jsx         # Confirmation popup
+            ├── Radio.jsx              # Radio button
+            ├── Row.jsx                # Grid row
+            ├── Select.jsx             # Select dropdown
+            ├── Space.jsx              # Spacing utility
+            ├── Statistic.jsx          # Statistic display
+            ├── Switch.jsx             # Toggle switch
+            ├── Table.jsx              # Data table
+            ├── Tabs.jsx               # Tabs navigation
+            ├── Tag.jsx                # Tag / label
+            ├── ThemeInitializer.jsx   # Theme initialization logic
+            ├── Timeline.jsx           # Timeline component
+            ├── Tooltip.jsx            # Tooltip
+            ├── Upload.jsx             # File upload UI
+            └── index.js               # UI exports
     │   │
     │   ├── shared/                   # Shared Components
-    │   │   ├── Loading.jsx           # Loading spinner
-    │   │   ├── Error.jsx             # Error display
-    │   │   ├── ErrorBoundary.jsx     # Error boundary
-    │   │   ├── EmptyState.jsx        # Empty state message
-    │   │   ├── ConfirmDialog.jsx     # Confirmation modal
-    │   │   ├── Toast.jsx             # Toast notification
-    │   │   ├── SearchBar.jsx         # Search input
-    │   │   ├── FileUpload.jsx        # File upload
-    │   │   ├── DatePicker.jsx        # Date picker
-    │   │   ├── TimePicker.jsx        # Time picker
-    │   │   ├── Avatar.jsx            # User avatar
-    │   │   ├── StatusBadge.jsx       # Status indicator
-    │   │   ├── ProgressBar.jsx       # Progress bar
-    │   │   ├── Divider.jsx           # Divider
-    │   │   └── index.js              # Shared exports
+            ├── Avatar.jsx             # User avatar
+            ├── ConfirmDialog.jsx      # Confirmation dialog
+            ├── DatePicker.jsx         # Date picker
+            ├── Divider.jsx            # Divider / separator
+            ├── EmptyState.jsx         # Empty state display
+            ├── Error.jsx              # Error message component
+            ├── ErrorBoundary.jsx      # React error boundary
+            ├── FileUpload.jsx         # File upload handler
+            ├── Loading.jsx            # Loading spinner
+            ├── PageHeader.jsx         # Page header component
+    |   |   ├── Pagination.jsx         # Shared pagination wrapper
+    |   |   ├── ProgressBar.jsx        # Progress bar
+    |   |   ├── SearchBar.jsx          # Search input
+    |   |   ├── StatusBadge.jsx        # Status indicator
+    |   |   ├── TimePicker.jsx         # Time picker
+    |   |   ├── Toast.jsx              # Toast notification
+    |   |   └── index.js               # Shared exports
     |   |        
     │   │
     │   ├── dashboard/                # Dashboard Components

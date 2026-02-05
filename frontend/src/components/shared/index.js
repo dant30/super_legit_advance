@@ -13,6 +13,7 @@ export { default as Avatar } from './Avatar'
 export { default as Divider } from './Divider'
 export { default as StatusBadge } from './StatusBadge'
 export { default as ProgressBar } from './ProgressBar'
+export { default as PageHeader } from './PageHeader'
 
 // Re-export named exports
 export { AvatarGroup } from './Avatar'
@@ -22,6 +23,3 @@ export {
   NotFoundError, 
   NetworkError 
 } from './Error'
-
-// Export all types if needed
-export * from './types'

@@ -11,6 +11,7 @@ import ErrorFallback from '@components/shared/ErrorBoundary' // Fixed path - usi
 import { AuthProvider } from '@contexts/AuthContext'
 import { ToastProvider } from '@contexts/ToastContext'
 import { ThemeProvider } from '@contexts/ThemeContext'
+import { CustomerProvider } from '@contexts/CustomerContext'
 import '@styles/tailwind.css'
 
 // ======================================================
@@ -83,9 +84,11 @@ const Providers = ({ children }) => (
         <ThemeProvider> {/* Wrap with ThemeProvider */}
           <ToastProvider>
             <AuthProvider>
-              <BrowserRouter>
-                {children}
-              </BrowserRouter>
+              <CustomerProvider>
+                <BrowserRouter>
+                  {children}
+                </BrowserRouter>
+              </CustomerProvider>
             </AuthProvider>
           </ToastProvider>
         </ThemeProvider>

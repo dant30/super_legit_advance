@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useMemo } from 'react'
 import { useCustomers } from '../hooks/useCustomers'
 
-const CustomerContext = createContext({})
+const CustomerContext = createContext(null)
 
 export const useCustomerContext = () => {
   const ctx = useContext(CustomerContext)
