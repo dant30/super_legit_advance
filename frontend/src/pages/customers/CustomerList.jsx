@@ -6,7 +6,7 @@ import {
 } from '@components/ui'
 import { PageHeader } from '@components/shared'
 import { Plus, Download, Upload, Filter, RefreshCw, Users } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useCustomerContext } from '@contexts/CustomerContext'
 import { CustomerTable, CustomerFilters, CustomerSearch, CustomerStats } from '@components/customers'
 import { ImportDialog, ExportDialog } from '@components/customers'
@@ -14,6 +14,7 @@ import { useAuth } from '@hooks/useAuth'
 import { useToast } from '@contexts/ToastContext'
 
 const CustomerList = () => {
+  const navigate = useNavigate()
   const { 
     customers = [],
     customersLoading, 
@@ -323,6 +324,8 @@ const CustomerList = () => {
             onBlacklist={handleBlacklist}
             onActivate={handleActivate}
             onExport={handleExport}
+            onView={(id) => navigate(`/customers/${id}`)}
+            onEdit={(id) => navigate(`/customers/${id}/edit`)}
           />
         </div>
       </Card>

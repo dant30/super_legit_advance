@@ -56,51 +56,51 @@ urlpatterns = [
     
     # ===== CUSTOMER DETAIL ENDPOINTS =====
     path(
-        '<int:pk>/',
+        '<uuid:pk>/',
         CustomerDetailView.as_view(),
         name='customer-detail'
     ),
     path(
-        '<int:pk>/blacklist/',
+        '<uuid:pk>/blacklist/',
         CustomerBlacklistView.as_view(),
         name='customer-blacklist'
     ),
     path(
-        '<int:pk>/activate/',
+        '<uuid:pk>/activate/',
         CustomerActivateView.as_view(),
         name='customer-activate'
     ),
     
     # ===== GUARANTOR ENDPOINTS =====
     path(
-        '<int:customer_id>/guarantors/',
+        '<uuid:customer_id>/guarantors/',
         GuarantorListView.as_view(),
         name='guarantor-list'
     ),
     path(
-        '<int:customer_id>/guarantors/create/',
+        '<uuid:customer_id>/guarantors/create/',
         GuarantorCreateView.as_view(),
         name='guarantor-create'
     ),
     path(
-        'guarantors/<int:pk>/',
+        'guarantors/<uuid:pk>/',
         GuarantorDetailView.as_view(),
         name='guarantor-detail'
     ),
     path(
-        'guarantors/<int:pk>/verify/',
+        'guarantors/<uuid:pk>/verify/',
         GuarantorVerifyView.as_view(),
         name='guarantor-verify'
     ),
     
     # ===== EMPLOYMENT ENDPOINTS =====
     path(
-        '<int:customer_id>/employment/',
+        '<uuid:customer_id>/employment/',
         EmploymentDetailView.as_view(),
         name='employment-detail'
     ),
     path(
-        '<int:customer_id>/employment/update/',
+        '<uuid:customer_id>/employment/update/',
         EmploymentUpdateView.as_view(),
         name='employment-update'
     ),

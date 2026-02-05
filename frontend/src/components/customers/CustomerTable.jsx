@@ -1,5 +1,5 @@
 // frontend/src/components/customers/CustomerTable.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useCustomerContext } from '../../contexts/CustomerContext';
 import { format } from 'date-fns';
 import { 
@@ -17,6 +17,8 @@ const CustomerTable = ({
   onView, 
   onEdit, 
   onDelete, 
+  onBlacklist,
+  onActivate,
   onSelect,
   selectedIds = [],
   showActions = true 
@@ -30,12 +32,6 @@ const CustomerTable = ({
 
   const [sortField, setSortField] = useState('created_at');
   const [sortDirection, setSortDirection] = useState('desc');
-
-  useEffect(() => {
-    if (customers.length === 0 && !customersLoading) {
-      fetchCustomers();
-    }
-  }, [customers.length, customersLoading, fetchCustomers]);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -261,6 +257,24 @@ const CustomerTable = ({
                         title="Edit"
                       >
                         <PencilIcon className="h-5 w-5" />
+                      </button>
+                    )}
+                    {onBlacklist && customer.status !== 'BLACKLISTED' && (
+                      <button
+                        onClick={() => onBlacklist(customer.id)}
+                        className="text-yellow-600 hover:text-yellow-900"
+                        title="Blacklist"
+                      >
+                        <XCircleIcon className="h-5 w-5" />
+                      </button>
+                    )}
+                    {onActivate && (customer.status === 'BLACKLISTED' || customer.status === 'INACTIVE') && (
+                      <button
+                        onClick={() => onActivate(customer.id)}
+                        className="text-green-600 hover:text-green-900"
+                        title="Activate"
+                      >
+                        <CheckCircleIcon className="h-5 w-5" />
                       </button>
                     )}
                     {onDelete && (

@@ -48,7 +48,7 @@ const StaffDashboard = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Staff Dashboard"
+        title="Welcome back, Staff!"
         subTitle="Overview of your daily operations"
       />
 

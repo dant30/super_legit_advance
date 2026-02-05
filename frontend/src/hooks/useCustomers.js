@@ -48,6 +48,7 @@ export const useCustomers = () => {
   })
 
   const abortRef = useRef(null)
+  const inFlightRef = useRef(false)
   const { user } = useAuth()
   const { addToast } = useToast()
 
@@ -80,6 +81,8 @@ export const useCustomers = () => {
   /* ===== CUSTOMER METHODS ===== */
 
   const fetchCustomers = useCallback(async (params = {}) => {
+    if (inFlightRef.current) return { success: false, error: 'Request in progress' }
+    inFlightRef.current = true
     const merged = {
       page: state.customersPagination.page,
       page_size: state.customersPagination.page_size,
@@ -92,14 +95,24 @@ export const useCustomers = () => {
       const payload = res.data || []
       // If backend returned page object {results, pagination}
       if (payload.results) {
-        setStatePartial({
-          customers: payload.results,
-          customersPagination: {
-            ...state.customersPagination,
-            page: payload.page || state.customersPagination.page,
-            page_size: payload.page_size || state.customersPagination.page_size,
-            total: payload.pagination?.total || payload.count || state.customersPagination.total,
-            total_pages: payload.pagination?.total_pages || Math.ceil((payload.count || 0) / (payload.page_size || state.customersPagination.page_size) || 1)
+        setState(prev => {
+          const nextPagination = {
+            ...prev.customersPagination,
+            page: payload.page || prev.customersPagination.page,
+            page_size: payload.page_size || prev.customersPagination.page_size,
+            total: payload.pagination?.total || payload.count || prev.customersPagination.total,
+            total_pages: payload.pagination?.total_pages || Math.ceil((payload.count || 0) / (payload.page_size || prev.customersPagination.page_size) || 1)
+          }
+          const paginationChanged = (
+            nextPagination.page !== prev.customersPagination.page ||
+            nextPagination.page_size !== prev.customersPagination.page_size ||
+            nextPagination.total !== prev.customersPagination.total ||
+            nextPagination.total_pages !== prev.customersPagination.total_pages
+          )
+          return {
+            ...prev,
+            customers: payload.results,
+            customersPagination: paginationChanged ? nextPagination : prev.customersPagination
           }
         })
       } else if (Array.isArray(payload)) {
@@ -107,10 +120,10 @@ export const useCustomers = () => {
       } else {
         setStatePartial({ customers: Array.isArray(payload.data) ? payload.data : [] })
       }
-      addToast(`Loaded ${Array.isArray(state.customers) ? state.customers.length : 0} customers`, 'success')
     }
+    inFlightRef.current = false
     return res
-  }, [state.customersPagination, state.filters, callApi, setStatePartial, addToast, state.customers])
+  }, [state.customersPagination, state.filters, callApi, setStatePartial])
 
   const fetchCustomer = useCallback(async (id) => {
     const res = await callApi(() => customerAPI.getCustomer(id), 'selectedCustomerLoading', 'selectedCustomerError')
