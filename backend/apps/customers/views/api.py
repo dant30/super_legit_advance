@@ -196,7 +196,7 @@ class CustomerDetailView(AuditMixin, generics.RetrieveUpdateDestroyAPIView):
                 'total_repaid': Repayment.objects.filter(
                     loan__customer=instance,
                     status='COMPLETED'
-                ).aggregate(total=Sum('amount'))['total'] or 0,
+                ).aggregate(total=Sum('amount_paid'))['total'] or 0,
             }
         })
         

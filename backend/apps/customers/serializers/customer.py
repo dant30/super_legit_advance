@@ -277,7 +277,7 @@ class CustomerDetailSerializer(BaseCustomerSerializer):
     
     def get_employment(self, obj):
         """Get employment information."""
-        from apps.customers.serializers.employment import EmploymentSerializer
+        from apps.customers.serializers.employement import EmploymentSerializer
         try:
             employment = obj.employment
             return EmploymentSerializer(employment).data

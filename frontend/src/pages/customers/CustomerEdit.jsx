@@ -1,7 +1,7 @@
 // frontend/src/pages/customers/CustomerEdit.jsx
 import React, { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { PageHeader, Card, Alert } from '@components/ui'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { PageHeader, Card, Alert, Button } from '@components/ui'
 import { Loading } from '@components/shared'
 import { ArrowLeft, Save } from 'lucide-react'
 import { useCustomerContext } from '@contexts/CustomerContext'
@@ -9,6 +9,7 @@ import { CustomerForm } from '@components/customers'
 import { useToast } from '@contexts/ToastContext'
 
 const CustomerEdit = () => {
+  const navigate = useNavigate()
   const { id } = useParams()
   const { 
     selectedCustomer, 
@@ -23,7 +24,7 @@ const CustomerEdit = () => {
     if (id) {
       fetchCustomer(id)
     }
-  }, [id])
+  }, [id, fetchCustomer])
 
   const handleSubmit = async (formData) => {
     setLoading(true)
@@ -31,7 +32,7 @@ const CustomerEdit = () => {
       await updateCustomer(id, formData)
       addToast('Customer updated successfully', 'success')
       // Redirect to customer detail page
-      window.location.href = `/customers/${id}`
+      navigate(`/customers/${id}`)
     } catch (error) {
       addToast('Failed to update customer', 'error')
       throw error
