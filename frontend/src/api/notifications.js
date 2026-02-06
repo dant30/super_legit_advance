@@ -3,58 +3,61 @@ import axiosInstance from './axios'
 
 class NotificationsAPI {
   constructor() {
+    // Single base path for notifications app routes.
+    // Backend exposes extras like "stats/", "bulk-send/" relative to /api/notifications/
     this.baseURL = '/notifications'
   }
 
   // ----- Notifications -----
 
   async getNotifications(params = {}) {
-    const resp = await axiosInstance.get(`${this.baseURL}/notifications/`, { params })
+    // list is at /api/notifications/
+    const resp = await axiosInstance.get(`${this.baseURL}/`, { params })
     return resp.data
   }
 
   async getNotification(id) {
-    const resp = await axiosInstance.get(`${this.baseURL}/notifications/${id}/`)
+    const resp = await axiosInstance.get(`${this.baseURL}/${id}/`)
     return resp.data
   }
 
   async createNotification(data) {
-    const resp = await axiosInstance.post(`${this.baseURL}/notifications/`, data)
+    const resp = await axiosInstance.post(`${this.baseURL}/`, data)
     return resp.data
   }
 
   async sendNotification(id, payload = {}) {
-    const resp = await axiosInstance.post(`${this.baseURL}/notifications/${id}/send/`, payload)
+    const resp = await axiosInstance.post(`${this.baseURL}/${id}/send/`, payload)
     return resp.data
   }
 
   async markAsRead(id) {
-    const resp = await axiosInstance.patch(`${this.baseURL}/notifications/${id}/mark-read/`)
+    const resp = await axiosInstance.patch(`${this.baseURL}/${id}/mark-read/`)
     return resp.data
   }
 
   async markAllAsRead() {
-    const resp = await axiosInstance.post(`${this.baseURL}/notifications/mark-all-read/`)
+    const resp = await axiosInstance.post(`${this.baseURL}/mark-all-read/`)
     return resp.data
   }
 
   async deleteNotification(id) {
-    const resp = await axiosInstance.delete(`${this.baseURL}/notifications/${id}/`)
+    const resp = await axiosInstance.delete(`${this.baseURL}/${id}/`)
     return resp.data
   }
 
   async getStats(params = {}) {
-    const resp = await axiosInstance.get(`${this.baseURL}/notifications/stats/`, { params })
+    const resp = await axiosInstance.get(`${this.baseURL}/stats/`, { params })
     return resp.data
   }
 
   async bulkSend(data = {}) {
-    const resp = await axiosInstance.post(`${this.baseURL}/notifications/bulk-send/`, data)
+    const resp = await axiosInstance.post(`${this.baseURL}/bulk-send/`, data)
     return resp.data
   }
 
   async sendTestNotification(data = {}) {
-    const resp = await axiosInstance.post(`${this.baseURL}/notifications/test/`, data)
+    const resp = await axiosInstance.post(`${this.baseURL}/test/`, data)
     return resp.data
   }
 

@@ -1,5 +1,4 @@
 # backend/apps/notifications/urls.py
-# backend/apps/notifications/urls.py
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
@@ -36,27 +35,22 @@ router.register(
 # URL Patterns
 # ----------------------------
 urlpatterns = [
-    # ---- Notifications (ViewSet) ----
-    path("", include(router.urls)),
-
-    # ---- Notification extras ----
+    # ---- Notification extras (place BEFORE router include to avoid being captured as a pk) ----
     path(
-        "notifications/stats/",
+        "stats/",
         NotificationStatsView.as_view(),
         name="notification-stats",
     ),
     path(
-        "notifications/bulk-send/",
+        "bulk-send/",
         NotificationBulkSendView.as_view(),
         name="notification-bulk-send",
     ),
     path(
-        "notifications/test/",
+        "test/",
         SendTestNotificationView.as_view(),
         name="notification-test",
     ),
-
-    # ---- Templates ----
     path(
         "templates/",
         TemplateListView.as_view(),
@@ -104,4 +98,7 @@ urlpatterns = [
         SMSStatsView.as_view(),
         name="sms-stats",
     ),
+
+    # ---- Finally include the router (viewset) ----
+    path("", include(router.urls)),
 ]

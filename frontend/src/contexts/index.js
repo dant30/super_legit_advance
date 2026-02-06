@@ -1,13 +1,11 @@
 // Export all contexts
-export { AuthProvider, useAuth } from './AuthContext'
-export { ToastProvider, useToast } from './ToastContext'
-export { ThemeProvider, useTheme } from './ThemeContext'
-export { AuditProvider, useAudit } from './AuditContext'
-export { CustomerProvider, useCustomerContext } from './CustomerContext'
-
-// Re-export for convenience
-export { default as AuthContext } from './AuthContext'
-export { default as ToastContext } from './ToastContext'
-export { default as ThemeContext } from './ThemeContext'
-export { default as AuditContext } from './AuditContext'
-export { default as CustomerContext } from './CustomerContext'
+export { AuthProvider, useAuth, AuthContext } from './AuthContext'
+export { ToastProvider, useToast, ToastContext } from './ToastContext'
+export { ThemeProvider, useTheme, ThemeContext } from './ThemeContext'
+export { AuditProvider, useAudit, AuditContext } from './AuditContext'
+export { CustomerProvider, useCustomerContext, CustomerContext } from './CustomerContext'
+export { NotificationProvider, useNotificationContext, NotificationContext } from './NotificationContext'
+export { LoanProvider, useLoanContext, LoanContext } from './LoanContext'
+export { RepaymentProvider, useRepaymentContext, RepaymentContext } from './RepaymentContext'
+export { ReportProvider, useReport, ReportContext } from './ReportContext'
+export { MpesaProvider, useMpesa, MpesaContext } from './MpesaContext'

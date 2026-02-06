@@ -1,4 +1,4 @@
-// fronten/src/main.jsx doing only jsx, js and i have deleted types and slices
+// frontend/src/main.jsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
@@ -7,13 +7,17 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { ErrorBoundary } from 'react-error-boundary'
 import { HelmetProvider } from 'react-helmet-async'
 import App from './App'
-import ErrorFallback from '@components/shared/ErrorBoundary' // Fixed path - using default export
+import ErrorFallback from '@components/shared/ErrorBoundary'
 import { AuthProvider } from '@contexts/AuthContext'
 import { ToastProvider } from '@contexts/ToastContext'
 import { ThemeProvider } from '@contexts/ThemeContext'
 import { CustomerProvider } from '@contexts/CustomerContext'
 import { LoanProvider } from '@contexts/LoanContext'
 import { RepaymentProvider } from '@contexts/RepaymentContext'
+import { NotificationProvider } from '@contexts/NotificationContext'
+import { AuditProvider } from '@contexts/AuditContext'
+import { ReportProvider } from '@contexts/ReportContext'
+import { MpesaProvider } from '@contexts/MpesaContext'
 import '@styles/tailwind.css'
 
 // ======================================================
@@ -30,8 +34,8 @@ const createQueryClient = () =>
     }),
     defaultOptions: {
       queries: {
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000,   // 10 minutes
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
         retry: 1,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
@@ -83,15 +87,23 @@ const Providers = ({ children }) => (
   >
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
-        <ThemeProvider> {/* Wrap with ThemeProvider */}
+        <ThemeProvider>
           <ToastProvider>
             <AuthProvider>
               <CustomerProvider>
                 <LoanProvider>
                   <RepaymentProvider>
-                  <BrowserRouter>
-                    {children}
-                  </BrowserRouter>
+                    <NotificationProvider>
+                      <AuditProvider>
+                        <ReportProvider>
+                          <MpesaProvider>
+                            <BrowserRouter>
+                              {children}
+                            </BrowserRouter>
+                          </MpesaProvider>
+                        </ReportProvider>
+                      </AuditProvider>
+                    </NotificationProvider>
                   </RepaymentProvider>
                 </LoanProvider>
               </CustomerProvider>
