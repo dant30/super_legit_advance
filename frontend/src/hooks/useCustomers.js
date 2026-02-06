@@ -48,7 +48,12 @@ export const useCustomers = () => {
   })
 
   const abortRef = useRef(null)
-  const inFlightRef = useRef(false)
+  const inFlightRef = useRef({
+    fetchCustomers: false,
+    fetchCustomer: false,
+    getEmployment: false,
+    getGuarantors: false,
+  })
   const { user } = useAuth()
   const { addToast } = useToast()
 
@@ -81,8 +86,8 @@ export const useCustomers = () => {
   /* ===== CUSTOMER METHODS ===== */
 
   const fetchCustomers = useCallback(async (params = {}) => {
-    if (inFlightRef.current) return { success: false, error: 'Request in progress' }
-    inFlightRef.current = true
+    if (inFlightRef.current.fetchCustomers) return { success: false, error: 'Request in progress' }
+    inFlightRef.current.fetchCustomers = true
     const merged = {
       page: state.customersPagination.page,
       page_size: state.customersPagination.page_size,
@@ -121,13 +126,16 @@ export const useCustomers = () => {
         setStatePartial({ customers: Array.isArray(payload.data) ? payload.data : [] })
       }
     }
-    inFlightRef.current = false
+    inFlightRef.current.fetchCustomers = false
     return res
   }, [state.customersPagination, state.filters, callApi, setStatePartial])
 
   const fetchCustomer = useCallback(async (id) => {
+    if (inFlightRef.current.fetchCustomer) return { success: false, error: 'Request in progress' }
+    inFlightRef.current.fetchCustomer = true
     const res = await callApi(() => customerAPI.getCustomer(id), 'selectedCustomerLoading', 'selectedCustomerError')
     if (res.success) setStatePartial({ selectedCustomer: res.data })
+    inFlightRef.current.fetchCustomer = false
     return res
   }, [callApi, setStatePartial])
 
@@ -221,8 +229,11 @@ export const useCustomers = () => {
   /* ===== EMPLOYMENT METHODS ===== */
 
   const getEmployment = useCallback(async (customerId) => {
+    if (inFlightRef.current.getEmployment) return { success: false, error: 'Request in progress' }
+    inFlightRef.current.getEmployment = true
     const res = await callApi(() => customerAPI.getEmployment(customerId), 'employmentLoading', 'employmentError')
     if (res.success) setStatePartial({ employment: res.data })
+    inFlightRef.current.getEmployment = false
     return res
   }, [callApi, setStatePartial])
 
@@ -238,8 +249,11 @@ export const useCustomers = () => {
   /* ===== GUARANTOR METHODS ===== */
 
   const getGuarantors = useCallback(async (customerId) => {
+    if (inFlightRef.current.getGuarantors) return { success: false, error: 'Request in progress' }
+    inFlightRef.current.getGuarantors = true
     const res = await callApi(() => customerAPI.getGuarantors(customerId), 'guarantorsLoading', 'guarantorsError')
     if (res.success) setStatePartial({ guarantors: res.data || [] })
+    inFlightRef.current.getGuarantors = false
     return res
   }, [callApi, setStatePartial])
 

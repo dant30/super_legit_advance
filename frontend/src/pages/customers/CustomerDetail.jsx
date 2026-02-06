@@ -47,7 +47,7 @@ const CustomerDetail = () => {
       fetchCustomer(id)
       getGuarantors(id)
     }
-  }, [id])
+  }, [id, fetchCustomer, getGuarantors])
 
   const handleDelete = async () => {
     try {
@@ -236,6 +236,7 @@ const CustomerDetail = () => {
             <CustomerProfile 
               customer={selectedCustomer} 
               loading={selectedCustomerLoading}
+              customerId={id}
             />
           )}
 
