@@ -59,7 +59,7 @@ const EmploymentForm = ({ customerId }) => {
     if (customerId) {
       getEmployment(customerId);
     }
-  }, [customerId]);
+  }, [customerId, getEmployment]);
 
   useEffect(() => {
     if (employment) {
@@ -205,6 +205,25 @@ const EmploymentForm = ({ customerId }) => {
       </div>
     );
   }
+
+  if (!employment && !isEditing) {
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="flex items-center">
+          <DocumentTextIcon className="h-5 w-5 text-yellow-400 mr-2" />
+          <p className="text-yellow-700">No employment information found</p>
+        </div>
+        <button
+          onClick={() => setIsEditing(true)}
+          className="mt-3 px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
+        >
+          Add Employment Details
+        </button>
+      </div>
+    );
+  }
+
+  const employmentData = employment || {};
 
   return (
     <div className="space-y-6">
@@ -677,34 +696,34 @@ const EmploymentForm = ({ customerId }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h4 className="text-sm font-medium text-gray-500">Employer</h4>
-                <p className="mt-1 text-sm text-gray-900">{employment.employer_name || 'Not specified'}</p>
+                <p className="mt-1 text-sm text-gray-900">{employmentData.employer_name || 'Not specified'}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-gray-500">Job Title</h4>
-                <p className="mt-1 text-sm text-gray-900">{employment.job_title || 'Not specified'}</p>
+                <p className="mt-1 text-sm text-gray-900">{employmentData.job_title || 'Not specified'}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-gray-500">Employment Type</h4>
-                <p className="mt-1 text-sm text-gray-900">{employment.employment_type || 'Not specified'}</p>
+                <p className="mt-1 text-sm text-gray-900">{employmentData.employment_type || 'Not specified'}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-gray-500">Department</h4>
-                <p className="mt-1 text-sm text-gray-900">{employment.department || 'Not specified'}</p>
+                <p className="mt-1 text-sm text-gray-900">{employmentData.department || 'Not specified'}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-gray-500">Start Date</h4>
                 <p className="mt-1 text-sm text-gray-900">
-                  {employment.start_date ? 
-                    new Date(employment.start_date).toLocaleDateString() : 'Not specified'}
+                  {employmentData.start_date ? 
+                    new Date(employmentData.start_date).toLocaleDateString() : 'Not specified'}
                 </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-gray-500">Status</h4>
                 <p className="mt-1 text-sm text-gray-900">
                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    employment.is_current ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    employmentData.is_current ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                   }`}>
-                    {employment.is_current ? 'Currently Employed' : 'Formerly Employed'}
+                    {employmentData.is_current ? 'Currently Employed' : 'Formerly Employed'}
                   </span>
                 </p>
               </div>
@@ -717,41 +736,41 @@ const EmploymentForm = ({ customerId }) => {
               <div>
                 <h4 className="text-sm font-medium text-gray-500">Monthly Income</h4>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
-                  {employment.monthly_income ? `Ksh ${Number(employment.monthly_income).toLocaleString()}` : 'Not specified'}
+                  {employmentData.monthly_income ? `Ksh ${Number(employmentData.monthly_income).toLocaleString()}` : 'Not specified'}
                 </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-gray-500">Pay Frequency</h4>
-                <p className="mt-1 text-sm text-gray-900">{employment.pay_frequency || 'Not specified'}</p>
+                <p className="mt-1 text-sm text-gray-900">{employmentData.pay_frequency || 'Not specified'}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-gray-500">Work Duration</h4>
-                <p className="mt-1 text-sm text-gray-900">{employment.work_duration || 'Not specified'}</p>
+                <p className="mt-1 text-sm text-gray-900">{employmentData.work_duration || 'Not specified'}</p>
               </div>
             </div>
           </div>
 
           {/* Employer Contact */}
-          {employment.employer_address || employment.employer_phone || employment.employer_email ? (
+          {employmentData.employer_address || employmentData.employer_phone || employmentData.employer_email ? (
             <div className="px-6 py-4">
               <h4 className="text-sm font-medium text-gray-900 mb-3">Employer Contact</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {employment.employer_address && (
+                {employmentData.employer_address && (
                   <div>
                     <h4 className="text-xs font-medium text-gray-500">Address</h4>
-                    <p className="mt-1 text-sm text-gray-900">{employment.employer_address}</p>
+                    <p className="mt-1 text-sm text-gray-900">{employmentData.employer_address}</p>
                   </div>
                 )}
-                {employment.employer_phone && (
+                {employmentData.employer_phone && (
                   <div>
                     <h4 className="text-xs font-medium text-gray-500">Phone</h4>
-                    <p className="mt-1 text-sm text-gray-900">{employment.employer_phone}</p>
+                    <p className="mt-1 text-sm text-gray-900">{employmentData.employer_phone}</p>
                   </div>
                 )}
-                {employment.employer_email && (
+                {employmentData.employer_email && (
                   <div>
                     <h4 className="text-xs font-medium text-gray-500">Email</h4>
-                    <p className="mt-1 text-sm text-gray-900">{employment.employer_email}</p>
+                    <p className="mt-1 text-sm text-gray-900">{employmentData.employer_email}</p>
                   </div>
                 )}
               </div>
@@ -762,33 +781,33 @@ const EmploymentForm = ({ customerId }) => {
           <div className="px-6 py-4">
             <h4 className="text-sm font-medium text-gray-900 mb-3">Additional Information</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {employment.industry && (
+              {employmentData.industry && (
                 <div>
                   <h4 className="text-xs font-medium text-gray-500">Industry</h4>
-                  <p className="mt-1 text-sm text-gray-900">{employment.industry}</p>
+                  <p className="mt-1 text-sm text-gray-900">{employmentData.industry}</p>
                 </div>
               )}
-              {employment.company_size && (
+              {employmentData.company_size && (
                 <div>
                   <h4 className="text-xs font-medium text-gray-500">Company Size</h4>
-                  <p className="mt-1 text-sm text-gray-900">{employment.company_size}</p>
+                  <p className="mt-1 text-sm text-gray-900">{employmentData.company_size}</p>
                 </div>
               )}
-              {employment.contract_type && (
+              {employmentData.contract_type && (
                 <div>
                   <h4 className="text-xs font-medium text-gray-500">Contract Type</h4>
-                  <p className="mt-1 text-sm text-gray-900">{employment.contract_type}</p>
+                  <p className="mt-1 text-sm text-gray-900">{employmentData.contract_type}</p>
                 </div>
               )}
             </div>
           </div>
 
           {/* Notes */}
-          {employment.notes && (
+          {employmentData.notes && (
             <div className="px-6 py-4">
               <h4 className="text-sm font-medium text-gray-500">Notes</h4>
               <p className="mt-1 text-sm text-gray-900 bg-gray-50 p-3 rounded">
-                {employment.notes}
+                {employmentData.notes}
               </p>
             </div>
           )}

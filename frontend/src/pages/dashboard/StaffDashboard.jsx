@@ -1,6 +1,7 @@
 // frontend/src/pages/dashboard/StaffDashboard.jsx
 import React from 'react'
 import { PageHeader } from '@components/shared'
+import { useAuth } from '@hooks/useAuth'
 import { QuickActions } from '@components/dashboard/common'
 import {
   Collections,
@@ -14,6 +15,17 @@ import {
 import { Plus, FileText, Users, CreditCard } from 'lucide-react'
 
 const StaffDashboard = () => {
+  const { user } = useAuth()
+
+  const staffName = user?.first_name || 'Staff'
+
+  const getGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) return 'Good Morning'
+    if (hour < 18) return 'Good Afternoon'
+    return 'Good Evening'
+  }
+
   const quickActions = [
     {
       key: 'new-customer',
@@ -48,7 +60,7 @@ const StaffDashboard = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Welcome back, Staff!"
+        title={`${getGreeting()}, ${staffName}!`}
         subTitle="Overview of your daily operations"
       />
 
@@ -60,6 +72,7 @@ const StaffDashboard = () => {
           <MyLoans />
           <PendingApprovals />
         </div>
+
         <div className="space-y-6">
           <QuickActions actions={quickActions} />
           <Collections />
