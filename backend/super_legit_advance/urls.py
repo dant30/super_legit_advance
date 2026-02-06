@@ -79,6 +79,7 @@ urlpatterns = [
     path("api/notifications/", include("apps.notifications.urls")),
     path("api/reports/", include("apps.reports.urls")),
     path("api/audit/", include("apps.audit.urls")),
+    path("api/admin/", include("apps.admin_api.urls")),   # Admin management endpoints
 
     # --------------------------------------------------------------------------
     # DRF browsable API auth

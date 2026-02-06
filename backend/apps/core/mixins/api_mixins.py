@@ -206,18 +206,29 @@ class CacheMixin:
         """
         cache_key = self.get_cache_key()
 
-        # Ensure content is rendered where applicable (prevents pickling errors)
-        try:
-            if hasattr(response, 'render') and callable(response.render):
-                response.render()
-        except Exception as e:
-            logger.warning(f"Failed to render response before caching: {e}")
-
-        # Build a small serializable payload
+        # Try to collect headers safely
         try:
             headers = dict(response.items()) if hasattr(response, 'items') else {}
         except Exception:
             headers = {}
+
+        # Attempt to render using the view's renderers when available (safer than calling response.render())
+        try:
+            if hasattr(self, 'get_renderers') and hasattr(self, 'request'):
+                renderers = self.get_renderers() or []
+                renderer_context = {'request': getattr(self, 'request', None), 'response': response}
+                if renderers:
+                    try:
+                        # Use first renderer to produce a content-type header if possible
+                        renderer = renderers[0]
+                        # render output is bytes; we don't need it for caching payload, but rendering may set media type
+                        _ = renderer.render(getattr(response, 'data', None), renderer_context)
+                        headers.setdefault('Content-Type', getattr(renderer, 'media_type', headers.get('Content-Type')))
+                    except Exception:
+                        # Don't fail caching if rendering isn't possible in this context
+                        logger.debug("Renderer render failed during cache_response; proceeding without rendering", exc_info=True)
+        except Exception:
+            logger.debug("Failed to determine renderer for cache_response", exc_info=True)
 
         payload = {
             'data': getattr(response, 'data', None),

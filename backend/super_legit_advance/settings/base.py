@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'apps.notifications',
     'apps.reports',
     'apps.audit',
+    'apps.admin_api',
 
     # Health check apps
     'health_check',                             # required
