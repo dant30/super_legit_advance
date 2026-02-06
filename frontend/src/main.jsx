@@ -18,6 +18,7 @@ import { NotificationProvider } from '@contexts/NotificationContext'
 import { AuditProvider } from '@contexts/AuditContext'
 import { ReportProvider } from '@contexts/ReportContext'
 import { MpesaProvider } from '@contexts/MpesaContext'
+import { AdminProvider } from '@contexts/AdminContext'
 import '@styles/tailwind.css'
 
 // ======================================================
@@ -90,23 +91,25 @@ const Providers = ({ children }) => (
         <ThemeProvider>
           <ToastProvider>
             <AuthProvider>
-              <CustomerProvider>
-                <LoanProvider>
-                  <RepaymentProvider>
-                    <NotificationProvider>
-                      <AuditProvider>
-                        <ReportProvider>
-                          <MpesaProvider>
-                            <BrowserRouter>
-                              {children}
-                            </BrowserRouter>
-                          </MpesaProvider>
-                        </ReportProvider>
-                      </AuditProvider>
-                    </NotificationProvider>
-                  </RepaymentProvider>
-                </LoanProvider>
-              </CustomerProvider>
+              <AdminProvider>
+                <CustomerProvider>
+                  <LoanProvider>
+                    <RepaymentProvider>
+                      <NotificationProvider>
+                        <AuditProvider>
+                          <ReportProvider>
+                            <MpesaProvider>
+                              <BrowserRouter>
+                                {children}
+                              </BrowserRouter>
+                            </MpesaProvider>
+                          </ReportProvider>
+                        </AuditProvider>
+                      </NotificationProvider>
+                    </RepaymentProvider>
+                  </LoanProvider>
+                </CustomerProvider>
+              </AdminProvider>
             </AuthProvider>
           </ToastProvider>
         </ThemeProvider>

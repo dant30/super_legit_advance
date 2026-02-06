@@ -185,14 +185,47 @@ class CacheMixin:
         Get cached response if available.
         """
         cache_key = self.get_cache_key()
-        return cache.get(cache_key)
+        cached = cache.get(cache_key)
+        if not cached:
+            return None
+
+        # Reconstruct a DRF Response from cached serializable payload
+        try:
+            return Response(
+                data=cached.get('data'),
+                status=cached.get('status_code', status.HTTP_200_OK),
+                headers=cached.get('headers', {})
+            )
+        except Exception:
+            # Fallback: return raw data wrapped in Response
+            return Response(cached.get('data'))
     
     def cache_response(self, response):
         """
-        Cache the response.
+        Cache the response as a serializable payload instead of the Response object.
         """
         cache_key = self.get_cache_key()
-        cache.set(cache_key, response, self.cache_timeout)
+
+        # Ensure content is rendered where applicable (prevents pickling errors)
+        try:
+            if hasattr(response, 'render') and callable(response.render):
+                response.render()
+        except Exception as e:
+            logger.warning(f"Failed to render response before caching: {e}")
+
+        # Build a small serializable payload
+        try:
+            headers = dict(response.items()) if hasattr(response, 'items') else {}
+        except Exception:
+            headers = {}
+
+        payload = {
+            'data': getattr(response, 'data', None),
+            'status_code': getattr(response, 'status_code', status.HTTP_200_OK),
+            'headers': headers,
+        }
+
+        cache.set(cache_key, payload, self.cache_timeout)
         return response
     
     def invalidate_cache(self):
