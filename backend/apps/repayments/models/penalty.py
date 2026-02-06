@@ -1,4 +1,4 @@
-# backend/apps/customers/models/customer.py
+# backend/apps/repayments/models/penalty.py
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -17,21 +17,33 @@ class Penalty(BaseModel):
     """
     
     # Penalty types
+    TYPE_LATE_PAYMENT = 'LATE_PAYMENT'
+    TYPE_DEFAULT = 'DEFAULT'
+    TYPE_EARLY_REPAYMENT = 'EARLY_REPAYMENT'
+    TYPE_ADMINISTRATIVE = 'ADMINISTRATIVE'
+    TYPE_OTHER = 'OTHER'
+
     PENALTY_TYPE_CHOICES = [
-        ('LATE_PAYMENT', 'Late Payment'),
-        ('DEFAULT', 'Default'),
-        ('EARLY_REPAYMENT', 'Early Repayment'),
-        ('ADMINISTRATIVE', 'Administrative'),
-        ('OTHER', 'Other'),
+        (TYPE_LATE_PAYMENT, 'Late Payment'),
+        (TYPE_DEFAULT, 'Default'),
+        (TYPE_EARLY_REPAYMENT, 'Early Repayment'),
+        (TYPE_ADMINISTRATIVE, 'Administrative'),
+        (TYPE_OTHER, 'Other'),
     ]
     
     # Penalty statuses
+    STATUS_PENDING = 'PENDING'
+    STATUS_APPLIED = 'APPLIED'
+    STATUS_WAIVED = 'WAIVED'
+    STATUS_CANCELLED = 'CANCELLED'
+    STATUS_PAID = 'PAID'
+
     STATUS_CHOICES = [
-        ('PENDING', 'Pending'),
-        ('APPLIED', 'Applied'),
-        ('WAIVED', 'Waived'),
-        ('CANCELLED', 'Cancelled'),
-        ('PAID', 'Paid'),
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_APPLIED, 'Applied'),
+        (STATUS_WAIVED, 'Waived'),
+        (STATUS_CANCELLED, 'Cancelled'),
+        (STATUS_PAID, 'Paid'),
     ]
     
     # Fields
@@ -69,7 +81,7 @@ class Penalty(BaseModel):
     penalty_type = models.CharField(
         max_length=20,
         choices=PENALTY_TYPE_CHOICES,
-        default='LATE_PAYMENT',
+        default=TYPE_LATE_PAYMENT,
         verbose_name="Penalty Type"
     )
     
@@ -86,7 +98,7 @@ class Penalty(BaseModel):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default='PENDING',
+        default=STATUS_PENDING,
         verbose_name="Status"
     )
     
@@ -226,11 +238,11 @@ class Penalty(BaseModel):
         
         # Update status based on payment
         if self.amount_paid >= self.amount:
-            self.status = 'PAID'
+            self.status = self.STATUS_PAID
             if not self.paid_date:
                 self.paid_date = timezone.now().date()
-        elif self.status == 'PENDING' and self.applied_date:
-            self.status = 'APPLIED'
+        elif self.status == self.STATUS_PENDING and self.applied_date:
+            self.status = self.STATUS_APPLIED
         
         super().save(*args, **kwargs)
     
@@ -254,13 +266,13 @@ class Penalty(BaseModel):
     @property
     def is_paid(self):
         """Check if penalty is fully paid."""
-        return self.status == 'PAID' and self.amount_paid >= self.amount
+        return self.status == self.STATUS_PAID and self.amount_paid >= self.amount
     
     @property
     def is_overdue(self):
         """Check if penalty is overdue."""
         return (
-            self.status in ['APPLIED', 'PENDING'] and 
+            self.status in [self.STATUS_APPLIED, self.STATUS_PENDING] and 
             self.due_date and 
             timezone.now().date() > self.due_date
         )
@@ -284,7 +296,7 @@ class Penalty(BaseModel):
         if self.status != 'PENDING':
             raise ValidationError("Penalty is already applied or processed.")
         
-        self.status = 'APPLIED'
+        self.status = self.STATUS_APPLIED
         self.applied_by = applied_by
         self.applied_date = timezone.now().date()
         
@@ -338,10 +350,10 @@ class Penalty(BaseModel):
             waiver_reason (str): Reason for waiver
             waived_by (User): User authorizing waiver
         """
-        if self.status in ['PAID', 'CANCELLED']:
+        if self.status in [self.STATUS_PAID, self.STATUS_CANCELLED]:
             raise ValidationError("Cannot waive already paid or cancelled penalty.")
         
-        self.status = 'WAIVED'
+        self.status = self.STATUS_WAIVED
         self.waived_by = waived_by
         self.waiver_reason = waiver_reason
         self.waiver_date = timezone.now().date()
@@ -372,10 +384,10 @@ class Penalty(BaseModel):
             cancellation_reason (str): Reason for cancellation
             cancelled_by (User): User authorizing cancellation
         """
-        if self.status in ['PAID', 'WAIVED']:
+        if self.status in [self.STATUS_PAID, self.STATUS_WAIVED]:
             raise ValidationError("Cannot cancel already paid or waived penalty.")
         
-        self.status = 'CANCELLED'
+        self.status = self.STATUS_CANCELLED
         self.notes = f"{self.notes}\nCancelled: {cancellation_reason} by {cancelled_by.get_full_name()}"
         
         self.save()

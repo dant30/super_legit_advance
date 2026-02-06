@@ -169,7 +169,7 @@ class RepaymentUpdateSerializer(serializers.ModelSerializer):
                     'amount_paid': 'Amount paid cannot be negative.'
                 })
             
-            if new_amount_paid > instance.amount_due and instance.status != 'WAIVED':
+            if new_amount_paid > instance.amount_due and instance.status != Repayment.STATUS_WAIVED:
                 raise serializers.ValidationError({
                     'amount_paid': 'Amount paid cannot exceed amount due.'
                 })

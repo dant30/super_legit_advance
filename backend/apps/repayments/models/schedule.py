@@ -15,13 +15,20 @@ class RepaymentSchedule(BaseModel):
     """
     
     # Installment statuses
+    STATUS_PENDING = 'PENDING'
+    STATUS_PAID = 'PAID'
+    STATUS_OVERDUE = 'OVERDUE'
+    STATUS_SKIPPED = 'SKIPPED'
+    STATUS_ADJUSTED = 'ADJUSTED'
+    STATUS_CANCELLED = 'CANCELLED'
+
     STATUS_CHOICES = [
-        ('PENDING', 'Pending'),
-        ('PAID', 'Paid'),
-        ('OVERDUE', 'Overdue'),
-        ('SKIPPED', 'Skipped'),
-        ('ADJUSTED', 'Adjusted'),
-        ('CANCELLED', 'Cancelled'),
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_PAID, 'Paid'),
+        (STATUS_OVERDUE, 'Overdue'),
+        (STATUS_SKIPPED, 'Skipped'),
+        (STATUS_ADJUSTED, 'Adjusted'),
+        (STATUS_CANCELLED, 'Cancelled'),
     ]
     
     # Fields
@@ -70,7 +77,7 @@ class RepaymentSchedule(BaseModel):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default='PENDING',
+        default=STATUS_PENDING,
         verbose_name="Status"
     )
     
@@ -180,19 +187,19 @@ class RepaymentSchedule(BaseModel):
         
         # Update status based on payment
         if self.amount_paid >= self.total_amount:
-            self.status = 'PAID'
+            self.status = self.STATUS_PAID
             if not self.payment_date:
                 self.payment_date = timezone.now().date()
         elif self.amount_paid > 0:
-            self.status = 'PENDING'  # Still pending if partial payment
+            self.status = self.STATUS_PENDING  # Still pending if partial payment
         
         # Calculate days overdue for pending installments
-        if self.status in ['PENDING', 'OVERDUE']:
+        if self.status in [self.STATUS_PENDING, self.STATUS_OVERDUE]:
             today = timezone.now().date()
             if today > self.due_date:
                 self.days_overdue = (today - self.due_date).days
-                if self.status == 'PENDING':
-                    self.status = 'OVERDUE'
+                if self.status == self.STATUS_PENDING:
+                    self.status = self.STATUS_OVERDUE
             else:
                 self.days_overdue = 0
         
@@ -206,13 +213,13 @@ class RepaymentSchedule(BaseModel):
     @property
     def is_paid(self):
         """Check if installment is fully paid."""
-        return self.status == 'PAID' and self.amount_paid >= self.total_amount
+        return self.status == self.STATUS_PAID and self.amount_paid >= self.total_amount
     
     @property
     def is_overdue(self):
         """Check if installment is overdue."""
-        return self.status == 'OVERDUE' or (
-            self.status == 'PENDING' and 
+        return self.status == self.STATUS_OVERDUE or (
+            self.status == self.STATUS_PENDING and 
             self.due_date and 
             timezone.now().date() > self.due_date
         )
@@ -315,7 +322,7 @@ class RepaymentSchedule(BaseModel):
         if self.is_paid:
             raise ValidationError("Cannot skip already paid installment.")
         
-        self.status = 'SKIPPED'
+        self.status = self.STATUS_SKIPPED
         self.notes = f"{self.notes}\nSkipped: {reason} by {skipped_by.get_full_name()}"
         self.save()
         
