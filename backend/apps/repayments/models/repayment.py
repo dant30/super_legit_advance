@@ -19,15 +19,24 @@ class Repayment(BaseModel):
     """
     
     # Repayment statuses
+    STATUS_PENDING = 'PENDING'
+    STATUS_PROCESSING = 'PROCESSING'
+    STATUS_COMPLETED = 'COMPLETED'
+    STATUS_FAILED = 'FAILED'
+    STATUS_CANCELLED = 'CANCELLED'
+    STATUS_OVERDUE = 'OVERDUE'
+    STATUS_PARTIAL = 'PARTIAL'
+    STATUS_WAIVED = 'WAIVED'
+
     STATUS_CHOICES = [
-        ('PENDING', 'Pending'),
-        ('PROCESSING', 'Processing'),
-        ('COMPLETED', 'Completed'),
-        ('FAILED', 'Failed'),
-        ('CANCELLED', 'Cancelled'),
-        ('OVERDUE', 'Overdue'),
-        ('PARTIAL', 'Partial'),
-        ('WAIVED', 'Waived'),
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_PROCESSING, 'Processing'),
+        (STATUS_COMPLETED, 'Completed'),
+        (STATUS_FAILED, 'Failed'),
+        (STATUS_CANCELLED, 'Cancelled'),
+        (STATUS_OVERDUE, 'Overdue'),
+        (STATUS_PARTIAL, 'Partial'),
+        (STATUS_WAIVED, 'Waived'),
     ]
     
     # Payment methods
@@ -140,7 +149,7 @@ class Repayment(BaseModel):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default='PENDING',
+        default=STATUS_PENDING,
         verbose_name="Status"
     )
     
@@ -277,24 +286,24 @@ class Repayment(BaseModel):
         self.amount_outstanding = self.amount_due - self.amount_paid
         
         # Calculate days overdue
-        if self.due_date and self.status in ['PENDING', 'OVERDUE']:
+        if self.due_date and self.status in [self.STATUS_PENDING, self.STATUS_OVERDUE]:
             today = timezone.now().date()
             if today > self.due_date:
                 self.days_overdue = (today - self.due_date).days
-                if self.status == 'PENDING':
-                    self.status = 'OVERDUE'
+                if self.status == self.STATUS_PENDING:
+                    self.status = self.STATUS_OVERDUE
             else:
                 self.days_overdue = 0
         
         # Handle payment completion
-        if self.amount_paid >= self.amount_due and self.status in ['PENDING', 'OVERDUE', 'PARTIAL']:
-            self.status = 'COMPLETED'
+        if self.amount_paid >= self.amount_due and self.status in [self.STATUS_PENDING, self.STATUS_OVERDUE, self.STATUS_PARTIAL]:
+            self.status = self.STATUS_COMPLETED
             if not self.payment_date:
                 self.payment_date = timezone.now()
         
         # Handle partial payment
         elif self.amount_paid > 0 and self.amount_paid < self.amount_due:
-            self.status = 'PARTIAL'
+            self.status = self.STATUS_PARTIAL
             if not self.payment_date:
                 self.payment_date = timezone.now()
         
@@ -326,32 +335,32 @@ class Repayment(BaseModel):
     @property
     def is_paid(self):
         """Check if repayment is fully paid."""
-        return self.status == 'COMPLETED' and self.amount_paid >= self.amount_due
+        return self.status == self.STATUS_COMPLETED and self.amount_paid >= self.amount_due
     
     @property
     def is_overdue(self):
         """Check if repayment is overdue."""
-        return self.status == 'OVERDUE' or (self.due_date and timezone.now().date() > self.due_date)
+        return self.status == self.STATUS_OVERDUE or (self.due_date and timezone.now().date() > self.due_date)
     
     @property
     def is_partial(self):
         """Check if repayment is partial."""
-        return self.status == 'PARTIAL'
+        return self.status == self.STATUS_PARTIAL
     
     @property
     def payment_status(self):
         """Get payment status with color coding."""
         status_map = {
-            'COMPLETED': ('Paid', 'success'),
-            'PENDING': ('Pending', 'warning'),
-            'OVERDUE': ('Overdue', 'danger'),
-            'PARTIAL': ('Partial', 'info'),
-            'PROCESSING': ('Processing', 'primary'),
-            'FAILED': ('Failed', 'danger'),
-            'CANCELLED': ('Cancelled', 'secondary'),
-            'WAIVED': ('Waived', 'success'),
+            Repayment.STATUS_COMPLETED: ('Paid', 'success'),
+            Repayment.STATUS_PENDING: ('Pending', 'warning'),
+            Repayment.STATUS_PROCESSING: ('Processing', 'warning'),
+            Repayment.STATUS_PARTIAL: ('Partial', 'warning'),
+            Repayment.STATUS_OVERDUE: ('Overdue', 'danger'),
+            Repayment.STATUS_FAILED: ('Failed', 'neutral'),
+            Repayment.STATUS_CANCELLED: ('Cancelled', 'neutral'),
+            Repayment.STATUS_WAIVED: ('Waived', 'neutral'),
         }
-        return status_map.get(self.status, ('Unknown', 'secondary'))
+        return status_map.get(self.status, ('Unknown', 'neutral'))
     
     @property
     def payment_percentage(self):
@@ -370,7 +379,7 @@ class Repayment(BaseModel):
             reference (str): Payment reference
             collected_by (User): User who collected payment
         """
-        if self.status == 'COMPLETED':
+        if self.status == self.STATUS_COMPLETED:
             raise ValidationError("This repayment is already completed.")
         
         if amount <= 0:
@@ -390,9 +399,9 @@ class Repayment(BaseModel):
         
         # Update status based on payment
         if self.amount_paid >= self.amount_due:
-            self.status = 'COMPLETED'
+            self.status = self.STATUS_COMPLETED
         elif self.amount_paid > 0:
-            self.status = 'PARTIAL'
+            self.status = self.STATUS_PARTIAL
         
         self.save()
         
@@ -461,7 +470,7 @@ class Repayment(BaseModel):
         
         # If amount due is now 0, mark as completed
         if self.amount_due <= self.amount_paid:
-            self.status = 'WAIVED'
+            self.status = self.STATUS_WAIVED
             self.amount_paid = self.amount_due
             self.amount_outstanding = 0
         
@@ -487,10 +496,10 @@ class Repayment(BaseModel):
             reason (str): Reason for cancellation
             cancelled_by (User): User cancelling payment
         """
-        if self.status in ['COMPLETED', 'WAIVED']:
+        if self.status in [self.STATUS_COMPLETED, self.STATUS_WAIVED]:
             raise ValidationError("Cannot cancel completed or waived repayments.")
         
-        self.status = 'CANCELLED'
+        self.status = self.STATUS_CANCELLED
         self.notes = f"{self.notes}\nCancelled: {reason} by {cancelled_by.get_full_name()}"
         self.save()
         
@@ -543,7 +552,7 @@ class Repayment(BaseModel):
     def clean(self):
         """Custom validation."""
         # Validate amount paid doesn't exceed amount due (unless waived)
-        if self.amount_paid > self.amount_due and self.status != 'WAIVED':
+        if self.amount_paid > self.amount_due and self.status != self.STATUS_WAIVED:
             raise ValidationError({
                 'amount_paid': 'Amount paid cannot exceed amount due.'
             })

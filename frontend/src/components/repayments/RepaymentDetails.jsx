@@ -3,6 +3,7 @@ import React from 'react'
 import { Card, CardHeader, CardContent } from '@components/ui/Card'
 import Badge from '@components/ui/Badge'
 import Button from '@components/ui/Button'
+import { REPAYMENT_STATUS } from '@api/repayments'
 
 const RepaymentDetails = ({
   repayment,
@@ -15,12 +16,22 @@ const RepaymentDetails = ({
   if (!repayment) return null
 
   const statusVariant = (status) => {
-    const s = String(status || '').toUpperCase()
-    if (s === 'COMPLETED') return 'success'
-    if (s === 'PENDING' || s === 'PARTIAL') return 'warning'
-    if (s === 'OVERDUE') return 'danger'
-    if (s === 'CANCELLED' || s === 'WAIVED') return 'secondary'
-    return 'info'
+    switch (status) {
+      case REPAYMENT_STATUS.COMPLETED:
+        return 'success'
+      case REPAYMENT_STATUS.PENDING:
+      case REPAYMENT_STATUS.PARTIAL:
+      case REPAYMENT_STATUS.PROCESSING:
+        return 'warning'
+      case REPAYMENT_STATUS.OVERDUE:
+        return 'danger'
+      case REPAYMENT_STATUS.FAILED:
+      case REPAYMENT_STATUS.CANCELLED:
+      case REPAYMENT_STATUS.WAIVED:
+        return 'neutral'
+      default:
+        return 'neutral'
+    }
   }
 
   return (
