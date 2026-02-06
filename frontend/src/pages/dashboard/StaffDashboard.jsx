@@ -17,7 +17,10 @@ import { Plus, FileText, Users, CreditCard } from 'lucide-react'
 const StaffDashboard = () => {
   const { user } = useAuth()
 
-  const staffName = user?.first_name || 'Staff'
+  // Inline one-liner to capitalize first letter
+  const staffName = user?.first_name
+    ? user.first_name.charAt(0).toUpperCase() + user.first_name.slice(1)
+    : 'Staff'
 
   const getGreeting = () => {
     const hour = new Date().getHours()
@@ -60,7 +63,7 @@ const StaffDashboard = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`${getGreeting()}, ${staffName}!`}
+        title={`${getGreeting()}, ${staffName} 👋`}
         subTitle="Overview of your daily operations"
       />
 

@@ -1,103 +1,127 @@
 // frontend/src/components/ui/Input.jsx
-import React, { forwardRef } from 'react'
+import React, { forwardRef, useId, useState } from 'react'
 import { cn } from '@utils/cn'
 
-export const Input = forwardRef(({
-  label,
-  error,
-  helperText,
-  prefix,
-  suffix,
-  action,
-  uiSize = 'md',
-  fullWidth = true,
-  className,
-  disabled,
-  type = 'text',
-  ...props
-}, ref) => {
-  const sizeClasses = {
-    sm: 'h-9 text-sm',
-    md: 'h-10 text-sm',
-    lg: 'h-12 text-base',
-  }
+/**
+ * @typedef {Object} InputProps
+ * @property {string} [label]
+ * @property {string} [hint]
+ * @property {string} [error]
+ * @property {'sm'|'md'|'lg'} [size]
+ * @property {'outline'|'filled'|'ghost'} [variant]
+ * @property {boolean} [fullWidth]
+ * @property {React.ReactNode} [prefix]
+ * @property {React.ReactNode} [suffix]
+ * @property {React.ReactNode} [action]
+ * @property {string} [className]
+ * @property {string} [containerClassName]
+ * @property {boolean} [disabled]
+ * @property {string} [id]
+ * @property {string} [type]
+ */
 
-  return (
-    <div className={cn(fullWidth && 'w-full')}>
-      {label && (
-        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {label}
-        </label>
-      )}
+export const Input = forwardRef(
+  (
+    {
+      label,
+      hint,
+      error,
+      size = 'md',
+      variant = 'outline',
+      fullWidth = true,
+      prefix,
+      suffix,
+      action,
+      className,
+      containerClassName,
+      disabled,
+      id,
+      type = 'text',
+      ...props
+    },
+    ref
+  ) => {
+    const reactId = useId()
+    const inputId = id || `input-${reactId}`
+    const hintId = `${inputId}-hint`
+    const errorId = `${inputId}-error`
 
-      <div
-        className={cn(
-          'relative flex items-center rounded-md border bg-white dark:bg-gray-800',
-          'border-gray-300 dark:border-gray-600',
-          'focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent',
-          error && 'border-danger-500 focus-within:ring-danger-500',
-          disabled && 'opacity-60 cursor-not-allowed'
+    const sizeClasses = {
+      sm: 'h-9 text-sm',
+      md: 'h-10 text-sm',
+      lg: 'h-12 text-base',
+    }
+
+    const variantClasses = {
+      outline: 'border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800',
+      filled: 'border-transparent bg-gray-50 dark:bg-slate-700',
+      ghost: 'border-transparent bg-transparent',
+    }
+
+    const describedBy = error ? errorId : hint ? hintId : undefined
+
+    return (
+      <div className={cn(fullWidth && 'w-full', containerClassName)}>
+        {label && (
+          <label htmlFor={inputId} className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {label}
+          </label>
         )}
-      >
-        {/* Prefix */}
-        {prefix && (
-          <span className="pl-3 flex items-center text-gray-400">
-            {prefix}
-          </span>
-        )}
 
-        {/* Input */}
-        <input
-          ref={ref}
-          type={type}
-          disabled={disabled}
+        <div
           className={cn(
-            'w-full bg-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500',
-            'text-gray-900 dark:text-white',
-            sizeClasses[uiSize],
-            prefix ? 'pl-2' : 'pl-3',
-            suffix || action ? 'pr-2' : 'pr-3',
-            className
+            'relative flex items-center rounded-lg border transition-all',
+            'focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent',
+            variantClasses[variant],
+            error && 'border-danger-500 focus-within:ring-danger-500',
+            disabled && 'opacity-60 cursor-not-allowed'
           )}
-          {...props}
-        />
+        >
+          {prefix && <span className="pl-3 flex items-center text-gray-400">{prefix}</span>}
 
-        {/* Suffix */}
-        {suffix && (
-          <span className="pr-3 flex items-center text-gray-400">
-            {suffix}
-          </span>
+          <input
+            ref={ref}
+            id={inputId}
+            type={type}
+            disabled={disabled}
+            aria-invalid={error ? 'true' : undefined}
+            aria-describedby={describedBy}
+            className={cn(
+              'w-full bg-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500',
+              'text-gray-900 dark:text-white',
+              sizeClasses[size],
+              prefix ? 'pl-2' : 'pl-3',
+              suffix || action ? 'pr-2' : 'pr-3',
+              className
+            )}
+            {...props}
+          />
+
+          {suffix && <span className="pr-3 flex items-center text-gray-400">{suffix}</span>}
+
+          {action && <span className="pr-2 flex items-center">{action}</span>}
+        </div>
+
+        {error && (
+          <p id={errorId} className="mt-1 text-sm text-danger-600 dark:text-danger-400">
+            {error}
+          </p>
         )}
 
-        {/* Action */}
-        {action && (
-          <span className="pr-2 flex items-center">
-            {action}
-          </span>
+        {!error && hint && (
+          <p id={hintId} className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {hint}
+          </p>
         )}
       </div>
-
-      {error && (
-        <p className="mt-1 text-sm text-danger-600 dark:text-danger-400">
-          {error}
-        </p>
-      )}
-
-      {!error && helperText && (
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {helperText}
-        </p>
-      )}
-    </div>
-  )
-})
+    )
+  }
+)
 
 Input.displayName = 'Input'
 
-// Password Input Component
 export const PasswordInput = forwardRef((props, ref) => {
-  const [showPassword, setShowPassword] = React.useState(false)
-
+  const [showPassword, setShowPassword] = useState(false)
   return (
     <Input
       ref={ref}
@@ -105,11 +129,11 @@ export const PasswordInput = forwardRef((props, ref) => {
       suffix={
         <button
           type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          onClick={() => setShowPassword((v) => !v)}
+          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
           aria-label={showPassword ? 'Hide password' : 'Show password'}
         >
-          {showPassword ? '👁️' : '👁️‍🗨️'}
+          {showPassword ? 'Hide' : 'Show'}
         </button>
       }
       {...props}
@@ -119,17 +143,9 @@ export const PasswordInput = forwardRef((props, ref) => {
 
 PasswordInput.displayName = 'PasswordInput'
 
-// Search Input Component
-export const SearchInput = forwardRef((props, ref) => {
-  return (
-    <Input
-      ref={ref}
-      prefix="🔍"
-      placeholder="Search..."
-      {...props}
-    />
-  )
-})
+export const SearchInput = forwardRef((props, ref) => (
+  <Input ref={ref} placeholder="Search..." {...props} />
+))
 
 SearchInput.displayName = 'SearchInput'
 

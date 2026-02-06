@@ -3,10 +3,23 @@ import React, { useState } from 'react'
 import { cn } from '@utils/cn'
 import { AlertCircle, CheckCircle, Info, XCircle, X } from 'lucide-react'
 
+/**
+ * @typedef {Object} AlertProps
+ * @property {'info'|'success'|'warning'|'danger'} [variant]
+ * @property {'sm'|'md'|'lg'} [size]
+ * @property {string|React.ReactNode} [title]
+ * @property {string|React.ReactNode} [description]
+ * @property {boolean} [dismissible]
+ * @property {() => void} [onDismiss]
+ * @property {boolean} [showIcon]
+ * @property {boolean} [showBorder]
+ * @property {string} [className]
+ */
+
 const Alert = ({
   className,
   variant = 'info',
-  size,
+  size = 'md',
   title,
   description,
   dismissible = false,
@@ -20,7 +33,7 @@ const Alert = ({
 
   const handleDismiss = () => {
     setIsVisible(false)
-    if (onDismiss) onDismiss()
+    onDismiss?.()
   }
 
   if (!isVisible) return null
@@ -75,53 +88,28 @@ const Alert = ({
   }
 
   const content = children || (
-    <>
-      <div className="flex items-start">
-        {showIcon && (
-          <Icon
-            className={cn(
-              'h-5 w-5 flex-shrink-0 mt-0.5',
-              textClasses[variant].icon
-            )}
-          />
-        )}
-        <div className={cn('flex-1', showIcon && 'ml-3')}>
-          {title && (
-            <h3
-              className={cn(
-                'font-medium',
-                textClasses[variant].title
-              )}
-            >
-              {title}
-            </h3>
-          )}
-          {description && (
-            <div
-              className={cn(
-                'mt-1',
-                textClasses[variant].description
-              )}
-            >
-              {description}
-            </div>
-          )}
-        </div>
-        {dismissible && (
-          <button
-            type="button"
-            onClick={handleDismiss}
-            className={cn(
-              'ml-3 inline-flex h-5 w-5 items-center justify-center rounded-md transition-colors',
-              textClasses[variant].dismiss
-            )}
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
+    <div className="flex items-start">
+      {showIcon && (
+        <Icon className={cn('h-5 w-5 flex-shrink-0 mt-0.5', textClasses[variant].icon)} />
+      )}
+      <div className={cn('flex-1', showIcon && 'ml-3')}>
+        {title && <h3 className={cn('font-medium', textClasses[variant].title)}>{title}</h3>}
+        {description && <div className={cn('mt-1', textClasses[variant].description)}>{description}</div>}
       </div>
-    </>
+      {dismissible && (
+        <button
+          type="button"
+          onClick={handleDismiss}
+          className={cn(
+            'ml-3 inline-flex h-5 w-5 items-center justify-center rounded-md transition-colors',
+            textClasses[variant].dismiss
+          )}
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+    </div>
   )
 
   return (
@@ -130,39 +118,13 @@ const Alert = ({
       className={cn(
         'rounded-lg border transition-all duration-200',
         variantClasses[variant],
-        sizeClasses[size] || 'p-4',
+        sizeClasses[size],
         !showBorder && 'border-transparent',
         className
       )}
       {...props}
     >
       {content}
-    </div>
-  )
-}
-
-// Inline Alert Variant
-export const InlineAlert = ({
-  message,
-  variant = 'info',
-  className,
-}) => {
-  const variantClasses = {
-    info: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300',
-    success: 'bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-300',
-    warning: 'bg-warning-50 text-warning-700 dark:bg-warning-900/20 dark:text-warning-300',
-    danger: 'bg-danger-50 text-danger-700 dark:bg-danger-900/20 dark:text-danger-300',
-  }
-
-  return (
-    <div
-      className={cn(
-        'rounded px-3 py-2 text-sm',
-        variantClasses[variant],
-        className
-      )}
-    >
-      {message}
     </div>
   )
 }

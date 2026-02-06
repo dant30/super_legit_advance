@@ -1,12 +1,29 @@
 // frontend/src/components/ui/Modal.jsx
-import React, { useEffect } from 'react'
+import React, { useEffect, useId } from 'react'
 import { X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@utils/cn'
 
+/**
+ * @typedef {Object} ModalProps
+ * @property {boolean} [open]
+ * @property {boolean} [isOpen]
+ * @property {boolean} [visible]
+ * @property {() => void} onClose
+ * @property {string} [title]
+ * @property {string} [description]
+ * @property {'sm'|'md'|'lg'|'xl'|'full'} [size]
+ * @property {'none'|'sm'|'md'|'lg'} [padding]
+ * @property {boolean} [showCloseButton]
+ * @property {boolean} [closeOnOverlayClick]
+ * @property {boolean} [closeOnEscape]
+ * @property {boolean} [preventBodyScroll]
+ * @property {string} [className]
+ */
+
 export const Modal = ({
-  isOpen,
   open,
+  isOpen,
   visible,
   onClose,
   title,
@@ -20,32 +37,31 @@ export const Modal = ({
   className,
   preventBodyScroll = true,
 }) => {
-  const resolvedOpen = isOpen ?? open ?? visible ?? false
+  const resolvedOpen = open ?? isOpen ?? visible ?? false
+  const reactId = useId()
+  const titleId = `modal-title-${reactId}`
+  const descId = `modal-desc-${reactId}`
 
   useEffect(() => {
     if (!resolvedOpen || !closeOnEscape) return
-    
+
     const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        onClose()
-      }
+      if (e.key === 'Escape') onClose?.()
     }
-    
+
     document.addEventListener('keydown', handleEscape)
-    return () => {
-      document.removeEventListener('keydown', handleEscape)
-    }
+    return () => document.removeEventListener('keydown', handleEscape)
   }, [resolvedOpen, closeOnEscape, onClose])
 
   useEffect(() => {
     if (!preventBodyScroll) return
-    
+
     if (resolvedOpen) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
     }
-    
+
     return () => {
       document.body.style.overflow = ''
     }
@@ -86,28 +102,28 @@ export const Modal = ({
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-labelledby={title ? 'modal-title' : undefined}
-            aria-describedby={description ? 'modal-description' : undefined}
+            aria-labelledby={title ? titleId : undefined}
+            aria-describedby={description ? descId : undefined}
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
             className={cn(
-              'relative w-full rounded-2xl bg-white dark:bg-gray-800 shadow-xl',
+              'relative w-full rounded-2xl bg-white dark:bg-slate-800 shadow-hard',
               sizeClasses[size],
               className
             )}
           >
             {(title || showCloseButton) && (
-              <div className="flex items-start justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+              <div className="flex items-start justify-between border-b border-gray-200 dark:border-slate-700 px-6 py-4">
                 <div>
                   {title && (
-                    <h3 id="modal-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <h3 id={titleId} className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       {title}
                     </h3>
                   )}
                   {description && (
-                    <p id="modal-description" className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <p id={descId} className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {description}
                     </p>
                   )}
@@ -118,7 +134,7 @@ export const Modal = ({
                     type="button"
                     onClick={onClose}
                     aria-label="Close modal"
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-full p-1 hover:bg-gray-100 dark:hover:bg-slate-700"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -134,75 +150,52 @@ export const Modal = ({
   )
 }
 
-/* ------------------------ Subcomponents --------------------------- */
-
-export const ModalFooter = ({
-  children,
-  align = 'right',
-  className,
-}) => {
+export const ModalFooter = ({ children, align = 'right', className }) => {
   const alignMap = {
     left: 'justify-start',
     center: 'justify-center',
     right: 'justify-end',
   }
 
-  return (
-    <div
-      className={cn('mt-6 flex gap-3', alignMap[align], className)}
-    >
-      {children}
-    </div>
-  )
+  return <div className={cn('mt-6 flex gap-3', alignMap[align], className)}>{children}</div>
 }
 
 Modal.Footer = ModalFooter
 
-export const ModalSection = ({
-  children,
-  title,
-  border = true,
-  className,
-}) => (
-  <div
-    className={cn(
-      border && 'border-t border-gray-200 dark:border-gray-700 pt-6',
-      className
-    )}
-  >
-    {title && (
-      <h4 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-        {title}
-      </h4>
-    )}
+export const ModalSection = ({ children, title, border = true, className }) => (
+  <div className={cn(border && 'border-t border-gray-200 dark:border-slate-700 pt-6', className)}>
+    {title && <h4 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">{title}</h4>}
     {children}
   </div>
 )
 
 Modal.Section = ModalSection
 
-// Confirmation Modal Helper
 export const ConfirmationModal = ({
+  open,
   isOpen,
+  visible,
   onClose,
   onConfirm,
-  title = "Are you sure?",
-  description = "This action cannot be undone.",
-  confirmText = "Confirm",
-  cancelText = "Cancel",
-  confirmVariant = "danger",
+  title = 'Are you sure?',
+  description = 'This action cannot be undone.',
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  confirmVariant = 'danger',
   loading = false,
 }) => {
   const confirmButtonClasses = {
-    primary: "bg-primary-600 hover:bg-primary-700",
-    danger: "bg-danger-600 hover:bg-danger-700",
-    warning: "bg-warning-600 hover:bg-warning-700",
-    success: "bg-success-600 hover:bg-success-700",
+    primary: 'bg-primary-600 hover:bg-primary-700',
+    danger: 'bg-danger-600 hover:bg-danger-700',
+    warning: 'bg-warning-600 hover:bg-warning-700',
+    success: 'bg-success-600 hover:bg-success-700',
   }
 
   return (
     <Modal
+      open={open}
       isOpen={isOpen}
+      visible={visible}
       onClose={onClose}
       title={title}
       description={description}
@@ -213,7 +206,7 @@ export const ConfirmationModal = ({
           type="button"
           onClick={onClose}
           disabled={loading}
-          className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
+          className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50 dark:border-slate-600 dark:text-gray-200 dark:hover:bg-slate-700"
         >
           {cancelText}
         </button>
@@ -222,11 +215,11 @@ export const ConfirmationModal = ({
           onClick={onConfirm}
           disabled={loading}
           className={cn(
-            "px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50",
+            'px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50',
             confirmButtonClasses[confirmVariant]
           )}
         >
-          {loading ? "Processing..." : confirmText}
+          {loading ? 'Processing...' : confirmText}
         </button>
       </Modal.Footer>
     </Modal>

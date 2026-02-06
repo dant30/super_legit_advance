@@ -1,230 +1,172 @@
 // frontend/src/components/ui/Select.jsx
-import React, { useState } from 'react'
+import React, { useId, useMemo } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@utils/cn'
 
-export const Select = React.forwardRef(({
-  label,
-  error,
-  helperText,
-  options,
-  placeholder = 'Select an option',
-  variant = 'default',
-  uiSize = 'md',
-  className,
-  disabled,
-  required,
-  value,
-  onChange,
-  onValueChange,
-  fullWidth = true,
-  startIcon,
-  endIcon,
-  id,
-  ...selectProps
-}, ref) => {
-  const [isFocused, setIsFocused] = useState(false)
-  const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`
-  const errorId = `${selectId}-error`
-  const helperId = `${selectId}-helper`
+/**
+ * @typedef {Object} SelectOption
+ * @property {string|number} value
+ * @property {string} label
+ * @property {boolean} [disabled]
+ */
 
-  const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2.5 text-base',
-    lg: 'px-4 py-3 text-lg',
-  }
+/**
+ * @typedef {Object} SelectProps
+ * @property {string} [label]
+ * @property {string} [hint]
+ * @property {string} [error]
+ * @property {SelectOption[]} [options]
+ * @property {string} [placeholder]
+ * @property {'sm'|'md'|'lg'} [size]
+ * @property {'outline'|'filled'|'ghost'} [variant]
+ * @property {boolean} [fullWidth]
+ * @property {boolean} [disabled]
+ * @property {boolean} [required]
+ * @property {React.ReactNode} [startIcon]
+ * @property {React.ReactNode} [endIcon]
+ * @property {string} [id]
+ * @property {(value: string) => void} [onValueChange]
+ */
 
-  const variantClasses = {
-    default: cn(
-      'bg-white dark:bg-gray-800',
-      'border border-gray-300 dark:border-gray-600',
-      'hover:border-gray-400 dark:hover:border-gray-500'
-    ),
-    filled: cn(
-      'bg-gray-50 dark:bg-gray-800/50',
-      'border border-gray-200 dark:border-gray-700'
-    ),
-    outline: cn(
-      'bg-transparent',
-      'border-2 border-gray-300 dark:border-gray-600',
-      'hover:border-gray-400 dark:hover:border-gray-500'
-    ),
-  }
+export const Select = React.forwardRef(
+  (
+    {
+      label,
+      hint,
+      error,
+      options = [],
+      placeholder = 'Select an option',
+      size = 'md',
+      variant = 'outline',
+      className,
+      disabled,
+      required,
+      value,
+      onChange,
+      onValueChange,
+      fullWidth = true,
+      startIcon,
+      endIcon,
+      id,
+      ...selectProps
+    },
+    ref
+  ) => {
+    const reactId = useId()
+    const selectId = id || `select-${reactId}`
+    const errorId = `${selectId}-error`
+    const hintId = `${selectId}-hint`
 
-  const handleChange = (e) => {
-    onChange?.(e)
-    onValueChange?.(e.target.value)
-  }
+    const sizeClasses = {
+      sm: 'px-3 py-1.5 text-sm',
+      md: 'px-4 py-2.5 text-sm',
+      lg: 'px-4 py-3 text-base',
+    }
 
-  // Build aria-describedby string
-  const describedBy = []
-  if (error) describedBy.push(errorId)
-  if (helperText && !error) describedBy.push(helperId)
-  const ariaDescribedBy = describedBy.length > 0 ? describedBy.join(' ') : undefined
+    const variantClasses = {
+      outline: 'border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800',
+      filled: 'border-transparent bg-gray-50 dark:bg-slate-700',
+      ghost: 'border-transparent bg-transparent',
+    }
 
-  return (
-    <div className={cn(fullWidth && 'w-full', className)}>
-      {label && (
-        <label
-          htmlFor={selectId}
-          className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100"
-        >
-          {label}
-          {required && <span className="ml-1 text-red-500">*</span>}
-        </label>
-      )}
+    const describedBy = useMemo(() => {
+      if (error) return errorId
+      if (hint) return hintId
+      return undefined
+    }, [error, hint, errorId, hintId])
 
-      <div className="relative">
-        {startIcon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
-            {startIcon}
-          </div>
+    const handleChange = (e) => {
+      onChange?.(e)
+      onValueChange?.(e.target.value)
+    }
+
+    return (
+      <div className={cn(fullWidth && 'w-full', className)}>
+        {label && (
+          <label htmlFor={selectId} className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {label}
+            {required && <span className="ml-1 text-danger-500">*</span>}
+          </label>
         )}
 
-        <select
-          id={selectId}
-          ref={ref}
-          disabled={disabled}
-          required={required}
-          value={value}
-          onChange={handleChange}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          className={cn(
-            'w-full appearance-none rounded-lg transition-all',
-            'text-gray-900 dark:text-gray-100',
-            'disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-gray-50 dark:disabled:bg-gray-800/50',
-            'focus:outline-none focus:ring-2',
-            sizeClasses[uiSize],
-            variantClasses[variant],
-            startIcon && 'pl-10',
-            endIcon ? 'pr-10' : 'pr-10',
-            error
-              ? cn(
-                  'border-red-500 dark:border-red-400',
-                  'focus:border-red-500 focus:ring-red-200 dark:focus:ring-red-900/30'
-                )
-              : isFocused
-              ? cn(
-                  'border-primary-500 dark:border-primary-400',
-                  'focus:ring-primary-200 dark:focus:ring-primary-900/30'
-                )
-              : ''
+        <div className="relative">
+          {startIcon && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
+              {startIcon}
+            </div>
           )}
-          {...(error && { 'aria-invalid': 'true' })}
-          aria-describedby={ariaDescribedBy}
-          {...selectProps}
-        >
-          <option value="" disabled hidden={!placeholder}>
-            {placeholder}
-          </option>
 
-          {options.map((opt) => (
-            <option
-              key={opt.value}
-              value={opt.value}
-              disabled={opt.disabled}
-              className={opt.disabled ? 'text-gray-400 dark:text-gray-600' : ''}
-            >
-              {opt.label}
-            </option>
-          ))}
-        </select>
-
-        {endIcon ? (
-          <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
-            {endIcon}
-          </div>
-        ) : (
-          <ChevronDown
+          <select
+            id={selectId}
+            ref={ref}
+            disabled={disabled}
+            required={required}
+            value={value}
+            onChange={handleChange}
             className={cn(
-              'pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500',
-              uiSize === 'lg' && 'h-5 w-5'
+              'w-full appearance-none rounded-lg transition-all',
+              'text-gray-900 dark:text-gray-100',
+              'disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-gray-50 dark:disabled:bg-slate-800/50',
+              'focus:outline-none focus:ring-2 focus:ring-primary-500',
+              sizeClasses[size],
+              variantClasses[variant],
+              startIcon && 'pl-10',
+              'pr-10',
+              error && 'border-danger-500 focus:ring-danger-500'
             )}
-          />
+            aria-invalid={error ? 'true' : undefined}
+            aria-describedby={describedBy}
+            {...selectProps}
+          >
+            {placeholder && (
+              <option value="" disabled hidden>
+                {placeholder}
+              </option>
+            )}
+
+            {options.map((opt) => (
+              <option
+                key={String(opt.value)}
+                value={opt.value}
+                disabled={opt.disabled}
+                className={opt.disabled ? 'text-gray-400 dark:text-gray-600' : ''}
+              >
+                {opt.label}
+              </option>
+            ))}
+          </select>
+
+          {endIcon ? (
+            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
+              {endIcon}
+            </div>
+          ) : (
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+          )}
+        </div>
+
+        {error && (
+          <p id={errorId} className="mt-1 text-sm text-danger-600 dark:text-danger-400" role="alert">
+            {error}
+          </p>
+        )}
+
+        {!error && hint && (
+          <p id={hintId} className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {hint}
+          </p>
         )}
       </div>
-
-      {error && (
-        <p
-          id={errorId}
-          className="mt-2 text-sm text-red-600 dark:text-red-400"
-          role="alert"
-        >
-          {error}
-        </p>
-      )}
-
-      {helperText && !error && (
-        <p id={helperId} className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {helperText}
-        </p>
-      )}
-    </div>
-  )
-})
+    )
+  }
+)
 
 Select.displayName = 'Select'
 
-// Variant exports for convenience
-export const SelectSm = (props) => (
-  <Select uiSize="sm" {...props} />
-)
-
+export const SelectSm = (props) => <Select size="sm" {...props} />
 SelectSm.displayName = 'SelectSm'
 
-export const SelectLg = (props) => (
-  <Select uiSize="lg" {...props} />
-)
-
+export const SelectLg = (props) => <Select size="lg" {...props} />
 SelectLg.displayName = 'SelectLg'
-
-// Multi-select component
-export const MultiSelect = ({
-  label,
-  options,
-  selected = [],
-  onChange,
-  placeholder = "Select options...",
-  className,
-  ...props
-}) => {
-  const handleSelectChange = (e) => {
-    const selectedValues = Array.from(e.target.selectedOptions, option => option.value)
-    onChange?.(selectedValues)
-  }
-
-  return (
-    <div className={cn('w-full', className)}>
-      {label && (
-        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {label}
-        </label>
-      )}
-      <select
-        multiple
-        value={selected}
-        onChange={handleSelectChange}
-        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500"
-        {...props}
-      >
-        {options.map((option) => (
-          <option
-            key={option.value}
-            value={option.value}
-            className="px-3 py-2"
-          >
-            {option.label}
-          </option>
-        ))}
-      </select>
-      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-        Hold Ctrl (or Cmd on Mac) to select multiple options
-      </p>
-    </div>
-  )
-}
-
-MultiSelect.displayName = 'MultiSelect'
 
 export default Select
