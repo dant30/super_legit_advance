@@ -1,7 +1,7 @@
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Card, Spin, Empty } from '@components/ui'
-import { PageHeader } from '@components/shared'
+import { Card, Spin } from '@components/ui'
+import { PageHeader, EmptyState } from '@components/shared'
 import { RoleForm } from '@components/admin/roles'
 import { useState, useEffect } from 'react'
 import staffAPI from '@api/admin'
@@ -43,7 +43,7 @@ const RoleEdit = () => {
   }
 
   if (!role) {
-    return <Empty description="Role not found" />
+    return <EmptyState description="Role not found" />
   }
 
   return (

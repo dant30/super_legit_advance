@@ -20,7 +20,7 @@ import { cn } from '@utils/cn'
  * @property {string} [type]
  */
 
-export const Input = forwardRef(
+const Input = forwardRef(
   (
     {
       label,
@@ -37,6 +37,8 @@ export const Input = forwardRef(
       disabled,
       id,
       type = 'text',
+      onPressEnter,
+      onKeyDown,
       ...props
     },
     ref
@@ -59,6 +61,15 @@ export const Input = forwardRef(
     }
 
     const describedBy = error ? errorId : hint ? hintId : undefined
+
+    const handleKeyDown = (e) => {
+      if (typeof onKeyDown === 'function') {
+        onKeyDown(e)
+      }
+      if (typeof onPressEnter === 'function' && (e.key === 'Enter' || e.keyCode === 13)) {
+        onPressEnter(e)
+      }
+    }
 
     return (
       <div className={cn(fullWidth && 'w-full', containerClassName)}>
@@ -94,6 +105,7 @@ export const Input = forwardRef(
               suffix || action ? 'pr-2' : 'pr-3',
               className
             )}
+            onKeyDown={handleKeyDown}
             {...props}
           />
 

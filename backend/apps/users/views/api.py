@@ -428,3 +428,24 @@ class StaffProfileViewSet(StandardViewSet):
             
         except ValueError:
             return self.error("Invalid rating format", status_code=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['get'], url_path='stats')
+    def stats(self, request):
+        """Return basic staff statistics for admin UI."""
+        from django.db.models import Count
+
+        queryset = self.get_queryset()
+        total = queryset.count()
+        active = queryset.filter(user__is_active=True).count()
+        inactive = queryset.filter(user__is_active=False).count()
+
+        by_department = list(
+            queryset.values('department').annotate(count=Count('id')).order_by('-count')
+        )
+
+        return self.success({
+            'total_staff': total,
+            'active_staff': active,
+            'inactive_staff': inactive,
+            'by_department': {item['department'] or 'Unknown': item['count'] for item in by_department},
+        }, "Staff statistics retrieved")

@@ -24,6 +24,10 @@ const staffAPI = {
   deleteStaff: (id) =>
     axiosInstance.delete(`/users/staff-profiles/${id}/`),
 
+  // NEW: staff stats endpoint used by frontend pages
+  getStaffStats: () =>
+    axiosInstance.get('/users/staff-profiles/stats/'),
+
   // Keep import/export paths if your backend implements them under users/staff-profiles/
   importStaff: (file) => {
     const formData = new FormData()

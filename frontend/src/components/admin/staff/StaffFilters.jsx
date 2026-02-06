@@ -7,17 +7,10 @@ import {
   Row,
   Col,
   Space,
-  Badge,
+  Accordion,
 } from '@components/ui'
-import Accordion from '@components/ui/Accordion'
 import { DatePicker } from '@components/shared'
-import {
-  Search,
-  X,
-  ChevronDown,
-  ChevronUp,
-  Filter,
-} from 'lucide-react'
+import { Search, X, Filter } from 'lucide-react'
 
 const ROLES = [
   { value: 'ADMIN', label: 'Administrator' },
@@ -42,8 +35,8 @@ const STATUSES = [
 ]
 
 const StaffFilters = ({ filters = {}, onFilterChange }) => {
-  const [isExpanded, setIsExpanded] = useState(false)
   const [localFilters, setLocalFilters] = useState(filters)
+  const [expandFilters, setExpandFilters] = useState(false)
 
   const activeFilterCount = Object.values(localFilters).filter(
     (v) => v !== '' && v !== null && v !== undefined
@@ -80,99 +73,92 @@ const StaffFilters = ({ filters = {}, onFilterChange }) => {
             onPressEnter={handleApplyFilters}
             className="flex-1"
           />
-          <Button
-            type="primary"
-            onClick={handleApplyFilters}
-          >
+          <Button type="primary" onClick={handleApplyFilters}>
             Search
           </Button>
         </div>
 
-        {/* Expandable Filters */}
-        <Accordion
-          items={[
-            {
-              label: (
-                <div className="flex items-center justify-between w-full">
-                  <span className="flex items-center gap-2">
-                    <Filter className="h-4 w-4" />
-                    Advanced Filters
-                    {activeFilterCount > 0 && (
-                      <Badge count={activeFilterCount} />
-                    )}
-                  </span>
-                </div>
-              ),
-              key: 'filters',
-              children: (
-                <div className="space-y-4 pt-4">
-                  <Row gutter={16}>
-                    <Col xs={24} sm={12} md={6}>
-                      <label className="block text-sm font-medium mb-2">
-                        Role
-                      </label>
-                      <Select
-                        placeholder="Select role"
-                        options={ROLES}
-                        value={localFilters.role || undefined}
-                        onChange={(value) => handleFilterChange('role', value)}
-                        allowClear
-                      />
-                    </Col>
-                    <Col xs={24} sm={12} md={6}>
-                      <label className="block text-sm font-medium mb-2">
-                        Department
-                      </label>
-                      <Select
-                        placeholder="Select department"
-                        options={DEPARTMENTS}
-                        value={localFilters.department || undefined}
-                        onChange={(value) =>
-                          handleFilterChange('department', value)
-                        }
-                        allowClear
-                      />
-                    </Col>
-                    <Col xs={24} sm={12} md={6}>
-                      <label className="block text-sm font-medium mb-2">
-                        Status
-                      </label>
-                      <Select
-                        placeholder="Select status"
-                        options={STATUSES}
-                        value={localFilters.status || undefined}
-                        onChange={(value) => handleFilterChange('status', value)}
-                        allowClear
-                      />
-                    </Col>
-                    <Col xs={24} sm={12} md={6}>
-                      <label className="block text-sm font-medium mb-2">
-                        Date Range
-                      </label>
-                      <DatePicker.RangePicker
-                        className="w-full"
-                        onChange={(dates) =>
-                          handleFilterChange('dateRange', dates)
-                        }
-                      />
-                    </Col>
-                  </Row>
+        {/* Expandable Filters Button */}
+        <button
+          onClick={() => setExpandFilters(!expandFilters)}
+          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 text-left font-medium transition-colors"
+        >
+          <Filter className="h-4 w-4" />
+          <span>Advanced Filters</span>
+          {activeFilterCount > 0 && (
+            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-200 rounded-full">
+              {activeFilterCount} active
+            </span>
+          )}
+        </button>
 
-                  {/* Filter Actions */}
-                  <div className="flex justify-end gap-2 pt-4 border-t">
-                    <Button onClick={handleClearFilters}>
-                      <X className="h-4 w-4" />
-                      Clear Filters
-                    </Button>
-                    <Button type="primary" onClick={handleApplyFilters}>
-                      Apply Filters
-                    </Button>
-                  </div>
-                </div>
-              ),
-            },
-          ]}
-        />
+        {/* Filters Content */}
+        {expandFilters && (
+          <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <Row gutter={16}>
+              <Col xs={24} sm={12} md={6}>
+                <label className="block text-sm font-medium mb-2">
+                  Role
+                </label>
+                <Select
+                  placeholder="Select role"
+                  options={ROLES}
+                  value={localFilters.role || undefined}
+                  onChange={(value) => handleFilterChange('role', value)}
+                  allowClear
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <label className="block text-sm font-medium mb-2">
+                  Department
+                </label>
+                <Select
+                  placeholder="Select department"
+                  options={DEPARTMENTS}
+                  value={localFilters.department || undefined}
+                  onChange={(value) =>
+                    handleFilterChange('department', value)
+                  }
+                  allowClear
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <label className="block text-sm font-medium mb-2">
+                  Status
+                </label>
+                <Select
+                  placeholder="Select status"
+                  options={STATUSES}
+                  value={localFilters.status || undefined}
+                  onChange={(value) => handleFilterChange('status', value)}
+                  allowClear
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <label className="block text-sm font-medium mb-2">
+                  Date Range
+                </label>
+                <DatePicker.RangePicker
+                  style={{ width: '100%' }}
+                  onChange={(dates) =>
+                    handleFilterChange('dateRange', dates)
+                  }
+                />
+              </Col>
+            </Row>
+
+            {/* Filter Actions */}
+            <div className="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <Button onClick={handleClearFilters}>
+                <X className="h-4 w-4" />
+                Clear Filters
+              </Button>
+              <Button type="primary" onClick={handleApplyFilters}>
+                Apply Filters
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   )
