@@ -1,6 +1,50 @@
 // frontend/src/api/repayments.js
 import axiosInstance from './axios'
 
+export const REPAYMENT_STATUS = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED',
+  OVERDUE: 'OVERDUE',
+  PARTIAL: 'PARTIAL',
+  WAIVED: 'WAIVED',
+}
+
+export const SCHEDULE_STATUS = {
+  PENDING: 'PENDING',
+  OVERDUE: 'OVERDUE',
+  PAID: 'PAID',
+  ADJUSTED: 'ADJUSTED',
+}
+
+export const PENALTY_STATUS = {
+  PENDING: 'PENDING',
+  APPLIED: 'APPLIED',
+  WAIVED: 'WAIVED',
+  CANCELLED: 'CANCELLED',
+}
+
+export const PAYMENT_METHOD = {
+  CASH: 'CASH',
+  MPESA: 'MPESA',
+  BANK: 'BANK',
+  CHEQUE: 'CHEQUE',
+}
+
+export const REPAYMENT_TYPE = {
+  FULL: 'FULL',
+  PARTIAL: 'PARTIAL',
+  INTEREST_ONLY: 'INTEREST_ONLY',
+}
+
+export const PENALTY_TYPE = {
+  LATE_FEE: 'LATE_FEE',
+  INTEREST: 'INTEREST',
+  OTHER: 'OTHER',
+}
+
 class RepaymentsAPI {
   constructor() {
     this.baseURL = '/repayments'

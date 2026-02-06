@@ -13,6 +13,7 @@ import { ToastProvider } from '@contexts/ToastContext'
 import { ThemeProvider } from '@contexts/ThemeContext'
 import { CustomerProvider } from '@contexts/CustomerContext'
 import { LoanProvider } from '@contexts/LoanContext'
+import { RepaymentProvider } from '@contexts/RepaymentContext'
 import '@styles/tailwind.css'
 
 // ======================================================
@@ -87,9 +88,11 @@ const Providers = ({ children }) => (
             <AuthProvider>
               <CustomerProvider>
                 <LoanProvider>
+                  <RepaymentProvider>
                   <BrowserRouter>
                     {children}
                   </BrowserRouter>
+                  </RepaymentProvider>
                 </LoanProvider>
               </CustomerProvider>
             </AuthProvider>
