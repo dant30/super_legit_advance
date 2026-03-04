@@ -1,6 +1,7 @@
 // frontend/src/main.jsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { Provider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
@@ -19,6 +20,7 @@ import { AuditProvider } from '@contexts/AuditContext'
 import { ReportProvider } from '@contexts/ReportContext'
 import { MpesaProvider } from '@contexts/MpesaContext'
 import { AdminProvider } from '@contexts/AdminContext'
+import store from './core/store/store'
 import './index.css'
 // ======================================================
 // HMR-safe QueryClient
@@ -85,36 +87,38 @@ const Providers = ({ children }) => (
     }}
     onReset={() => window.location.reload()}
   >
-    <QueryClientProvider client={queryClient}>
-      <HelmetProvider>
-        <ThemeProvider>
-          <ToastProvider>
-            <AuthProvider>
-              <AdminProvider>
-                <CustomerProvider>
-                  <LoanProvider>
-                    <RepaymentProvider>
-                      <NotificationProvider>
-                        <AuditProvider>
-                          <ReportProvider>
-                            <MpesaProvider>
-                              <BrowserRouter>
-                                {children}
-                              </BrowserRouter>
-                            </MpesaProvider>
-                          </ReportProvider>
-                        </AuditProvider>
-                      </NotificationProvider>
-                    </RepaymentProvider>
-                  </LoanProvider>
-                </CustomerProvider>
-              </AdminProvider>
-            </AuthProvider>
-          </ToastProvider>
-        </ThemeProvider>
-      </HelmetProvider>
-      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-    </QueryClientProvider>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <HelmetProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <AuthProvider>
+                <AdminProvider>
+                  <CustomerProvider>
+                    <LoanProvider>
+                      <RepaymentProvider>
+                        <NotificationProvider>
+                          <AuditProvider>
+                            <ReportProvider>
+                              <MpesaProvider>
+                                <BrowserRouter>
+                                  {children}
+                                </BrowserRouter>
+                              </MpesaProvider>
+                            </ReportProvider>
+                          </AuditProvider>
+                        </NotificationProvider>
+                      </RepaymentProvider>
+                    </LoanProvider>
+                  </CustomerProvider>
+                </AdminProvider>
+              </AuthProvider>
+            </ToastProvider>
+          </ThemeProvider>
+        </HelmetProvider>
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      </QueryClientProvider>
+    </Provider>
   </ErrorBoundary>
 )
 
