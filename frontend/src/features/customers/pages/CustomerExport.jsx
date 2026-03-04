@@ -15,7 +15,7 @@ const CustomerExport = () => {
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
 
   const fieldOptions = [
-    { label: 'Borrower ID', value: 'customer_number' },
+    { label: 'Customer ID', value: 'customer_number' },
     { label: 'Full Name', value: 'full_name' },
     { label: 'Phone Number', value: 'phone_number' },
     { label: 'Email', value: 'email' },
@@ -27,7 +27,7 @@ const CustomerExport = () => {
   ]
 
   const statusOptions = [
-    { label: 'All Borrowers', value: '' },
+    { label: 'All Customers', value: '' },
     { label: 'Active Only', value: 'ACTIVE' },
     { label: 'Blacklisted Only', value: 'BLACKLISTED' },
     { label: 'Pending Only', value: 'PENDING' },
@@ -64,12 +64,12 @@ const CustomerExport = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Export Borrowers"
-        subTitle="Export borrower data to lending-ready formats"
+        title="Export Customers"
+        subTitle="Export customer data to lending-ready formats"
         extra={[
           <Link to="/customers" key="back">
             <Button icon={<ArrowLeft size={16} />}>
-              Back to Borrowers
+              Back to Customers
             </Button>
           </Link>,
         ]}
@@ -85,10 +85,11 @@ const CustomerExport = () => {
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="customer-export-status-filter" className="block text-sm font-medium text-gray-700 mb-2">
                 Status Filter
               </label>
               <Select
+                id="customer-export-status-filter"
                 value={filters.status}
                 onChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
                 options={statusOptions}
@@ -97,10 +98,11 @@ const CustomerExport = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="customer-export-date-range" className="block text-sm font-medium text-gray-700 mb-2">
                 Date Range
               </label>
               <DatePicker.RangePicker
+                id="customer-export-date-range"
                 value={filters.dateRange}
                 onChange={(dates) => setFilters(prev => ({ ...prev, dateRange: dates }))}
                 style={{ width: '100%' }}
@@ -149,7 +151,7 @@ const CustomerExport = () => {
               </div>
               <div className="text-right">
                 <p className="text-sm">Estimated file size: ~2-5MB</p>
-                <p className="text-sm">Rows: 100-500 borrowers</p>
+                <p className="text-sm">Rows: 100-500 customers</p>
               </div>
             </div>
           </div>

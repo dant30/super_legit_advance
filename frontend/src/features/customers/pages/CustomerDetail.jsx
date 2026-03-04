@@ -51,32 +51,32 @@ const CustomerDetail = () => {
   const handleDelete = async () => {
     try {
       await deleteCustomer(id)
-      addToast('Borrower deleted successfully', 'success')
+      addToast('Customer deleted successfully', 'success')
       navigate('/customers')
     } catch {
-      addToast('Failed to delete borrower', 'error')
+      addToast('Failed to delete customer', 'error')
     }
   }
 
   const handleBlacklist = async () => {
     try {
       await blacklistCustomer(id, 'Manual blacklisting by admin')
-      addToast('Borrower blacklisted successfully', 'success')
+      addToast('Customer blacklisted successfully', 'success')
       setActionModal({ open: false, type: '', title: '' })
       fetchCustomer(id)
     } catch {
-      addToast('Failed to blacklist borrower', 'error')
+      addToast('Failed to blacklist customer', 'error')
     }
   }
 
   const handleActivate = async () => {
     try {
       await activateCustomer(id)
-      addToast('Borrower activated successfully', 'success')
+      addToast('Customer activated successfully', 'success')
       setActionModal({ open: false, type: '', title: '' })
       fetchCustomer(id)
     } catch {
-      addToast('Failed to activate borrower', 'error')
+      addToast('Failed to activate customer', 'error')
     }
   }
 
@@ -129,7 +129,7 @@ const CustomerDetail = () => {
             onClick={() => setActionModal({ 
               open: true, 
               type: 'activate', 
-              title: 'Activate Borrower' 
+              title: 'Activate Customer' 
             })}
           >
             Activate
@@ -141,7 +141,7 @@ const CustomerDetail = () => {
             onClick={() => setActionModal({ 
               open: true, 
               type: 'blacklist', 
-              title: 'Blacklist Borrower' 
+              title: 'Blacklist Customer' 
             })}
           >
             Blacklist
@@ -159,7 +159,7 @@ const CustomerDetail = () => {
             onClick={() => setActionModal({ 
               open: true, 
               type: 'delete', 
-              title: 'Delete Borrower' 
+              title: 'Delete Customer' 
             })}
           >
             Delete
@@ -171,8 +171,9 @@ const CustomerDetail = () => {
 
   if (selectedCustomerLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex justify-center items-center h-64" role="status" aria-live="polite" aria-busy="true">
         <Spin size="large" />
+        <span className="sr-only">Loading customer profile</span>
       </div>
     )
   }
@@ -181,11 +182,11 @@ const CustomerDetail = () => {
     return (
       <Alert
         type="error"
-        message="Borrower not found"
-        description="The borrower profile you are looking for does not exist or has been deleted."
+        message="Customer not found"
+        description="The customer profile you are looking for does not exist or has been deleted."
         action={
           <Link to="/customers">
-            <Button type="primary">Back to Borrowers</Button>
+            <Button type="primary">Back to Customers</Button>
           </Link>
         }
       />
@@ -195,8 +196,8 @@ const CustomerDetail = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Borrower Profile"
-        subTitle={`Borrower ID: ${selectedCustomer.customer_number}`}
+        title="Customer Profile"
+        subTitle={`Customer ID: ${selectedCustomer.customer_number}`}
         extra={renderActionButtons()}
         footer={
           <div className="flex justify-between items-center">
@@ -246,7 +247,7 @@ const CustomerDetail = () => {
               <Alert
                 type="info"
                 message="Loan Management"
-                description="View and manage this borrower loan portfolio from this section."
+                description="View and manage this customer loan portfolio from this section."
               />
             </div>
           )}
@@ -337,10 +338,10 @@ const CustomerDetail = () => {
             <Alert
               type="error"
               message="Warning: This action cannot be undone!"
-              description="Deleting this borrower will remove all related records including loans and documents."
+              description="Deleting this customer will remove all related records including loans and documents."
               className="mb-4"
             />
-            <p>Are you sure you want to Delete Borrower <strong>{selectedCustomer.full_name}</strong>?</p>
+            <p>Are you sure you want to Delete Customer <strong>{selectedCustomer.full_name}</strong>?</p>
           </div>
         )}
         
@@ -348,16 +349,17 @@ const CustomerDetail = () => {
           <div>
             <Alert
               type="warning"
-              message="Borrower Blacklisting"
-              description="Blacklisted borrowers cannot apply for new loans and may have existing loans restricted."
+              message="Customer Blacklisting"
+              description="Blacklisted customers cannot apply for new loans and may have existing loans restricted."
               className="mb-4"
             />
-            <p>Are you sure you want to Blacklist Borrower <strong>{selectedCustomer.full_name}</strong>?</p>
+            <p>Are you sure you want to Blacklist Customer <strong>{selectedCustomer.full_name}</strong>?</p>
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="blacklist-reason" className="block text-sm font-medium text-gray-700 mb-2">
                 Reason for blacklisting
               </label>
               <textarea 
+                id="blacklist-reason"
                 className="w-full border rounded p-2"
                 rows={3}
                 placeholder="Enter reason..."
@@ -370,11 +372,11 @@ const CustomerDetail = () => {
           <div>
             <Alert
               type="info"
-              message="Borrower Activation"
-              description="Activating a borrower will restore eligibility for new loan applications."
+              message="Customer Activation"
+              description="Activating a customer will restore eligibility for new loan applications."
               className="mb-4"
             />
-            <p>Are you sure you want to Activate Borrower <strong>{selectedCustomer.full_name}</strong>?</p>
+            <p>Are you sure you want to Activate Customer <strong>{selectedCustomer.full_name}</strong>?</p>
           </div>
         )}
       </Modal>

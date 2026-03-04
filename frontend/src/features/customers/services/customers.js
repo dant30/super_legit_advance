@@ -1,264 +1,179 @@
-// frontend/src/api/customers.js
 import axios from '@api/axios'
 
-const BASE = '/customers'
+export const CUSTOMER_ENDPOINTS = Object.freeze({
+  base: '/customers',
+  list: '/customers/',
+  detail: (id) => `/customers/${id}/`,
+  create: '/customers/create/',
+  search: '/customers/search/',
+  stats: '/customers/stats/',
+  blacklist: (id) => `/customers/${id}/blacklist/`,
+  activate: (id) => `/customers/${id}/activate/`,
+  export: '/customers/export/',
+  import: '/customers/import/',
+  employment: (customerId) => `/customers/${customerId}/employment/`,
+  updateEmployment: (customerId) => `/customers/${customerId}/employment/update/`,
+  guarantors: (customerId) => `/customers/${customerId}/guarantors/`,
+  createGuarantor: (customerId) => `/customers/${customerId}/guarantors/create/`,
+  guarantorDetail: (id) => `/customers/guarantors/${id}/`,
+  verifyGuarantor: (id) => `/customers/guarantors/${id}/verify/`,
+})
 
-const parseResponse = (response) => {
-  // Standardize response shape from backend
-  const data = response.data
-  if (data && typeof data === 'object') {
-    // DRF style: { success, data, pagination, message } or raw list/object
-    if (data.success === true && data.data !== undefined) {
-      return { success: true, data: data.data, pagination: data.pagination || null, message: data.message || null }
+function toFormData(payload = {}) {
+  const form = new FormData()
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null) return
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        form.append(key, item instanceof File ? item : String(item))
+      })
+      return
     }
-    // If backend returns list/object directly
-    return { success: true, data: data, pagination: null }
-  }
-  return { success: true, data: data }
+    form.append(key, value instanceof File ? value : String(value))
+  })
+  return form
 }
 
-const handleError = (error) => {
+function parseResponse(response) {
+  const data = response?.data
+  if (data && typeof data === 'object') {
+    if (data.success === true && data.data !== undefined) {
+      return {
+        success: true,
+        data: data.data,
+        pagination: data.pagination || null,
+        message: data.message || null,
+      }
+    }
+    return { success: true, data, pagination: null, message: data.message || null }
+  }
+  return { success: true, data, pagination: null, message: null }
+}
+
+function handleError(error) {
   const payload = error?.response?.data || {}
-  const message = payload.detail || payload.message || (typeof payload === 'string' ? payload : null) || error.message || 'An error occurred'
-  return { success: false, error: message, raw: payload, status: error?.response?.status || null }
-}
+  const message =
+    payload.detail ||
+    payload.message ||
+    (typeof payload === 'string' ? payload : null) ||
+    error?.message ||
+    'An error occurred'
 
-// ====== Customers ======
-export const getCustomers = async (params = {}) => {
-  try {
-    const res = await axios.get(`${BASE}/`, { params })
-    return parseResponse(res)
-  } catch (err) {
-    console.error('getCustomers error', err)
-    return handleError(err)
+  return {
+    success: false,
+    error: message,
+    raw: payload,
+    status: error?.response?.status || null,
   }
 }
 
-export const getCustomer = async (id) => {
+async function safeRequest(requestFn) {
   try {
-    const res = await axios.get(`${BASE}/${id}/`)
-    return parseResponse(res)
-  } catch (err) {
-    console.error('getCustomer error', err)
-    return handleError(err)
+    const response = await requestFn()
+    return parseResponse(response)
+  } catch (error) {
+    console.error('customers service error', error)
+    return handleError(error)
   }
 }
 
-export const createCustomer = async (payload) => {
-  try {
-    const form = new FormData()
-    Object.entries(payload || {}).forEach(([k, v]) => {
-      if (v === undefined || v === null) return
-      if (Array.isArray(v)) {
-        v.forEach(item => form.append(k, item))
-      } else {
-        form.append(k, v instanceof File ? v : String(v))
-      }
+export const getCustomers = async (params = {}) =>
+  safeRequest(() => axios.get(CUSTOMER_ENDPOINTS.list, { params }))
+
+export const getCustomer = async (id) =>
+  safeRequest(() => axios.get(CUSTOMER_ENDPOINTS.detail(id)))
+
+export const createCustomer = async (payload) =>
+  safeRequest(() =>
+    axios.post(CUSTOMER_ENDPOINTS.create, toFormData(payload), {
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
-    const res = await axios.post(`${BASE}/create/`, form, { headers: { 'Content-Type': 'multipart/form-data' } })
-    return parseResponse(res)
-  } catch (err) {
-    console.error('createCustomer error', err)
-    return handleError(err)
-  }
-}
+  )
 
-export const updateCustomer = async (id, payload) => {
-  try {
-    const form = new FormData()
-    Object.entries(payload || {}).forEach(([k, v]) => {
-      if (v === undefined || v === null) return
-      if (Array.isArray(v)) {
-        v.forEach(item => form.append(k, item))
-      } else {
-        form.append(k, v instanceof File ? v : String(v))
-      }
+export const updateCustomer = async (id, payload) =>
+  safeRequest(() =>
+    axios.put(CUSTOMER_ENDPOINTS.detail(id), toFormData(payload), {
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
-    const res = await axios.put(`${BASE}/${id}/`, form, { headers: { 'Content-Type': 'multipart/form-data' } })
-    return parseResponse(res)
-  } catch (err) {
-    console.error('updateCustomer error', err)
-    return handleError(err)
-  }
-}
+  )
 
-export const deleteCustomer = async (id) => {
-  try {
-    const res = await axios.delete(`${BASE}/${id}/`)
-    return parseResponse(res)
-  } catch (err) {
-    console.error('deleteCustomer error', err)
-    return handleError(err)
-  }
-}
+export const deleteCustomer = async (id) =>
+  safeRequest(() => axios.delete(CUSTOMER_ENDPOINTS.detail(id)))
 
-export const searchCustomers = async (query, type = 'basic', params = {}) => {
-  try {
-    const res = await axios.get(`${BASE}/search/`, { params: { q: query, type, ...params } })
-    return parseResponse(res)
-  } catch (err) {
-    console.error('searchCustomers error', err)
-    return handleError(err)
-  }
-}
+export const searchCustomers = async (query, type = 'basic', params = {}) =>
+  safeRequest(() => axios.get(CUSTOMER_ENDPOINTS.search, { params: { q: query, type, ...params } }))
 
-export const getCustomerStats = async () => {
-  try {
-    const res = await axios.get(`${BASE}/stats/`)
-    return parseResponse(res)
-  } catch (err) {
-    console.error('getCustomerStats error', err)
-    return handleError(err)
-  }
-}
+export const getCustomerStats = async () =>
+  safeRequest(() => axios.get(CUSTOMER_ENDPOINTS.stats))
 
-export const blacklistCustomer = async (id, reason = '') => {
-  try {
-    const res = await axios.post(`${BASE}/${id}/blacklist/`, { reason })
-    return parseResponse(res)
-  } catch (err) {
-    console.error('blacklistCustomer error', err)
-    return handleError(err)
-  }
-}
+export const blacklistCustomer = async (id, reason = '') =>
+  safeRequest(() => axios.post(CUSTOMER_ENDPOINTS.blacklist(id), { reason }))
 
-export const activateCustomer = async (id) => {
-  try {
-    const res = await axios.post(`${BASE}/${id}/activate/`)
-    return parseResponse(res)
-  } catch (err) {
-    console.error('activateCustomer error', err)
-    return handleError(err)
-  }
-}
+export const activateCustomer = async (id) =>
+  safeRequest(() => axios.post(CUSTOMER_ENDPOINTS.activate(id)))
 
 export const exportCustomers = async (format = 'excel', filters = {}) => {
   try {
-    const res = await axios.get(`${BASE}/export/`, {
+    const response = await axios.get(CUSTOMER_ENDPOINTS.export, {
       params: { format, ...filters },
       responseType: 'blob',
     })
-    return { success: true, data: res.data, filename: res.headers['content-disposition'] || null }
-  } catch (err) {
-    console.error('exportCustomers error', err)
-    return handleError(err)
+    return {
+      success: true,
+      data: response.data,
+      filename: response.headers['content-disposition'] || null,
+      message: null,
+    }
+  } catch (error) {
+    console.error('customers export error', error)
+    return handleError(error)
   }
 }
 
-export const importCustomers = async (file) => {
-  try {
+export const importCustomers = async (file) =>
+  safeRequest(() => {
     const form = new FormData()
     form.append('file', file)
-    const res = await axios.post(`${BASE}/import/`, form, { headers: { 'Content-Type': 'multipart/form-data' } })
-    return parseResponse(res)
-  } catch (err) {
-    console.error('importCustomers error', err)
-    return handleError(err)
-  }
-}
-
-// ====== Employment ======
-export const getEmployment = async (customerId) => {
-  try {
-    const res = await axios.get(`${BASE}/${customerId}/employment/`)
-    return parseResponse(res)
-  } catch (err) {
-    console.error('getEmployment error', err)
-    return handleError(err)
-  }
-}
-
-export const updateEmployment = async (customerId, payload) => {
-  try {
-    const form = new FormData()
-    Object.entries(payload || {}).forEach(([k, v]) => {
-      if (v === undefined || v === null) return
-      form.append(k, v instanceof File ? v : String(v))
-    })
-    const res = await axios.put(`${BASE}/${customerId}/employment/update/`, form, {
+    return axios.post(CUSTOMER_ENDPOINTS.import, form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
-    return parseResponse(res)
-  } catch (err) {
-    console.error('updateEmployment error', err)
-    return handleError(err)
-  }
-}
+  })
 
-// ====== Guarantors ======
-export const getGuarantors = async (customerId) => {
-  try {
-    const res = await axios.get(`${BASE}/${customerId}/guarantors/`)
-    return parseResponse(res)
-  } catch (err) {
-    console.error('getGuarantors error', err)
-    return handleError(err)
-  }
-}
+export const getEmployment = async (customerId) =>
+  safeRequest(() => axios.get(CUSTOMER_ENDPOINTS.employment(customerId)))
 
-export const createGuarantor = async (customerId, payload) => {
-  try {
-    const form = new FormData()
-    Object.entries(payload || {}).forEach(([k, v]) => {
-      if (v === undefined || v === null) return
-      form.append(k, v instanceof File ? v : String(v))
-    })
-    const res = await axios.post(`${BASE}/${customerId}/guarantors/create/`, form, {
+export const updateEmployment = async (customerId, payload) =>
+  safeRequest(() =>
+    axios.put(CUSTOMER_ENDPOINTS.updateEmployment(customerId), toFormData(payload), {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
-    return parseResponse(res)
-  } catch (err) {
-    console.error('createGuarantor error', err)
-    return handleError(err)
-  }
-}
+  )
 
-export const getGuarantor = async (id) => {
-  try {
-    const res = await axios.get(`${BASE}/guarantors/${id}/`)
-    return parseResponse(res)
-  } catch (err) {
-    console.error('getGuarantor error', err)
-    return handleError(err)
-  }
-}
+export const getGuarantors = async (customerId) =>
+  safeRequest(() => axios.get(CUSTOMER_ENDPOINTS.guarantors(customerId)))
 
-export const updateGuarantor = async (id, payload) => {
-  try {
-    const form = new FormData()
-    Object.entries(payload || {}).forEach(([k, v]) => {
-      if (v === undefined || v === null) return
-      form.append(k, v instanceof File ? v : String(v))
-    })
-    const res = await axios.put(`${BASE}/guarantors/${id}/`, form, {
+export const createGuarantor = async (customerId, payload) =>
+  safeRequest(() =>
+    axios.post(CUSTOMER_ENDPOINTS.createGuarantor(customerId), toFormData(payload), {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
-    return parseResponse(res)
-  } catch (err) {
-    console.error('updateGuarantor error', err)
-    return handleError(err)
-  }
-}
+  )
 
-export const deleteGuarantor = async (id) => {
-  try {
-    const res = await axios.delete(`${BASE}/guarantors/${id}/`)
-    return parseResponse(res)
-  } catch (err) {
-    console.error('deleteGuarantor error', err)
-    return handleError(err)
-  }
-}
+export const getGuarantor = async (id) =>
+  safeRequest(() => axios.get(CUSTOMER_ENDPOINTS.guarantorDetail(id)))
 
-export const verifyGuarantor = async (id, action, notes = '') => {
-  try {
-    const res = await axios.post(`${BASE}/guarantors/${id}/verify/`, { action, notes })
-    return parseResponse(res)
-  } catch (err) {
-    console.error('verifyGuarantor error', err)
-    return handleError(err)
-  }
-}
+export const updateGuarantor = async (id, payload) =>
+  safeRequest(() =>
+    axios.put(CUSTOMER_ENDPOINTS.guarantorDetail(id), toFormData(payload), {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  )
+
+export const deleteGuarantor = async (id) =>
+  safeRequest(() => axios.delete(CUSTOMER_ENDPOINTS.guarantorDetail(id)))
+
+export const verifyGuarantor = async (id, action, notes = '') =>
+  safeRequest(() => axios.post(CUSTOMER_ENDPOINTS.verifyGuarantor(id), { action, notes }))
 
 const customerAPI = {
   getCustomers,

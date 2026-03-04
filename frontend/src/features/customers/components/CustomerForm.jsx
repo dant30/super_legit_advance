@@ -211,10 +211,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
         <div className="px-6 py-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-first-name" className="block text-sm font-medium text-gray-700 mb-1">
                 First Name *
               </label>
               <input
+                id="customer-first-name"
                 type="text"
                 name="first_name"
                 value={formData.first_name}
@@ -227,10 +228,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-last-name" className="block text-sm font-medium text-gray-700 mb-1">
                 Last Name *
               </label>
               <input
+                id="customer-last-name"
                 type="text"
                 name="last_name"
                 value={formData.last_name}
@@ -243,10 +245,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-middle-name" className="block text-sm font-medium text-gray-700 mb-1">
                 Middle Name
               </label>
               <input
+                id="customer-middle-name"
                 type="text"
                 name="middle_name"
                 value={formData.middle_name}
@@ -256,10 +259,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-id-number" className="block text-sm font-medium text-gray-700 mb-1">
                 ID Number *
               </label>
               <input
+                id="customer-id-number"
                 type="text"
                 name="id_number"
                 value={formData.id_number}
@@ -272,10 +276,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-id-type" className="block text-sm font-medium text-gray-700 mb-1">
                 ID Type
               </label>
               <select
+                id="customer-id-type"
                 name="id_type"
                 value={formData.id_type}
                 onChange={handleChange}
@@ -289,10 +294,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-date-of-birth" className="block text-sm font-medium text-gray-700 mb-1">
                 Date of Birth *
               </label>
               <input
+                id="customer-date-of-birth"
                 type="date"
                 name="date_of_birth"
                 value={formData.date_of_birth}
@@ -305,12 +311,13 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-gender-m" className="block text-sm font-medium text-gray-700 mb-1">
                 Gender *
               </label>
               <div className="flex space-x-4">
-                <label className="inline-flex items-center">
+                <label htmlFor="customer-gender-m" className="inline-flex items-center">
                   <input
+                    id="customer-gender-m"
                     type="radio"
                     name="gender"
                     value="M"
@@ -320,8 +327,9 @@ const CustomerForm = ({ customerId, onSuccess }) => {
                   />
                   <span className="ml-2 text-sm text-gray-700">Male</span>
                 </label>
-                <label className="inline-flex items-center">
+                <label htmlFor="customer-gender-f" className="inline-flex items-center">
                   <input
+                    id="customer-gender-f"
                     type="radio"
                     name="gender"
                     value="F"
@@ -338,10 +346,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-marital-status" className="block text-sm font-medium text-gray-700 mb-1">
                 Marital Status
               </label>
               <select
+                id="customer-marital-status"
                 name="marital_status"
                 value={formData.marital_status}
                 onChange={handleChange}
@@ -366,10 +375,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
         <div className="px-6 py-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-phone-number" className="block text-sm font-medium text-gray-700 mb-1">
                 Phone Number *
               </label>
               <input
+                id="customer-phone-number"
                 type="text"
                 name="phone_number"
                 value={formData.phone_number}
@@ -383,10 +393,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email Address
               </label>
               <input
+                id="customer-email"
                 type="email"
                 name="email"
                 value={formData.email}
@@ -400,10 +411,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-physical-address" className="block text-sm font-medium text-gray-700 mb-1">
                 Physical Address *
               </label>
               <input
+                id="customer-physical-address"
                 type="text"
                 name="physical_address"
                 value={formData.physical_address}
@@ -416,10 +428,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-postal-address" className="block text-sm font-medium text-gray-700 mb-1">
                 Postal Address
               </label>
               <input
+                id="customer-postal-address"
                 type="text"
                 name="postal_address"
                 value={formData.postal_address}
@@ -429,10 +442,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-county" className="block text-sm font-medium text-gray-700 mb-1">
                 County *
               </label>
               <input
+                id="customer-county"
                 type="text"
                 name="county"
                 value={formData.county}
@@ -445,10 +459,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-sub-county" className="block text-sm font-medium text-gray-700 mb-1">
                 Sub-County
               </label>
               <input
+                id="customer-sub-county"
                 type="text"
                 name="sub_county"
                 value={formData.sub_county}
@@ -458,10 +473,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-ward" className="block text-sm font-medium text-gray-700 mb-1">
                 Ward
               </label>
               <input
+                id="customer-ward"
                 type="text"
                 name="ward"
                 value={formData.ward}
@@ -481,10 +497,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
         <div className="px-6 py-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-status" className="block text-sm font-medium text-gray-700 mb-1">
                 Status
               </label>
               <select
+                id="customer-status"
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
@@ -498,10 +515,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-risk-level" className="block text-sm font-medium text-gray-700 mb-1">
                 Risk Level
               </label>
               <select
+                id="customer-risk-level"
                 name="risk_level"
                 value={formData.risk_level}
                 onChange={handleChange}
@@ -514,10 +532,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-credit-score" className="block text-sm font-medium text-gray-700 mb-1">
                 Credit Score
               </label>
               <input
+                id="customer-credit-score"
                 type="number"
                 name="credit_score"
                 value={formData.credit_score}
@@ -529,10 +548,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-referred-by" className="block text-sm font-medium text-gray-700 mb-1">
                 Referred By (Customer ID)
               </label>
               <input
+                id="customer-referred-by"
                 type="text"
                 name="referred_by"
                 value={formData.referred_by}
@@ -542,7 +562,7 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-profile-picture" className="block text-sm font-medium text-gray-700 mb-1">
                 Profile Picture
               </label>
               <div className="mt-1 flex items-center">
@@ -550,6 +570,7 @@ const CustomerForm = ({ customerId, onSuccess }) => {
                   <CameraIcon className="h-5 w-5 mr-2" />
                   <span className="text-sm">Choose File</span>
                   <input
+                    id="customer-profile-picture"
                     type="file"
                     name="profile_picture"
                     onChange={handleChange}
@@ -568,7 +589,7 @@ const CustomerForm = ({ customerId, onSuccess }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-document-files" className="block text-sm font-medium text-gray-700 mb-1">
                 Documents
               </label>
               <div className="mt-1 flex items-center">
@@ -576,6 +597,7 @@ const CustomerForm = ({ customerId, onSuccess }) => {
                   <DocumentTextIcon className="h-5 w-5 mr-2" />
                   <span className="text-sm">Choose Files</span>
                   <input
+                    id="customer-document-files"
                     type="file"
                     name="document_files"
                     onChange={handleChange}
@@ -593,10 +615,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
           </div>
 
           <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="customer-notes" className="block text-sm font-medium text-gray-700 mb-1">
               Notes
             </label>
             <textarea
+              id="customer-notes"
               name="notes"
               value={formData.notes}
               onChange={handleChange}

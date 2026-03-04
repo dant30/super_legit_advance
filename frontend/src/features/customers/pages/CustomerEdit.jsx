@@ -30,11 +30,11 @@ const CustomerEdit = () => {
     setLoading(true)
     try {
       await updateCustomer(id, formData)
-      addToast('Borrower updated successfully', 'success')
+      addToast('Customer updated successfully', 'success')
       // Redirect to customer detail page
       navigate(`/customers/${id}`)
     } catch (error) {
-      addToast('Failed to update borrower', 'error')
+      addToast('Failed to update customer', 'error')
       throw error
     } finally {
       setLoading(false)
@@ -43,8 +43,9 @@ const CustomerEdit = () => {
 
   if (selectedCustomerLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex justify-center items-center h-64" role="status" aria-live="polite" aria-busy="true">
         <Loading size="large" />
+        <span className="sr-only">Loading customer details</span>
       </div>
     )
   }
@@ -53,11 +54,11 @@ const CustomerEdit = () => {
     return (
       <Alert
         type="error"
-        message="Borrower not found"
-        description="The borrower record you are trying to edit does not exist or has been deleted."
+        message="Customer not found"
+        description="The customer record you are trying to edit does not exist or has been deleted."
         action={
           <Link to="/customers">
-            <Button type="primary">Back to Borrowers</Button>
+            <Button type="primary">Back to Customers</Button>
           </Link>
         }
       />
@@ -67,7 +68,7 @@ const CustomerEdit = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Edit Borrower"
+        title="Edit Customer"
         subTitle={`Editing: ${selectedCustomer.full_name}`}
         extra={[
           <Link to={`/customers/${id}`} key="back">
@@ -80,8 +81,8 @@ const CustomerEdit = () => {
 
       <Alert
         type="warning"
-        message="Update Borrower Record Carefully"
-        description="Changes to borrower information can affect loan eligibility, pricing, and collections."
+        message="Update Customer Record Carefully"
+        description="Changes to customer information can affect loan eligibility, pricing, and collections."
         className="mb-6"
       />
 

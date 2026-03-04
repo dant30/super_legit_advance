@@ -103,27 +103,27 @@ const CustomerList = () => {
   const handleDelete = async (id) => {
     try {
       await deleteCustomer(id)
-      addToast('Borrower deleted successfully', 'success')
+      addToast('Customer deleted successfully', 'success')
     } catch {
-      addToast('Failed to delete borrower', 'error')
+      addToast('Failed to delete customer', 'error')
     }
   }
 
   const handleBlacklist = async (id) => {
     try {
       await blacklistCustomer(id, 'Manual blacklisting by admin')
-      addToast('Borrower blacklisted successfully', 'success')
+      addToast('Customer blacklisted successfully', 'success')
     } catch {
-      addToast('Failed to blacklist borrower', 'error')
+      addToast('Failed to blacklist customer', 'error')
     }
   }
 
   const handleActivate = async (id) => {
     try {
       await activateCustomer(id)
-      addToast('Borrower activated successfully', 'success')
+      addToast('Customer activated successfully', 'success')
     } catch {
-      addToast('Failed to activate borrower', 'error')
+      addToast('Failed to activate customer', 'error')
     }
   }
 
@@ -142,7 +142,7 @@ const CustomerList = () => {
   const handleImportSuccess = (result) => {
     loadCustomers()
     loadStats()
-    addToast(`Imported ${result.imported_count} borrowers successfully`, 'success')
+    addToast(`Imported ${result.imported_count} customers successfully`, 'success')
   }
 
   const tabs = useMemo(() => ([
@@ -180,7 +180,7 @@ const CustomerList = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Total Borrowers"
+              title="Total Customers"
               value={stats?.total_customers || 0}
               prefix={<Users size={20} />}
               valueStyle={{ color: '#3f51b5' }}
@@ -224,8 +224,8 @@ const CustomerList = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Borrowers"
-        subTitle="Manage your borrower portfolio"
+        title="Customers"
+        subTitle="Manage your customer portfolio"
         extra={[
           <Button 
             key="refresh" 
@@ -261,7 +261,7 @@ const CustomerList = () => {
           hasPermission('can_manage_customers') && (
             <Link to="/customers/create" key="create">
               <Button type="primary" icon={<Plus size={16} />}>
-                New Borrower
+                New Customer
               </Button>
             </Link>
           ),
@@ -362,10 +362,10 @@ const CustomerList = () => {
         ]}
       >
         {actionModal.type === 'delete' && (
-          <p>Are you sure you want to delete this borrower? This action cannot be undone.</p>
+          <p>Are you sure you want to delete this customer? This action cannot be undone.</p>
         )}
         {actionModal.type === 'blacklist' && (
-          <p>Are you sure you want to blacklist this borrower?</p>
+          <p>Are you sure you want to blacklist this customer?</p>
         )}
       </Modal>
     </div>

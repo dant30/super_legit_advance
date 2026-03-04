@@ -253,10 +253,11 @@ const EmploymentForm = ({ customerId }) => {
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-employer-name" className="block text-sm font-medium text-gray-700 mb-1">
                   Employer Name *
                 </label>
                 <input
+                  id="employment-employer-name"
                   type="text"
                   name="employer_name"
                   value={formData.employer_name}
@@ -266,10 +267,11 @@ const EmploymentForm = ({ customerId }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-job-title" className="block text-sm font-medium text-gray-700 mb-1">
                   Job Title *
                 </label>
                 <input
+                  id="employment-job-title"
                   type="text"
                   name="job_title"
                   value={formData.job_title}
@@ -279,10 +281,11 @@ const EmploymentForm = ({ customerId }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-type" className="block text-sm font-medium text-gray-700 mb-1">
                   Employment Type
                 </label>
                 <select
+                  id="employment-type"
                   name="employment_type"
                   value={formData.employment_type}
                   onChange={handleChange}
@@ -298,10 +301,11 @@ const EmploymentForm = ({ customerId }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-department" className="block text-sm font-medium text-gray-700 mb-1">
                   Department
                 </label>
                 <input
+                  id="employment-department"
                   type="text"
                   name="department"
                   value={formData.department}
@@ -310,10 +314,11 @@ const EmploymentForm = ({ customerId }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-employee-number" className="block text-sm font-medium text-gray-700 mb-1">
                   Employee Number
                 </label>
                 <input
+                  id="employment-employee-number"
                   type="text"
                   name="employee_number"
                   value={formData.employee_number}
@@ -322,10 +327,11 @@ const EmploymentForm = ({ customerId }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-profession" className="block text-sm font-medium text-gray-700 mb-1">
                   Profession
                 </label>
                 <input
+                  id="employment-profession"
                   type="text"
                   name="profession"
                   value={formData.profession}
@@ -338,12 +344,13 @@ const EmploymentForm = ({ customerId }) => {
             {/* Employment Dates */}
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-start-date" className="block text-sm font-medium text-gray-700 mb-1">
                   Start Date
                 </label>
                 <div className="relative">
                   <CalendarIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                   <input
+                    id="employment-start-date"
                     type="date"
                     name="start_date"
                     value={formData.start_date}
@@ -353,12 +360,13 @@ const EmploymentForm = ({ customerId }) => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-end-date" className="block text-sm font-medium text-gray-700 mb-1">
                   End Date
                 </label>
                 <div className="relative">
                   <CalendarIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                   <input
+                    id="employment-end-date"
                     type="date"
                     name="end_date"
                     value={formData.end_date}
@@ -369,8 +377,9 @@ const EmploymentForm = ({ customerId }) => {
                 </div>
               </div>
               <div className="flex items-end">
-                <label className="flex items-center">
+                <label htmlFor="employment-is-current" className="flex items-center">
                   <input
+                    id="employment-is-current"
                     type="checkbox"
                     name="is_current"
                     checked={formData.is_current}
@@ -385,11 +394,12 @@ const EmploymentForm = ({ customerId }) => {
             {/* Income Information */}
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                <label htmlFor="employment-monthly-income" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                   <CurrencyDollarIcon className="h-4 w-4 text-gray-400 mr-1" />
                   Monthly Income (Ksh)
                 </label>
                 <input
+                  id="employment-monthly-income"
                   type="number"
                   name="monthly_income"
                   value={formData.monthly_income}
@@ -398,10 +408,11 @@ const EmploymentForm = ({ customerId }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-pay-frequency" className="block text-sm font-medium text-gray-700 mb-1">
                   Pay Frequency
                 </label>
                 <select
+                  id="employment-pay-frequency"
                   name="pay_frequency"
                   value={formData.pay_frequency}
                   onChange={handleChange}
@@ -414,10 +425,11 @@ const EmploymentForm = ({ customerId }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-work-duration" className="block text-sm font-medium text-gray-700 mb-1">
                   Work Duration
                 </label>
                 <input
+                  id="employment-work-duration"
                   type="text"
                   name="work_duration"
                   value={formData.work_duration}
@@ -434,10 +446,11 @@ const EmploymentForm = ({ customerId }) => {
             <h4 className="text-md font-medium text-gray-900 mb-4">Employer Contact Information</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-employer-address" className="block text-sm font-medium text-gray-700 mb-1">
                   Employer Address
                 </label>
                 <input
+                  id="employment-employer-address"
                   type="text"
                   name="employer_address"
                   value={formData.employer_address}
@@ -446,10 +459,11 @@ const EmploymentForm = ({ customerId }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-employer-phone" className="block text-sm font-medium text-gray-700 mb-1">
                   Employer Phone
                 </label>
                 <input
+                  id="employment-employer-phone"
                   type="text"
                   name="employer_phone"
                   value={formData.employer_phone}
@@ -458,10 +472,11 @@ const EmploymentForm = ({ customerId }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-employer-email" className="block text-sm font-medium text-gray-700 mb-1">
                   Employer Email
                 </label>
                 <input
+                  id="employment-employer-email"
                   type="email"
                   name="employer_email"
                   value={formData.employer_email}
@@ -470,10 +485,11 @@ const EmploymentForm = ({ customerId }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-supervisor-name" className="block text-sm font-medium text-gray-700 mb-1">
                   Supervisor Name
                 </label>
                 <input
+                  id="employment-supervisor-name"
                   type="text"
                   name="supervisor_name"
                   value={formData.supervisor_name}
@@ -482,10 +498,11 @@ const EmploymentForm = ({ customerId }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-supervisor-contact" className="block text-sm font-medium text-gray-700 mb-1">
                   Supervisor Contact
                 </label>
                 <input
+                  id="employment-supervisor-contact"
                   type="text"
                   name="supervisor_contact"
                   value={formData.supervisor_contact}
@@ -501,10 +518,11 @@ const EmploymentForm = ({ customerId }) => {
             <h4 className="text-md font-medium text-gray-900 mb-4">Company Information</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-industry" className="block text-sm font-medium text-gray-700 mb-1">
                   Industry
                 </label>
                 <input
+                  id="employment-industry"
                   type="text"
                   name="industry"
                   value={formData.industry}
@@ -513,10 +531,11 @@ const EmploymentForm = ({ customerId }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-company-size" className="block text-sm font-medium text-gray-700 mb-1">
                   Company Size
                 </label>
                 <select
+                  id="employment-company-size"
                   name="company_size"
                   value={formData.company_size}
                   onChange={handleChange}
@@ -531,10 +550,11 @@ const EmploymentForm = ({ customerId }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-contract-type" className="block text-sm font-medium text-gray-700 mb-1">
                   Contract Type
                 </label>
                 <select
+                  id="employment-contract-type"
                   name="contract_type"
                   value={formData.contract_type}
                   onChange={handleChange}
@@ -555,10 +575,11 @@ const EmploymentForm = ({ customerId }) => {
             <h4 className="text-md font-medium text-gray-900 mb-4">Payment Information</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-payment-method" className="block text-sm font-medium text-gray-700 mb-1">
                   Payment Method
                 </label>
                 <select
+                  id="employment-payment-method"
                   name="payment_method"
                   value={formData.payment_method}
                   onChange={handleChange}
@@ -572,10 +593,11 @@ const EmploymentForm = ({ customerId }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-bank-name" className="block text-sm font-medium text-gray-700 mb-1">
                   Bank Name
                 </label>
                 <input
+                  id="employment-bank-name"
                   type="text"
                   name="bank_name"
                   value={formData.bank_name}
@@ -584,10 +606,11 @@ const EmploymentForm = ({ customerId }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-bank-account-number" className="block text-sm font-medium text-gray-700 mb-1">
                   Bank Account Number
                 </label>
                 <input
+                  id="employment-bank-account-number"
                   type="text"
                   name="bank_account_number"
                   value={formData.bank_account_number}
@@ -603,10 +626,11 @@ const EmploymentForm = ({ customerId }) => {
             <h4 className="text-md font-medium text-gray-900 mb-4">Supporting Documents</h4>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-payslip-attachment" className="block text-sm font-medium text-gray-700 mb-1">
                   Payslip Attachment
                 </label>
                 <input
+                  id="employment-payslip-attachment"
                   type="file"
                   name="payslip_attachment"
                   onChange={handleChange}
@@ -615,10 +639,11 @@ const EmploymentForm = ({ customerId }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-contract-attachment" className="block text-sm font-medium text-gray-700 mb-1">
                   Contract Attachment
                 </label>
                 <input
+                  id="employment-contract-attachment"
                   type="file"
                   name="contract_attachment"
                   onChange={handleChange}
@@ -627,10 +652,11 @@ const EmploymentForm = ({ customerId }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-reference-letter-attachment" className="block text-sm font-medium text-gray-700 mb-1">
                   Reference Letter
                 </label>
                 <input
+                  id="employment-reference-letter-attachment"
                   type="file"
                   name="reference_letter_attachment"
                   onChange={handleChange}
@@ -643,10 +669,11 @@ const EmploymentForm = ({ customerId }) => {
 
           {/* Notes */}
           <div className="bg-gray-50 rounded-lg p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="employment-notes" className="block text-sm font-medium text-gray-700 mb-2">
               Additional Notes
             </label>
             <textarea
+              id="employment-notes"
               name="notes"
               value={formData.notes}
               onChange={handleChange}

@@ -97,10 +97,30 @@ const DocumentUpload = ({
       <List.Item
         key={doc.id}
         actions={[
-          <Button key="view" type="text" icon={<Eye size={16} />} onClick={() => handlePreview(doc)} />,
-          <Button key="download" type="text" icon={<Download size={16} />} href={doc.url} download />,
+          <Button
+            key="view"
+            type="text"
+            icon={<Eye size={16} />}
+            aria-label={`Preview ${doc.name}`}
+            onClick={() => handlePreview(doc)}
+          />,
+          <Button
+            key="download"
+            type="text"
+            icon={<Download size={16} />}
+            aria-label={`Download ${doc.name}`}
+            href={doc.url}
+            download
+          />,
           !readOnly && (
-            <Button key="delete" type="text" danger icon={<X size={16} />} onClick={() => handleDelete(doc.id)} />
+            <Button
+              key="delete"
+              type="text"
+              danger
+              icon={<X size={16} />}
+              aria-label={`Delete ${doc.name}`}
+              onClick={() => handleDelete(doc.id)}
+            />
           ),
         ].filter(Boolean)}
       >
@@ -139,6 +159,7 @@ const DocumentUpload = ({
             multiple
             showUploadList={false}
             disabled={Object.keys(uploadingFiles).length > 0}
+            aria-label="Upload customer documents"
           >
             <div className="py-8 text-center">
               <UploadIcon size={48} className="mx-auto text-gray-400 mb-4" />

@@ -62,8 +62,9 @@ const CustomerTable = ({
 
   if (customersLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex justify-center items-center h-64" role="status" aria-live="polite" aria-busy="true">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <span className="sr-only">Loading customers</span>
       </div>
     );
   }
@@ -76,6 +77,7 @@ const CustomerTable = ({
           <p className="text-red-700">{customersError}</p>
         </div>
         <button
+          type="button"
           onClick={() => fetchCustomers()}
           className="mt-3 px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
         >
@@ -96,7 +98,7 @@ const CustomerTable = ({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto" role="region" aria-label="Customer table">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -113,8 +115,10 @@ const CustomerTable = ({
             )}
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               <button
+                type="button"
                 onClick={() => handleSort('customer_number')}
                 className="flex items-center hover:text-gray-700"
+                aria-label="Sort by customer number"
               >
                 Customer #
                 {sortField === 'customer_number' && (
@@ -124,8 +128,10 @@ const CustomerTable = ({
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               <button
+                type="button"
                 onClick={() => handleSort('last_name')}
                 className="flex items-center hover:text-gray-700"
+                aria-label="Sort by customer name"
               >
                 Name
                 {sortField === 'last_name' && (
@@ -144,8 +150,10 @@ const CustomerTable = ({
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               <button
+                type="button"
                 onClick={() => handleSort('created_at')}
                 className="flex items-center hover:text-gray-700"
+                aria-label="Sort by registration date"
               >
                 Registered
                 {sortField === 'created_at' && (
@@ -242,45 +250,55 @@ const CustomerTable = ({
                   <div className="flex space-x-2">
                     {onView && (
                       <button
+                        type="button"
                         onClick={() => onView(customer.id)}
                         className="text-primary-600 hover:text-primary-900"
                         title="View"
+                        aria-label={`View ${customer.full_name || `${customer.first_name} ${customer.last_name}`}`}
                       >
                         <EyeIcon className="h-5 w-5" />
                       </button>
                     )}
                     {onEdit && (
                       <button
+                        type="button"
                         onClick={() => onEdit(customer.id)}
                         className="text-blue-600 hover:text-blue-900"
                         title="Edit"
+                        aria-label={`Edit ${customer.full_name || `${customer.first_name} ${customer.last_name}`}`}
                       >
                         <PencilIcon className="h-5 w-5" />
                       </button>
                     )}
                     {onBlacklist && customer.status !== 'BLACKLISTED' && (
                       <button
+                        type="button"
                         onClick={() => onBlacklist(customer.id)}
                         className="text-yellow-600 hover:text-yellow-900"
                         title="Blacklist"
+                        aria-label={`Blacklist ${customer.full_name || `${customer.first_name} ${customer.last_name}`}`}
                       >
                         <XCircleIcon className="h-5 w-5" />
                       </button>
                     )}
                     {onActivate && (customer.status === 'BLACKLISTED' || customer.status === 'INACTIVE') && (
                       <button
+                        type="button"
                         onClick={() => onActivate(customer.id)}
                         className="text-green-600 hover:text-green-900"
                         title="Activate"
+                        aria-label={`Activate ${customer.full_name || `${customer.first_name} ${customer.last_name}`}`}
                       >
                         <CheckCircleIcon className="h-5 w-5" />
                       </button>
                     )}
                     {onDelete && (
                       <button
+                        type="button"
                         onClick={() => onDelete(customer.id)}
                         className="text-red-600 hover:text-red-900"
                         title="Delete"
+                        aria-label={`Delete ${customer.full_name || `${customer.first_name} ${customer.last_name}`}`}
                       >
                         <TrashIcon className="h-5 w-5" />
                       </button>

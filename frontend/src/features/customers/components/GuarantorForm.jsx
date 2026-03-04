@@ -220,10 +220,11 @@ const GuarantorForm = ({
         <div className="px-6 py-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-first-name" className="block text-sm font-medium text-gray-700 mb-1">
                 First Name *
               </label>
               <input
+                id="guarantor-first-name"
                 type="text"
                 name="first_name"
                 value={formData.first_name}
@@ -236,10 +237,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-last-name" className="block text-sm font-medium text-gray-700 mb-1">
                 Last Name *
               </label>
               <input
+                id="guarantor-last-name"
                 type="text"
                 name="last_name"
                 value={formData.last_name}
@@ -252,10 +254,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-id-number" className="block text-sm font-medium text-gray-700 mb-1">
                 ID Number *
               </label>
               <input
+                id="guarantor-id-number"
                 type="text"
                 name="id_number"
                 value={formData.id_number}
@@ -268,10 +271,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-relationship" className="block text-sm font-medium text-gray-700 mb-1">
                 Relationship to Customer *
               </label>
               <select
+                id="guarantor-relationship"
                 name="relationship"
                 value={formData.relationship}
                 onChange={handleChange}
@@ -288,10 +292,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-date-of-birth" className="block text-sm font-medium text-gray-700 mb-1">
                 Date of Birth *
               </label>
               <input
+                id="guarantor-date-of-birth"
                 type="date"
                 name="date_of_birth"
                 value={formData.date_of_birth}
@@ -304,12 +309,13 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-gender-m" className="block text-sm font-medium text-gray-700 mb-1">
                 Gender *
               </label>
               <div className="flex space-x-4">
-                <label className="inline-flex items-center">
+                <label htmlFor="guarantor-gender-m" className="inline-flex items-center">
                   <input
+                    id="guarantor-gender-m"
                     type="radio"
                     name="gender"
                     value="M"
@@ -319,8 +325,9 @@ const GuarantorForm = ({
                   />
                   <span className="ml-2 text-sm text-gray-700">Male</span>
                 </label>
-                <label className="inline-flex items-center">
+                <label htmlFor="guarantor-gender-f" className="inline-flex items-center">
                   <input
+                    id="guarantor-gender-f"
                     type="radio"
                     name="gender"
                     value="F"
@@ -337,10 +344,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-marital-status" className="block text-sm font-medium text-gray-700 mb-1">
                 Marital Status
               </label>
               <select
+                id="guarantor-marital-status"
                 name="marital_status"
                 value={formData.marital_status}
                 onChange={handleChange}
@@ -365,10 +373,11 @@ const GuarantorForm = ({
         <div className="px-6 py-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-phone-number" className="block text-sm font-medium text-gray-700 mb-1">
                 Phone Number *
               </label>
               <input
+                id="guarantor-phone-number"
                 type="text"
                 name="phone_number"
                 value={formData.phone_number}
@@ -381,10 +390,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email Address
               </label>
               <input
+                id="guarantor-email"
                 type="email"
                 name="email"
                 value={formData.email}
@@ -394,10 +404,11 @@ const GuarantorForm = ({
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-physical-address" className="block text-sm font-medium text-gray-700 mb-1">
                 Physical Address *
               </label>
               <input
+                id="guarantor-physical-address"
                 type="text"
                 name="physical_address"
                 value={formData.physical_address}
@@ -410,10 +421,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-county" className="block text-sm font-medium text-gray-700 mb-1">
                 County
               </label>
               <input
+                id="guarantor-county"
                 type="text"
                 name="county"
                 value={formData.county}
@@ -423,10 +435,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-sub-county" className="block text-sm font-medium text-gray-700 mb-1">
                 Sub-County
               </label>
               <input
+                id="guarantor-sub-county"
                 type="text"
                 name="sub_county"
                 value={formData.sub_county}
@@ -449,10 +462,11 @@ const GuarantorForm = ({
         <div className="px-6 py-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-employer-name" className="block text-sm font-medium text-gray-700 mb-1">
                 Employer Name
               </label>
               <input
+                id="guarantor-employer-name"
                 type="text"
                 name="employer_name"
                 value={formData.employer_name}
@@ -462,10 +476,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-job-title" className="block text-sm font-medium text-gray-700 mb-1">
                 Job Title
               </label>
               <input
+                id="guarantor-job-title"
                 type="text"
                 name="job_title"
                 value={formData.job_title}
@@ -475,11 +490,12 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+              <label htmlFor="guarantor-monthly-income" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                 <BanknotesIcon className="h-4 w-4 text-gray-400 mr-1" />
                 Monthly Income (Ksh)
               </label>
               <input
+                id="guarantor-monthly-income"
                 type="number"
                 name="monthly_income"
                 value={formData.monthly_income}
@@ -489,10 +505,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-employment-type" className="block text-sm font-medium text-gray-700 mb-1">
                 Employment Type
               </label>
               <select
+                id="guarantor-employment-type"
                 name="employment_type"
                 value={formData.employment_type}
                 onChange={handleChange}
@@ -506,10 +523,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-work-duration" className="block text-sm font-medium text-gray-700 mb-1">
                 Work Duration
               </label>
               <input
+                id="guarantor-work-duration"
                 type="text"
                 name="work_duration"
                 value={formData.work_duration}
@@ -530,10 +548,11 @@ const GuarantorForm = ({
         <div className="px-6 py-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-credit-score" className="block text-sm font-medium text-gray-700 mb-1">
                 Credit Score
               </label>
               <input
+                id="guarantor-credit-score"
                 type="number"
                 name="credit_score"
                 value={formData.credit_score}
@@ -545,10 +564,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-risk-level" className="block text-sm font-medium text-gray-700 mb-1">
                 Risk Level
               </label>
               <select
+                id="guarantor-risk-level"
                 name="risk_level"
                 value={formData.risk_level}
                 onChange={handleChange}
@@ -561,10 +581,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-existing-liabilities" className="block text-sm font-medium text-gray-700 mb-1">
                 Existing Liabilities (Ksh)
               </label>
               <input
+                id="guarantor-existing-liabilities"
                 type="number"
                 name="existing_liabilities"
                 value={formData.existing_liabilities}
@@ -574,10 +595,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-net-worth" className="block text-sm font-medium text-gray-700 mb-1">
                 Estimated Net Worth (Ksh)
               </label>
               <input
+                id="guarantor-net-worth"
                 type="number"
                 name="net_worth"
                 value={formData.net_worth}
@@ -587,10 +609,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-guarantee-amount" className="block text-sm font-medium text-gray-700 mb-1">
                 Guarantee Amount (Ksh)
               </label>
               <input
+                id="guarantor-guarantee-amount"
                 type="number"
                 name="guarantee_amount"
                 value={formData.guarantee_amount}
@@ -600,10 +623,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-guarantee-percentage" className="block text-sm font-medium text-gray-700 mb-1">
                 Guarantee Percentage
               </label>
               <select
+                id="guarantor-guarantee-percentage"
                 name="guarantee_percentage"
                 value={formData.guarantee_percentage}
                 onChange={handleChange}
@@ -630,10 +654,11 @@ const GuarantorForm = ({
         <div className="px-6 py-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-id-attachment" className="block text-sm font-medium text-gray-700 mb-1">
                 ID Copy
               </label>
               <input
+                id="guarantor-id-attachment"
                 type="file"
                 name="id_attachment"
                 onChange={handleChange}
@@ -643,10 +668,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-kra-pin-attachment" className="block text-sm font-medium text-gray-700 mb-1">
                 KRA PIN Certificate
               </label>
               <input
+                id="guarantor-kra-pin-attachment"
                 type="file"
                 name="kra_pin_attachment"
                 onChange={handleChange}
@@ -656,10 +682,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-payslip-attachment" className="block text-sm font-medium text-gray-700 mb-1">
                 Payslip
               </label>
               <input
+                id="guarantor-payslip-attachment"
                 type="file"
                 name="payslip_attachment"
                 onChange={handleChange}
@@ -669,10 +696,11 @@ const GuarantorForm = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-bank-statement-attachment" className="block text-sm font-medium text-gray-700 mb-1">
                 Bank Statement (3 months)
               </label>
               <input
+                id="guarantor-bank-statement-attachment"
                 type="file"
                 name="bank_statement_attachment"
                 onChange={handleChange}
@@ -692,10 +720,11 @@ const GuarantorForm = ({
         <div className="px-6 py-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="guarantor-verification-status" className="block text-sm font-medium text-gray-700 mb-1">
                 Verification Status
               </label>
               <select
+                id="guarantor-verification-status"
                 name="verification_status"
                 value={formData.verification_status}
                 onChange={handleChange}
@@ -708,8 +737,9 @@ const GuarantorForm = ({
             </div>
 
             <div className="flex items-end">
-              <label className="flex items-center">
+              <label htmlFor="guarantor-is-active" className="flex items-center">
                 <input
+                  id="guarantor-is-active"
                   type="checkbox"
                   name="is_active"
                   checked={formData.is_active}
@@ -724,10 +754,11 @@ const GuarantorForm = ({
           </div>
 
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="guarantor-verification-notes" className="block text-sm font-medium text-gray-700 mb-1">
               Verification Notes
             </label>
             <textarea
+              id="guarantor-verification-notes"
               name="verification_notes"
               value={formData.verification_notes}
               onChange={handleChange}
@@ -738,10 +769,11 @@ const GuarantorForm = ({
           </div>
 
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="guarantor-notes" className="block text-sm font-medium text-gray-700 mb-1">
               Additional Notes
             </label>
             <textarea
+              id="guarantor-notes"
               name="notes"
               value={formData.notes}
               onChange={handleChange}

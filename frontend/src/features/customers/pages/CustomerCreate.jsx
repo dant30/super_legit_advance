@@ -15,11 +15,11 @@ const CustomerCreate = () => {
   const handleSubmit = async (formData) => {
     try {
       await createCustomer(formData)
-      addToast('Borrower created successfully', 'success')
+      addToast('Customer created successfully', 'success')
       // Redirect to customer list or detail page
       window.location.href = '/customers'
     } catch (error) {
-      addToast('Failed to create borrower', 'error')
+      addToast('Failed to create customer', 'error')
       throw error
     }
   }
@@ -27,8 +27,8 @@ const CustomerCreate = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Register New Borrower"
-        subTitle="Add a new borrower to the lending portfolio"
+        title="Register New Customer"
+        subTitle="Add a new customer to the lending portfolio"
         extra={[
           <Link to="/customers" key="back">
             <Button icon={<ArrowLeft size={16} />}>
@@ -41,7 +41,7 @@ const CustomerCreate = () => {
       <Alert
         type="info"
         message="Important Information"
-        description="Complete all required borrower fields to support accurate credit and repayment decisions."
+        description="Complete all required customer fields to support accurate credit and repayment decisions."
         className="mb-6"
       />
 

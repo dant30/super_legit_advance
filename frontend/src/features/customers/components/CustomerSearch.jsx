@@ -115,6 +115,10 @@ const CustomerSearch = ({
           onFocus={() => query.trim() && setIsOpen(true)}
           placeholder={placeholder}
           autoFocus={autoFocus}
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-controls="customer-search-results"
+          aria-label="Search customers"
           className={`
             block w-full pl-10 pr-10 border border-gray-300 rounded-md
             shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500
@@ -148,8 +152,10 @@ const CustomerSearch = ({
         {/* Clear Button */}
         {query && (
           <button
+            type="button"
             onClick={handleClear}
             className="absolute inset-y-0 right-0 pr-3 flex items-center"
+            aria-label={searchLoading ? 'Searching customers' : 'Clear customer search'}
           >
             {searchLoading ? (
               <ArrowPathIcon className="h-4 w-4 text-gray-400 animate-spin" />
@@ -162,7 +168,12 @@ const CustomerSearch = ({
 
       {/* Search Results Dropdown */}
       {isOpen && query.trim() && (
-        <div className="absolute z-10 mt-1 w-full bg-white shadow-hard rounded-md border border-gray-200 max-h-96 overflow-y-auto">
+        <div
+          id="customer-search-results"
+          role="listbox"
+          aria-label="Customer search results"
+          className="absolute z-10 mt-1 w-full bg-white shadow-hard rounded-md border border-gray-200 max-h-96 overflow-y-auto"
+        >
           {/* Results Header */}
           <div className="px-4 py-2 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
@@ -206,10 +217,17 @@ const CustomerSearch = ({
               {searchResults.map((customer) => (
                 <li
                   key={customer.id}
-                  className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                  onClick={() => handleSelect(customer)}
+                  className="border-b border-gray-100 last:border-b-0"
+                  role="option"
+                  aria-selected="false"
                 >
-                  <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(customer)}
+                    className="w-full px-4 py-3 hover:bg-gray-50 text-left"
+                    aria-label={`Open profile for ${customer.full_name || `${customer.first_name} ${customer.last_name}`}`}
+                  >
+                    <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
                       {customer.profile_picture ? (
                         <img
@@ -249,7 +267,8 @@ const CustomerSearch = ({
                         {customer.status}
                       </span>
                     </div>
-                  </div>
+                    </div>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -259,13 +278,14 @@ const CustomerSearch = ({
           {!searchLoading && !searchError && searchResults && searchResults.length > 0 && (
             <div className="px-4 py-2 border-t border-gray-200 bg-gray-50">
               <button
+                type="button"
                 onClick={() => {
                   navigate(`/customers?search=${encodeURIComponent(query)}`);
                   setIsOpen(false);
                 }}
                 className="w-full text-center text-sm text-primary-600 hover:text-primary-800 font-medium"
               >
-                View all results →
+                View all results
               </button>
             </div>
           )}
@@ -276,5 +296,6 @@ const CustomerSearch = ({
 };
 
 export default CustomerSearch;
+
 
 
