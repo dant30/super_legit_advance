@@ -1,18 +1,35 @@
 // frontend/src/hooks/useLoans.js
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { loanAPI, LOAN_STATUS } from '@api/loans'
 import { useToast } from '@contexts/ToastContext'
+import { LOAN_DEFAULT_FILTERS, LOAN_SEARCH_TYPE } from '../types'
+import { useDispatch } from 'react-redux'
+import {
+  setApplicationFilters as setApplicationFiltersAction,
+  setCollaterals,
+  setLoanApplications,
+  setLoanCalculatorResult,
+  setLoanFilters as setLoanFiltersAction,
+  setLoanSearchResults,
+  setLoanStats,
+  setLoans,
+  setLoansLoading,
+  setSelectedLoan,
+  setSelectedLoanApplication,
+  setLoansState,
+} from '../store'
 
 export const useLoans = () => {
   const queryClient = useQueryClient()
   const toast = useToast()
-  const [loanFilters, setLoanFilters] = useState({})
+  const dispatch = useDispatch()
+  const [loanFilters, setLoanFilters] = useState(LOAN_DEFAULT_FILTERS)
   const [applicationFilters, setApplicationFilters] = useState({})
 
   // ---------- Queries ----------
-  const useLoansQuery = (overrides = {}) =>
-    useQuery({
+  const useLoansQuery = (overrides = {}) => {
+    const query = useQuery({
       queryKey: ['loans', { ...loanFilters, ...overrides }],
       queryFn: () => loanAPI.getLoans({ ...loanFilters, ...overrides }),
       keepPreviousData: true,
@@ -22,8 +39,41 @@ export const useLoans = () => {
       }
     })
 
-  const useLoanQuery = (id) =>
-    useQuery({
+    useEffect(() => {
+      dispatch(setLoansLoading(query.isLoading))
+    }, [dispatch, query.isLoading])
+
+    useEffect(() => {
+      if (query.error) {
+        dispatch(
+          setLoansState({
+            loansError: query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch loans',
+          })
+        )
+        return
+      }
+
+      const data = query.data
+      if (!data) return
+      dispatch(setLoans(Array.isArray(data) ? data : data?.results || []))
+      dispatch(
+        setLoansState({
+          loansError: null,
+          loansPagination: {
+            page: data?.page ?? 1,
+            page_size: data?.page_size ?? data?.results?.length ?? 0,
+            total: data?.count ?? data?.total ?? 0,
+            total_pages: data?.total_pages ?? 0,
+          },
+        })
+      )
+    }, [dispatch, query.data, query.error])
+
+    return query
+  }
+
+  const useLoanQuery = (id) => {
+    const query = useQuery({
       queryKey: ['loan', id],
       queryFn: () => loanAPI.getLoan(id),
       enabled: !!id,
@@ -33,16 +83,78 @@ export const useLoans = () => {
       }
     })
 
-  const useLoanStatsQuery = () =>
-    useQuery({
+    useEffect(() => {
+      dispatch(
+        setLoansState({
+          selectedLoanLoading: query.isLoading,
+        })
+      )
+    }, [dispatch, query.isLoading])
+
+    useEffect(() => {
+      if (query.error) {
+        dispatch(
+          setLoansState({
+            selectedLoanError: query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch loan',
+          })
+        )
+        return
+      }
+
+      if (query.data) {
+        dispatch(setSelectedLoan(query.data))
+        dispatch(
+          setLoansState({
+            selectedLoanError: null,
+          })
+        )
+      }
+    }, [dispatch, query.data, query.error])
+
+    return query
+  }
+
+  const useLoanStatsQuery = () => {
+    const query = useQuery({
       queryKey: ['loanStats'],
       queryFn: () => loanAPI.getLoanStats(),
       staleTime: 1000 * 60 * 2,
       onError: () => toast.error('Failed to fetch loan stats', { title: 'Error' })
     })
 
-  const useLoanApplicationsQuery = (overrides = {}) =>
-    useQuery({
+    useEffect(() => {
+      dispatch(
+        setLoansState({
+          statsLoading: query.isLoading,
+        })
+      )
+    }, [dispatch, query.isLoading])
+
+    useEffect(() => {
+      if (query.error) {
+        dispatch(
+          setLoansState({
+            statsError: query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch loan stats',
+          })
+        )
+        return
+      }
+
+      if (query.data) {
+        dispatch(setLoanStats(query.data))
+        dispatch(
+          setLoansState({
+            statsError: null,
+          })
+        )
+      }
+    }, [dispatch, query.data, query.error])
+
+    return query
+  }
+
+  const useLoanApplicationsQuery = (overrides = {}) => {
+    const query = useQuery({
       queryKey: ['loanApplications', { ...applicationFilters, ...overrides }],
       queryFn: () => loanAPI.getLoanApplications({ ...applicationFilters, ...overrides }),
       keepPreviousData: true,
@@ -50,14 +162,55 @@ export const useLoans = () => {
       onError: (err) => toast.error(err?.response?.data?.detail || 'Failed to fetch applications', { title: 'Error' })
     })
 
-  const useLoanApplicationQuery = (id) =>
-    useQuery({
+    useEffect(() => {
+      dispatch(
+        setLoansState({
+          loanApplicationsLoading: query.isLoading,
+        })
+      )
+    }, [dispatch, query.isLoading])
+
+    useEffect(() => {
+      if (query.error) {
+        dispatch(
+          setLoansState({
+            loanApplicationsError:
+              query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch applications',
+          })
+        )
+        return
+      }
+
+      const data = query.data
+      if (!data) return
+      dispatch(setLoanApplications(Array.isArray(data) ? data : data?.results || []))
+      dispatch(
+        setLoansState({
+          loanApplicationsError: null,
+        })
+      )
+    }, [dispatch, query.data, query.error])
+
+    return query
+  }
+
+  const useLoanApplicationQuery = (id) => {
+    const query = useQuery({
       queryKey: ['loanApplication', id],
       queryFn: () => loanAPI.getLoanApplication(id),
       enabled: !!id,
       staleTime: 1000 * 60 * 10,
       onError: (err) => toast.error(err?.response?.data?.detail || 'Failed to fetch application', { title: 'Error' })
     })
+
+    useEffect(() => {
+      if (query.data) {
+        dispatch(setSelectedLoanApplication(query.data))
+      }
+    }, [dispatch, query.data])
+
+    return query
+  }
 
   // ---------- Mutations ----------
   const useCreateLoan = () =>
@@ -149,7 +302,31 @@ export const useLoans = () => {
   const useCalculateLoan = () =>
     useMutation({
       mutationFn: (payload) => loanAPI.calculateLoan(payload),
+      onMutate: () => {
+        dispatch(
+          setLoansState({
+            calculatorLoading: true,
+            calculatorError: null,
+          })
+        )
+      },
+      onSuccess: (result) => {
+        dispatch(setLoanCalculatorResult(result))
+        dispatch(
+          setLoansState({
+            calculatorLoading: false,
+            calculatorError: null,
+          })
+        )
+      },
       onError: (err) => {
+        dispatch(
+          setLoansState({
+            calculatorLoading: false,
+            calculatorError:
+              err?.response?.data?.detail || err?.message || 'Failed to calculate loan',
+          })
+        )
         toast.error(err?.response?.data || 'Failed to calculate loan', { title: 'Error' })
         throw err
       }
@@ -213,13 +390,45 @@ export const useLoans = () => {
     })
 
   // Collateral
-  const useCollateralsQuery = (loanId, filters = {}) =>
-    useQuery({
+  const useCollateralsQuery = (loanId, filters = {}) => {
+    const query = useQuery({
       queryKey: ['collaterals', loanId, filters],
       queryFn: () => loanAPI.getCollaterals(loanId, filters),
       enabled: !!loanId,
       onError: (err) => toast.error(err?.response?.data?.detail || 'Failed to fetch collateral', { title: 'Error' })
     })
+
+    useEffect(() => {
+      dispatch(
+        setLoansState({
+          collateralsLoading: query.isLoading,
+        })
+      )
+    }, [dispatch, query.isLoading])
+
+    useEffect(() => {
+      if (query.error) {
+        dispatch(
+          setLoansState({
+            collateralsError:
+              query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch collateral',
+          })
+        )
+        return
+      }
+
+      const data = query.data
+      if (!data) return
+      dispatch(setCollaterals(Array.isArray(data) ? data : data?.results || []))
+      dispatch(
+        setLoansState({
+          collateralsError: null,
+        })
+      )
+    }, [dispatch, query.data, query.error])
+
+    return query
+  }
 
   const useCreateCollateral = () =>
     useMutation({
@@ -253,24 +462,67 @@ export const useLoans = () => {
   const searchLoans = useCallback(
     async (query, type = 'basic', params = {}) => {
       try {
-        return await loanAPI.searchLoans(query, type, params)
+        dispatch(
+          setLoansState({
+            searchLoading: true,
+            searchError: null,
+          })
+        )
+        const results = await loanAPI.searchLoans(query, type, params)
+        const normalized = Array.isArray(results) ? results : results?.results || []
+        dispatch(setLoanSearchResults(normalized))
+        dispatch(
+          setLoansState({
+            searchLoading: false,
+            searchError: null,
+          })
+        )
+        return normalized
       } catch (err) {
+        dispatch(
+          setLoansState({
+            searchLoading: false,
+            searchError: err?.response?.data?.detail || err?.message || 'Failed to search loans',
+          })
+        )
         toast.error(err?.response?.data || 'Failed to search loans', { title: 'Error' })
         throw err
       }
     },
-    [toast]
+    [dispatch, toast]
   )
 
   // Filters
-  const updateLoanFilters = useCallback((filters) => setLoanFilters((p) => ({ ...p, ...filters })), [])
-  const updateApplicationFilters = useCallback((filters) => setApplicationFilters((p) => ({ ...p, ...filters })), [])
-  const clearLoanFilters = useCallback(() => setLoanFilters({}), [])
-  const clearApplicationFilters = useCallback(() => setApplicationFilters({}), [])
+  const updateLoanFilters = useCallback((filters) => {
+    setLoanFilters((p) => {
+      const next = { ...p, ...filters }
+      dispatch(setLoanFiltersAction(next))
+      return next
+    })
+  }, [dispatch])
+
+  const updateApplicationFilters = useCallback((filters) => {
+    setApplicationFilters((p) => {
+      const next = { ...p, ...filters }
+      dispatch(setApplicationFiltersAction(next))
+      return next
+    })
+  }, [dispatch])
+
+  const clearLoanFilters = useCallback(() => {
+    setLoanFilters(LOAN_DEFAULT_FILTERS)
+    dispatch(setLoanFiltersAction(LOAN_DEFAULT_FILTERS))
+  }, [dispatch])
+
+  const clearApplicationFilters = useCallback(() => {
+    setApplicationFilters({})
+    dispatch(setApplicationFiltersAction({}))
+  }, [dispatch])
 
   return {
     // constants
     LOAN_STATUS,
+    LOAN_SEARCH_TYPE,
 
     // state
     loanFilters,

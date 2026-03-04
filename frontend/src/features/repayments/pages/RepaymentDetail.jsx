@@ -5,20 +5,26 @@ import PageHeader from '@components/ui/PageHeader'
 import Button from '@components/ui/Button'
 import Modal from '@components/ui/Modal'
 import Input from '@components/ui/Input'
+import { useSelector } from 'react-redux'
 import {
   RepaymentDetails,
   PaymentSchedule,
   PaymentReceipt,
 } from '@components/repayments'
 import { useRepaymentContext } from '@contexts/RepaymentContext'
+import {
+  selectRepaymentSchedules,
+  selectRepaymentsLoading,
+  selectSelectedRepayment,
+} from '../store'
 
 const RepaymentDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const selectedRepayment = useSelector(selectSelectedRepayment)
+  const schedules = useSelector(selectRepaymentSchedules)
+  const loading = useSelector(selectRepaymentsLoading)
   const {
-    selectedRepayment,
-    schedules,
-    loading,
     getRepaymentById,
     getSchedules,
     processRepayment,

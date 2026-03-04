@@ -2,12 +2,15 @@
 import React, { useEffect, useState } from 'react'
 import PageHeader from '@components/ui/PageHeader'
 import { RepaymentTable } from '@components/repayments'
+import { useSelector } from 'react-redux'
 import { useRepaymentContext } from '@contexts/RepaymentContext'
 import { useNavigate } from 'react-router-dom'
+import { selectRepaymentsLoading } from '../store'
 
 const OverdueRepayments = () => {
   const navigate = useNavigate()
-  const { getOverdueRepayments, loading, formatCurrency, formatStatus } = useRepaymentContext()
+  const loading = useSelector(selectRepaymentsLoading)
+  const { getOverdueRepayments, formatCurrency, formatStatus } = useRepaymentContext()
   const [rows, setRows] = useState([])
 
   useEffect(() => {

@@ -9,7 +9,7 @@ import {
   REPAYMENT_STATUS,
   PAYMENT_METHOD,
   REPAYMENT_TYPE,
-} from '@api/repayments'
+} from '../types'
 
 const statusOptions = [
   { value: REPAYMENT_STATUS.PENDING, label: 'Pending' },

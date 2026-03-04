@@ -1,49 +1,13 @@
 // frontend/src/api/repayments.js
 import axiosInstance from '@api/axios'
-
-export const REPAYMENT_STATUS = {
-  PENDING: 'PENDING',
-  PROCESSING: 'PROCESSING',
-  COMPLETED: 'COMPLETED',
-  FAILED: 'FAILED',
-  CANCELLED: 'CANCELLED',
-  OVERDUE: 'OVERDUE',
-  PARTIAL: 'PARTIAL',
-  WAIVED: 'WAIVED',
-}
-
-export const SCHEDULE_STATUS = {
-  PENDING: 'PENDING',
-  OVERDUE: 'OVERDUE',
-  PAID: 'PAID',
-  ADJUSTED: 'ADJUSTED',
-}
-
-export const PENALTY_STATUS = {
-  PENDING: 'PENDING',
-  APPLIED: 'APPLIED',
-  WAIVED: 'WAIVED',
-  CANCELLED: 'CANCELLED',
-}
-
-export const PAYMENT_METHOD = {
-  CASH: 'CASH',
-  MPESA: 'MPESA',
-  BANK: 'BANK',
-  CHEQUE: 'CHEQUE',
-}
-
-export const REPAYMENT_TYPE = {
-  FULL: 'FULL',
-  PARTIAL: 'PARTIAL',
-  INTEREST_ONLY: 'INTEREST_ONLY',
-}
-
-export const PENALTY_TYPE = {
-  LATE_FEE: 'LATE_FEE',
-  INTEREST: 'INTEREST',
-  OTHER: 'OTHER',
-}
+import {
+  PENALTY_STATUS,
+  PENALTY_TYPE,
+  PAYMENT_METHOD,
+  REPAYMENT_STATUS,
+  REPAYMENT_TYPE,
+  SCHEDULE_STATUS,
+} from '../types'
 
 class RepaymentsAPI {
   constructor() {
@@ -245,4 +209,12 @@ class RepaymentsAPI {
 }
 
 export const repaymentsAPI = new RepaymentsAPI()
+export {
+  REPAYMENT_STATUS,
+  SCHEDULE_STATUS,
+  PENALTY_STATUS,
+  PAYMENT_METHOD,
+  REPAYMENT_TYPE,
+  PENALTY_TYPE,
+}
 export default repaymentsAPI

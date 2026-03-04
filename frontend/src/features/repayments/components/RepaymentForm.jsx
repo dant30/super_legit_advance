@@ -5,7 +5,7 @@ import Select from '@components/ui/Select'
 import Button from '@components/ui/Button'
 import { Card, CardHeader, CardContent, CardFooter } from '@components/ui/Card'
 import { cn } from '@utils/cn'
-import { PAYMENT_METHOD, REPAYMENT_TYPE } from '@api/repayments'
+import { PAYMENT_METHOD, REPAYMENT_TYPE } from '../types'
 
 const methodOptions = [
   { value: PAYMENT_METHOD.CASH, label: 'Cash' },

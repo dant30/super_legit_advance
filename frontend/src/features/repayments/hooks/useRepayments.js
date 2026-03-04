@@ -1,27 +1,20 @@
 // frontend/src/hooks/useRepayments.js
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { useDispatch } from 'react-redux'
 import { useToast } from '@contexts/ToastContext'
 import { repaymentsAPI } from '../services/repayments'
+import { REPAYMENTS_INITIAL_STATE } from '../types'
+import { setRepaymentsState } from '../store'
 
 export const useRepayments = () => {
-  const [state, setState] = useState({
-    repayments: [],
-    schedules: [],
-    penalties: [],
-    selectedRepayment: null,
-    loading: false,
-    error: null,
-    dashboardStats: null,
-    pagination: {
-      count: 0,
-      next: null,
-      previous: null,
-      page: 1,
-      pageSize: 20,
-    },
-  })
+  const [state, setState] = useState(REPAYMENTS_INITIAL_STATE)
+  const dispatch = useDispatch()
 
   const { addToast } = useToast()
+
+  useEffect(() => {
+    dispatch(setRepaymentsState(state))
+  }, [dispatch, state])
 
   const setLoading = useCallback((loading) => {
     setState(prev => ({ ...prev, loading }))

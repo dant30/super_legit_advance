@@ -27,7 +27,7 @@ export const useRepaymentContext = () => {
   return context
 }
 
-// Re-export constants from API for convenience
+// Re-export constants from repayments types for convenience
 export {
   REPAYMENT_STATUS,
   SCHEDULE_STATUS,
@@ -35,4 +35,4 @@ export {
   PAYMENT_METHOD,
   REPAYMENT_TYPE,
   PENALTY_TYPE
-} from '../../features/repayments/services/repayments'
+} from '../../features/repayments/types'

@@ -4,15 +4,21 @@ import PageHeader from '@components/ui/PageHeader'
 import Pagination from '@components/ui/Pagination'
 import SearchBar from '@components/ui/SearchBar'
 import { RepaymentTable } from '@components/repayments'
+import { useSelector } from 'react-redux'
 import { useRepaymentContext } from '@contexts/RepaymentContext'
 import { useNavigate } from 'react-router-dom'
+import {
+  selectRepayments,
+  selectRepaymentsLoading,
+  selectRepaymentsPagination,
+} from '../store'
 
 const PaymentHistory = () => {
   const navigate = useNavigate()
+  const repayments = useSelector(selectRepayments)
+  const loading = useSelector(selectRepaymentsLoading)
+  const pagination = useSelector(selectRepaymentsPagination)
   const {
-    repayments,
-    loading,
-    pagination,
     getRepayments,
     setPage,
     setPageSize,

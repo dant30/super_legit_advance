@@ -3,11 +3,14 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '@components/ui/PageHeader'
 import { RepaymentForm } from '@components/repayments'
+import { useSelector } from 'react-redux'
 import { useRepaymentContext } from '@contexts/RepaymentContext'
+import { selectRepaymentsLoading } from '../store'
 
 const RepaymentCreate = () => {
   const navigate = useNavigate()
-  const { createRepayment, loading } = useRepaymentContext()
+  const loading = useSelector(selectRepaymentsLoading)
+  const { createRepayment } = useRepaymentContext()
 
   const handleSubmit = async (data) => {
     const res = await createRepayment(data)

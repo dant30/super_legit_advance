@@ -3,7 +3,7 @@ import React from 'react'
 import Table from '@components/ui/Table'
 import Badge from '@components/ui/Badge'
 import Button from '@components/ui/Button'
-import { REPAYMENT_STATUS } from '@api/repayments'
+import { REPAYMENT_STATUS } from '../types'
 import { cn } from '@utils/cn'
 
 const RepaymentTable = ({
