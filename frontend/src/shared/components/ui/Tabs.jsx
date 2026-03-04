@@ -56,7 +56,7 @@ export const TabsList = ({ children, className, fullWidth }) => {
     if (!keys.includes(e.key)) return
 
     const list = e.currentTarget
-    const tabs = Array.from(list.querySelectorAll('[role="tab"]'))
+    const tabs = Array.from(list.querySelectorAll('[role="tab"]')).filter((tab) => !tab.hasAttribute('disabled'))
     const currentIndex = tabs.indexOf(document.activeElement)
     if (currentIndex === -1) return
 
@@ -67,8 +67,8 @@ export const TabsList = ({ children, className, fullWidth }) => {
     const prevKey = horizontal ? 'ArrowLeft' : 'ArrowUp'
 
     let nextIndex = currentIndex
-    if (e.key === nextKey) nextIndex = Math.min(tabs.length - 1, currentIndex + 1)
-    if (e.key === prevKey) nextIndex = Math.max(0, currentIndex - 1)
+    if (e.key === nextKey) nextIndex = (currentIndex + 1) % tabs.length
+    if (e.key === prevKey) nextIndex = (currentIndex - 1 + tabs.length) % tabs.length
     if (e.key === 'Home') nextIndex = 0
     if (e.key === 'End') nextIndex = tabs.length - 1
 
@@ -141,7 +141,7 @@ export const TabsTrigger = ({ value, children, className, disabled, icon }) => {
       disabled={disabled}
       onClick={() => !disabled && setActiveTab(value)}
       className={cn(
-        'inline-flex items-center gap-2 font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-500',
+        'inline-flex items-center gap-2 font-medium transition ui-focus',
         sizeClasses[size],
         variantClasses[variant],
         disabled && 'opacity-50 cursor-not-allowed',

@@ -1,5 +1,5 @@
 const PALETTE = [
-  "#0b69a3",
+  "#2563eb",
   "#1d4ed8",
   "#0891b2",
   "#15803d",
@@ -50,14 +50,14 @@ export default function PieChart({ data = [], title = "Share", className = "" })
   return (
     <section className={`ui-chart-shell ${className}`}>
       <header className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-        <span className="text-xs text-slate-500">{segments.length} segments</span>
+        <h3 className="ui-chart-title">{title}</h3>
+        <span className="ui-chart-meta">{segments.length} segments</span>
       </header>
       <p className="sr-only">
         {`${title}. ${segments.length} segments. Total value ${total}.`}
       </p>
       {normalizedData.length === 0 || total <= 0 ? (
-        <p className="text-sm text-slate-500">No data available.</p>
+        <p className="ui-help">No data available.</p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-[220px_1fr]">
           <svg
@@ -76,14 +76,14 @@ export default function PieChart({ data = [], title = "Share", className = "" })
               </path>
             ))}
           </svg>
-          <ul className="grid content-start gap-2">
+          <ul className="grid content-start gap-2" aria-label={`${title} legend`}>
             {segments.map((segment, index) => (
               <li key={`${segment.label}-legend-${index}`} className="flex items-center justify-between gap-3 text-sm">
-                <span className="inline-flex items-center gap-2 text-slate-700">
+                <span className="inline-flex items-center gap-2 text-gray-700 dark:text-gray-300">
                   <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: segment.color }} />
                   {segment.label}
                 </span>
-                <span className="font-semibold text-slate-900">
+                <span className="font-semibold text-gray-900 dark:text-gray-100">
                   {((segment.value / total) * 100).toFixed(1)}%
                 </span>
               </li>

@@ -83,7 +83,7 @@ export const Select = React.forwardRef(
     return (
       <div className={cn(fullWidth && 'w-full', className)}>
         {label && (
-          <label htmlFor={selectId} className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor={selectId} className="ui-label">
             {label}
             {required && <span className="ml-1 text-danger-500">*</span>}
           </label>
@@ -104,12 +104,12 @@ export const Select = React.forwardRef(
             value={value}
             onChange={handleChange}
             className={cn(
-              'w-full appearance-none rounded-lg transition-all',
+              'ui-control w-full appearance-none',
               'text-gray-900 dark:text-gray-100',
               'disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-gray-50 dark:disabled:bg-slate-800/50',
-              'focus:outline-none focus:ring-2 focus:ring-primary-500',
+              'ui-focus',
               sizeClasses[size],
-              variantClasses[variant],
+              variant !== 'outline' && variantClasses[variant],
               startIcon && 'pl-10',
               'pr-10',
               error && 'border-danger-500 focus:ring-danger-500'
@@ -146,13 +146,13 @@ export const Select = React.forwardRef(
         </div>
 
         {error && (
-          <p id={errorId} className="mt-1 text-sm text-danger-600 dark:text-danger-400" role="alert">
+          <p id={errorId} className="ui-error" role="alert">
             {error}
           </p>
         )}
 
         {!error && hint && (
-          <p id={hintId} className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p id={hintId} className="ui-help">
             {hint}
           </p>
         )}

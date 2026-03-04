@@ -1,11 +1,25 @@
+function getSessionStorage() {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.sessionStorage;
+  } catch {
+    return null;
+  }
+}
+
 export function getSessionItem(key) {
-  return window.sessionStorage.getItem(key);
+  const storage = getSessionStorage();
+  return storage ? storage.getItem(key) : null;
 }
 
 export function setSessionItem(key, value) {
-  window.sessionStorage.setItem(key, value);
+  const storage = getSessionStorage();
+  if (!storage) return;
+  storage.setItem(key, value);
 }
 
 export function removeSessionItem(key) {
-  window.sessionStorage.removeItem(key);
+  const storage = getSessionStorage();
+  if (!storage) return;
+  storage.removeItem(key);
 }

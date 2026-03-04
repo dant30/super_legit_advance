@@ -1,6 +1,7 @@
 // frontend/src/hooks/useMpesa.js
 import { useContext, useCallback } from 'react'
-import MpesaContext from '../contexts/MpesaContext'
+import MpesaContext from '@contexts/MpesaContext'
+import { downloadBlob } from '@utils/exportUtils'
 
 /**
  * Custom hook for M-Pesa operations
@@ -69,17 +70,7 @@ export const useMpesaHistory = () => {
    */
   const exportToFile = useCallback(async (format = 'csv', params = {}) => {
     const blob = await exportPayments(format, params)
-    
-    // Create download link
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `payments_${new Date().toISOString().slice(0,10)}.${format}`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    window.URL.revokeObjectURL(url)
-    
+    downloadBlob(blob, `payments_${new Date().toISOString().slice(0, 10)}.${format}`)
     return true
   }, [exportPayments])
 

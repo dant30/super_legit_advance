@@ -1,22 +1,8 @@
-// frontend/src/components/ui/Popconfirm.jsx
-import React, { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Check } from 'lucide-react'
+import React, { useEffect, useId, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Check, X } from 'lucide-react'
+import { cn } from '@utils/cn'
 
-/**
- * Popconfirm Component
- * Props:
- * - title: string, main message
- * - description: string, optional additional text
- * - onConfirm: function, called when user confirms
- * - onCancel: function, called when user cancels
- * - confirmText: string, default 'Yes'
- * - cancelText: string, default 'No'
- * - placement: 'top' | 'bottom' | 'left' | 'right', default 'top'
- * - disabled: boolean, default false
- * - children: JSX, element to wrap the popconfirm trigger
- * - icon: JSX, optional icon to show in popconfirm
- */
 export default function Popconfirm({
   title = 'Are you sure?',
   description = '',
@@ -30,21 +16,35 @@ export default function Popconfirm({
   icon,
 }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef(null)
+  const rootRef = useRef(null)
+  const cancelRef = useRef(null)
+  const panelId = `popconfirm-${useId()}`
 
-  // Close popconfirm when clicking outside
   useEffect(() => {
+    if (!open) return
     const handleClickOutside = (event) => {
-      if (ref.current && !ref.current.contains(event.target)) {
+      if (rootRef.current && !rootRef.current.contains(event.target)) {
         setOpen(false)
         onCancel?.()
       }
     }
-    if (open) document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setOpen(false)
+        onCancel?.()
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
+    cancelRef.current?.focus()
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
   }, [open, onCancel])
 
-  // Positioning logic
   const getPlacementStyle = () => {
     switch (placement) {
       case 'top':
@@ -60,53 +60,55 @@ export default function Popconfirm({
     }
   }
 
-  // Handle confirm click
   const handleConfirm = async () => {
     setOpen(false)
-    if (onConfirm) {
-      try {
-        await onConfirm()
-      } catch (err) {
-        console.error('Popconfirm onConfirm error:', err)
-      }
+    try {
+      await onConfirm?.()
+    } catch (err) {
+      console.error('Popconfirm onConfirm error:', err)
     }
   }
 
-  // Handle cancel click
   const handleCancel = () => {
     setOpen(false)
     onCancel?.()
   }
 
   return (
-    <div className="relative inline-block" ref={ref}>
-      {/* Trigger */}
-      <div
-        className={`cursor-pointer ${disabled ? 'pointer-events-none opacity-50' : ''}`}
+    <div className="relative inline-block" ref={rootRef}>
+      <button
+        type="button"
+        className={cn(disabled ? 'pointer-events-none opacity-50' : 'cursor-pointer', 'ui-focus rounded-md')}
         onClick={() => !disabled && setOpen((prev) => !prev)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-controls={open ? panelId : undefined}
       >
         {children}
-      </div>
+      </button>
 
-      {/* Popconfirm panel */}
       <AnimatePresence>
         {open && !disabled && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            id={panelId}
+            role="dialog"
+            aria-modal="false"
+            aria-label={title}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className={`absolute z-50 w-64 rounded-lg shadow-lg bg-white border border-gray-200 p-4 text-gray-800 ${getPlacementStyle()}`}
+            className={cn('absolute z-50 w-64 ui-panel p-4 text-gray-800 dark:text-gray-100', getPlacementStyle())}
           >
-            {/* Header */}
             <div className="flex items-start gap-2">
               {icon && <div className="text-yellow-500">{icon}</div>}
               <div className="flex-1">
-                <p className="font-semibold text-sm">{title}</p>
-                {description && <p className="text-xs text-gray-500 mt-1">{description}</p>}
+                <p className="text-sm font-semibold">{title}</p>
+                {description && <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{description}</p>}
               </div>
               <button
-                className="text-gray-400 hover:text-gray-600"
+                type="button"
+                className="rounded-md p-1 text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-200"
                 onClick={handleCancel}
                 aria-label="Close popconfirm"
               >
@@ -114,16 +116,18 @@ export default function Popconfirm({
               </button>
             </div>
 
-            {/* Actions */}
             <div className="mt-4 flex justify-end gap-2">
               <button
-                className="px-3 py-1.5 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                ref={cancelRef}
+                type="button"
+                className="ui-focus rounded-md px-3 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 transition-colors"
                 onClick={handleCancel}
               >
                 {cancelText}
               </button>
               <button
-                className="px-3 py-1.5 rounded-md text-sm bg-yellow-500 text-white hover:bg-yellow-600 transition-colors flex items-center gap-1"
+                type="button"
+                className="ui-focus flex items-center gap-1 rounded-md bg-warning-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-warning-600"
                 onClick={handleConfirm}
               >
                 {confirmText} <Check size={16} />

@@ -13,7 +13,11 @@ export default function FormActions({
     align === "left" ? "justify-start" : align === "center" ? "justify-center" : "justify-end";
 
   return (
-    <div className={`flex flex-wrap gap-2 border-t border-slate-200 pt-3 ${alignmentClass} ${className}`}>
+    <div
+      className={`flex flex-wrap gap-2 border-t border-gray-200 pt-3 dark:border-slate-700 ${alignmentClass} ${className}`}
+      role="group"
+      aria-label="Form actions"
+    >
       {secondaryLabel ? (
         <Button variant="secondary" {...secondaryProps}>
           {secondaryLabel}

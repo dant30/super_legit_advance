@@ -74,14 +74,14 @@ const Input = forwardRef(
     return (
       <div className={cn(fullWidth && 'w-full', containerClassName)}>
         {label && (
-          <label htmlFor={inputId} className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor={inputId} className="ui-label">
             {label}
           </label>
         )}
 
         <div
           className={cn(
-            'relative flex items-center rounded-lg border transition-all',
+            'ui-control relative flex items-center',
             'focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent',
             variantClasses[variant],
             error && 'border-danger-500 focus-within:ring-danger-500',
@@ -115,13 +115,13 @@ const Input = forwardRef(
         </div>
 
         {error && (
-          <p id={errorId} className="mt-1 text-sm text-danger-600 dark:text-danger-400">
+          <p id={errorId} className="ui-error">
             {error}
           </p>
         )}
 
         {!error && hint && (
-          <p id={hintId} className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p id={hintId} className="ui-help">
             {hint}
           </p>
         )}

@@ -27,9 +27,23 @@ export function useLocalStorage(key, initialValue) {
   }, [key]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(key, JSON.stringify(value));
-  }, [key, value]);
+    if (typeof window === "undefined") return
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value))
+    } catch {
+      // ignore storage quota/security errors; keep in-memory state
+    }
+  }, [key, value])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const onStorage = (event) => {
+      if (event.key !== key) return
+      setValue(parseValue(event.newValue, initialRef.current))
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [key])
 
   const remove = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -37,7 +51,13 @@ export function useLocalStorage(key, initialValue) {
     setValue(initialRef.current);
   }, [key]);
 
-  return [value, setValue, remove];
+  const update = useCallback((nextValueOrUpdater) => {
+    setValue((prev) =>
+      typeof nextValueOrUpdater === 'function' ? nextValueOrUpdater(prev) : nextValueOrUpdater
+    )
+  }, [])
+
+  return [value, update, remove];
 }
 
 export default useLocalStorage;

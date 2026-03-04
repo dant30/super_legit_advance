@@ -1,4 +1,4 @@
-// frontend/src/utils/formatters.js
+import { APP_DEFAULTS } from './constants'
 
 /**
  * Format a phone number to a standard international format.
@@ -8,9 +8,9 @@
  */
 export const formatPhoneNumber = (phone) => {
   if (!phone) return ''
-  
-  // Remove all non-digit characters
-  const cleaned = phone.replace(/\D/g, '')
+
+  const raw = String(phone).trim()
+  const cleaned = raw.replace(/\D/g, '')
 
   // Handle different possible cases
   if (cleaned.startsWith('0') && cleaned.length === 10) {
@@ -26,8 +26,7 @@ export const formatPhoneNumber = (phone) => {
     return '+254' + cleaned
   }
   
-  // If already in proper format or unrecognized, return cleaned with plus if missing
-  return cleaned.startsWith('+') ? cleaned : '+' + cleaned
+  return `+${cleaned}`
 }
 
 /**
@@ -36,11 +35,11 @@ export const formatPhoneNumber = (phone) => {
  * @param {string} currency - Currency code (default: 'KES')
  * @returns {string} Formatted currency string
  */
-export const formatCurrency = (amount, currency = 'KES') => {
+export const formatCurrency = (amount, currency = APP_DEFAULTS.currency) => {
   // Handle null/undefined/NaN
   const safeAmount = Number(amount) || 0
   
-  return new Intl.NumberFormat('en-KE', {
+  return new Intl.NumberFormat(APP_DEFAULTS.locale, {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
@@ -61,7 +60,7 @@ export const formatDate = (date) => {
   
   if (isNaN(d.getTime())) return 'Invalid Date'
 
-  return d.toLocaleDateString('en-KE', {
+  return d.toLocaleDateString(APP_DEFAULTS.locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
@@ -79,7 +78,7 @@ export const formatNumber = (value) => {
   const num = Number(value)
   if (isNaN(num)) return '0'
   
-  return num.toLocaleString('en-KE')
+  return num.toLocaleString(APP_DEFAULTS.locale)
 }
 
 /**
@@ -94,7 +93,7 @@ export const formatDateTime = (dateTime) => {
   
   if (isNaN(d.getTime())) return 'Invalid Date/Time'
 
-  return d.toLocaleDateString('en-KE', {
+  return d.toLocaleDateString(APP_DEFAULTS.locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

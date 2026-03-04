@@ -17,6 +17,7 @@ export function toCsv(rows = [], columns = null) {
 }
 
 export function downloadBlob(content, fileName, mimeType = "text/plain;charset=utf-8") {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
   const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");

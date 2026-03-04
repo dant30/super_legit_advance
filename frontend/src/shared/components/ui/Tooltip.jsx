@@ -34,6 +34,10 @@ export const Tooltip = ({
   const timeoutRef = useRef(null)
   const tooltipId = useId()
 
+  if (!content || !React.isValidElement(children)) {
+    return children ?? null
+  }
+
   const showTooltip = () => {
     if (disabled) return
     timeoutRef.current = setTimeout(() => setIsVisible(true), delay)
@@ -94,12 +98,33 @@ export const Tooltip = ({
   useEffect(() => () => timeoutRef.current && clearTimeout(timeoutRef.current), [])
 
   const trigger = React.cloneElement(children, {
-    ref: triggerRef,
-    onMouseEnter: showTooltip,
-    onMouseLeave: hideTooltip,
-    onFocus: showTooltip,
-    onBlur: hideTooltip,
-    'aria-describedby': isVisible ? tooltipId : undefined,
+    ref: (node) => {
+      triggerRef.current = node
+      const childRef = children.ref
+      if (typeof childRef === 'function') childRef(node)
+      else if (childRef && typeof childRef === 'object') childRef.current = node
+    },
+    onMouseEnter: (e) => {
+      children.props.onMouseEnter?.(e)
+      showTooltip()
+    },
+    onMouseLeave: (e) => {
+      children.props.onMouseLeave?.(e)
+      hideTooltip()
+    },
+    onFocus: (e) => {
+      children.props.onFocus?.(e)
+      showTooltip()
+    },
+    onBlur: (e) => {
+      children.props.onBlur?.(e)
+      hideTooltip()
+    },
+    onKeyDown: (e) => {
+      children.props.onKeyDown?.(e)
+      if (e.key === 'Escape') hideTooltip()
+    },
+    'aria-describedby': isVisible ? tooltipId : children.props['aria-describedby'],
   })
 
   const tooltipContent = isVisible
@@ -108,7 +133,7 @@ export const Tooltip = ({
           ref={tooltipRef}
           id={tooltipId}
           role="tooltip"
-          className={cn('fixed z-[9999] animate-fade-in pointer-events-none', className)}
+          className={cn('fixed z-[9999] animate-fade-in', interactive ? 'pointer-events-auto' : 'pointer-events-none', className)}
           style={{ left: `${coords.x}px`, top: `${coords.y}px`, maxWidth: `${maxWidth}px` }}
           onMouseEnter={interactive ? showTooltip : undefined}
           onMouseLeave={interactive ? hideTooltip : undefined}

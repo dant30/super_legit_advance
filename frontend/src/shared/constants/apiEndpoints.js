@@ -1,3 +1,7 @@
+function encode(value) {
+  return encodeURIComponent(String(value));
+}
+
 export const API_ENDPOINTS = Object.freeze({
   auth: Object.freeze({
     register: "/api/v1/accounts/register/",
@@ -11,23 +15,23 @@ export const API_ENDPOINTS = Object.freeze({
   }),
   customers: Object.freeze({
     list: "/api/v1/customers/",
-    detail: (customerId) => `/api/v1/customers/${customerId}/`,
+    detail: (customerId) => `/api/v1/customers/${encode(customerId)}/`,
     import: "/api/v1/customers/import/",
     export: "/api/v1/customers/export/",
-    guarantors: (customerId) => `/api/v1/customers/${customerId}/guarantors/`,
-    documents: (customerId) => `/api/v1/customers/${customerId}/documents/`,
+    guarantors: (customerId) => `/api/v1/customers/${encode(customerId)}/guarantors/`,
+    documents: (customerId) => `/api/v1/customers/${encode(customerId)}/documents/`,
   }),
   loans: Object.freeze({
     list: "/api/v1/loans/",
-    detail: (loanId) => `/api/v1/loans/${loanId}/`,
+    detail: (loanId) => `/api/v1/loans/${encode(loanId)}/`,
     approvals: "/api/v1/loans/approvals/",
-    approve: (loanId) => `/api/v1/loans/${loanId}/approve/`,
-    disburse: (loanId) => `/api/v1/loans/${loanId}/disburse/`,
+    approve: (loanId) => `/api/v1/loans/${encode(loanId)}/approve/`,
+    disburse: (loanId) => `/api/v1/loans/${encode(loanId)}/disburse/`,
     calculator: "/api/v1/loans/calculator/",
   }),
   repayments: Object.freeze({
     list: "/api/v1/repayments/",
-    detail: (repaymentId) => `/api/v1/repayments/${repaymentId}/`,
+    detail: (repaymentId) => `/api/v1/repayments/${encode(repaymentId)}/`,
     history: "/api/v1/repayments/history/",
     overdue: "/api/v1/repayments/overdue/",
     mpesaValidation: "/api/v1/repayments/mpesa/validate/",
@@ -36,7 +40,7 @@ export const API_ENDPOINTS = Object.freeze({
   notifications: Object.freeze({
     list: "/api/v1/notifications/",
     settings: "/api/v1/notifications/settings/",
-    markRead: (notificationId) => `/api/v1/notifications/${notificationId}/read/`,
+    markRead: (notificationId) => `/api/v1/notifications/${encode(notificationId)}/read/`,
     markAllRead: "/api/v1/notifications/read-all/",
   }),
   reports: Object.freeze({
@@ -68,7 +72,13 @@ export const API_ENDPOINTS = Object.freeze({
 export function resolveEndpoint(path, params = {}) {
   let output = String(path || "");
   for (const [key, value] of Object.entries(params)) {
-    output = output.replace(`:${key}`, encodeURIComponent(String(value)));
+    output = output.replace(`:${key}`, encode(value));
   }
   return output;
+}
+
+export function withQuery(path, query = {}) {
+  const entries = Object.entries(query).filter(([, value]) => value !== undefined && value !== null && value !== "");
+  if (!entries.length) return String(path || "");
+  return `${path}?${new URLSearchParams(entries).toString()}`;
 }

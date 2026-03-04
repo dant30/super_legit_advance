@@ -1,6 +1,5 @@
-// frontend/src/hooks/useApi.js
 import { useState, useCallback, useRef } from 'react'
-import { useToast } from '../contexts/ToastContext'
+import { useToast } from '@contexts/ToastContext'
 
 /**
  * Generic API hook for handling common API operations
@@ -31,6 +30,14 @@ export const useApi = (options = {}) => {
 
   const { addToast } = useToast()
   const abortControllerRef = useRef(null)
+
+  const notify = useCallback(
+    (message, type = 'info', title) => {
+      if (!showToast || !message) return
+      addToast({ message, type, title })
+    },
+    [addToast, showToast]
+  )
 
   const getErrorMessage = useCallback((error, fallbackMessage) => {
     return (
@@ -132,10 +139,8 @@ export const useApi = (options = {}) => {
       setData(response)
       
       // Show success toast if enabled
-      if (showToast) {
-        const message = customSuccessMessage || successMessage
-        addToast(message, 'success')
-      }
+      const message = customSuccessMessage || successMessage
+      notify(message, 'success')
 
       // Call success callback if provided
       if (onSuccess) {
@@ -157,9 +162,7 @@ export const useApi = (options = {}) => {
       const message = getErrorMessage(error, customErrorMessage)
       setError(message)
       
-      if (showToast) {
-        addToast(message, 'error')
-      }
+      notify(message, 'error')
 
       // Call error callback if provided
       if (onError) {
@@ -208,10 +211,8 @@ export const useApi = (options = {}) => {
       setData(response)
       
       // Show success toast if enabled
-      if (showToast) {
-        const message = customSuccessMessage || 'Record created successfully'
-        addToast(message, 'success')
-      }
+      const message = customSuccessMessage || 'Record created successfully'
+      notify(message, 'success')
 
       // Call success callback if provided
       if (onSuccess) {
@@ -233,9 +234,7 @@ export const useApi = (options = {}) => {
       const message = getErrorMessage(error, customErrorMessage || 'Failed to create record')
       setError(message)
       
-      if (showToast) {
-        addToast(message, 'error')
-      }
+      notify(message, 'error')
 
       // Call error callback if provided
       if (onError) {
@@ -282,10 +281,8 @@ export const useApi = (options = {}) => {
       setData(response)
       
       // Show success toast if enabled
-      if (showToast) {
-        const message = customSuccessMessage || 'Record updated successfully'
-        addToast(message, 'success')
-      }
+      const message = customSuccessMessage || 'Record updated successfully'
+      notify(message, 'success')
 
       // Call success callback if provided
       if (onSuccess) {
@@ -302,9 +299,7 @@ export const useApi = (options = {}) => {
       const message = getErrorMessage(error, customErrorMessage || 'Failed to update record')
       setError(message)
       
-      if (showToast) {
-        addToast(message, 'error')
-      }
+      notify(message, 'error')
 
       // Call error callback if provided
       if (onError) {
@@ -349,10 +344,8 @@ export const useApi = (options = {}) => {
       setData(response)
       
       // Show success toast if enabled
-      if (showToast) {
-        const message = customSuccessMessage || 'Record deleted successfully'
-        addToast(message, 'success')
-      }
+      const message = customSuccessMessage || 'Record deleted successfully'
+      notify(message, 'success')
 
       // Call success callback if provided
       if (onSuccess) {
@@ -364,9 +357,7 @@ export const useApi = (options = {}) => {
       const message = getErrorMessage(error, customErrorMessage || 'Failed to delete record')
       setError(message)
       
-      if (showToast) {
-        addToast(message, 'error')
-      }
+      notify(message, 'error')
 
       // Call error callback if provided
       if (onError) {
@@ -403,9 +394,8 @@ export const useApi = (options = {}) => {
       // Execute API call with progress tracking
       const response = await apiCall(formData, {
         onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          )
+          const total = progressEvent.total || 0
+          const percentCompleted = total > 0 ? Math.round((progressEvent.loaded * 100) / total) : 0
           setUploadProgress(percentCompleted)
           
           if (onProgress) {
@@ -418,10 +408,8 @@ export const useApi = (options = {}) => {
       setUploadProgress(100)
       
       // Show success toast if enabled
-      if (showToast) {
-        const message = customSuccessMessage || 'File uploaded successfully'
-        addToast(message, 'success')
-      }
+      const message = customSuccessMessage || 'File uploaded successfully'
+      notify(message, 'success')
 
       // Call success callback if provided
       if (onSuccess) {
@@ -437,9 +425,7 @@ export const useApi = (options = {}) => {
       setError(message)
       setUploadProgress(0)
       
-      if (showToast) {
-        addToast(message, 'error')
-      }
+      notify(message, 'error')
 
       // Call error callback if provided
       if (onError) {
@@ -482,9 +468,8 @@ export const useApi = (options = {}) => {
         responseType: 'blob',
         signal: abortControllerRef.current.signal,
         onDownloadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          )
+          const total = progressEvent.total || 0
+          const percentCompleted = total > 0 ? Math.round((progressEvent.loaded * 100) / total) : 0
           setProgress(percentCompleted)
           
           if (onProgress) {
@@ -506,10 +491,8 @@ export const useApi = (options = {}) => {
       window.URL.revokeObjectURL(url)
 
       // Show success toast if enabled
-      if (showToast) {
-        const message = customSuccessMessage || 'File downloaded successfully'
-        addToast(message, 'success')
-      }
+      const message = customSuccessMessage || 'File downloaded successfully'
+      notify(message, 'success')
 
       // Call success callback if provided
       if (onSuccess) {
@@ -530,9 +513,7 @@ export const useApi = (options = {}) => {
       setError(message)
       setProgress(0)
       
-      if (showToast) {
-        addToast(message, 'error')
-      }
+      notify(message, 'error')
 
       // Call error callback if provided
       if (onError) {
@@ -554,9 +535,7 @@ export const useApi = (options = {}) => {
       abortControllerRef.current.abort()
       abortControllerRef.current = null
       
-      if (showToast) {
-        addToast('Request cancelled', 'warning')
-      }
+      notify('Request cancelled', 'warning')
     }
   }, [showToast, addToast])
 
@@ -581,10 +560,8 @@ export const useApi = (options = {}) => {
       const results = await Promise.all(promises)
       
       // Show success toast if enabled
-      if (showToast) {
-        const message = customSuccessMessage || 'All operations completed successfully'
-        addToast(message, 'success')
-      }
+      const message = customSuccessMessage || 'All operations completed successfully'
+      notify(message, 'success')
 
       // Call success callback if provided
       if (onSuccess) {
@@ -596,9 +573,7 @@ export const useApi = (options = {}) => {
       const message = getErrorMessage(error, customErrorMessage || 'One or more operations failed')
       setError(message)
       
-      if (showToast) {
-        addToast(message, 'error')
-      }
+      notify(message, 'error')
 
       // Call error callback if provided
       if (onError) {
@@ -637,9 +612,7 @@ export const useApi = (options = {}) => {
         
         const response = await apiCall(...args)
         
-        if (showToast && customSuccessMessage) {
-          addToast(customSuccessMessage, 'success')
-        }
+        if (customSuccessMessage) notify(customSuccessMessage, 'success')
 
         setLoading(false)
         return response
@@ -654,9 +627,7 @@ export const useApi = (options = {}) => {
           const message = getErrorMessage(error, customErrorMessage || `Failed after ${maxRetries} retries`)
           setError(message)
           
-          if (showToast) {
-            addToast(message, 'error')
-          }
+          notify(message, 'error')
           
           setLoading(false)
           throw error
@@ -667,7 +638,7 @@ export const useApi = (options = {}) => {
         delay *= 2 // Exponential backoff
       }
     }
-  }, [setLoading, setError, showToast, addToast, getErrorMessage])
+  }, [setLoading, setError, getErrorMessage, notify])
 
   return {
     // State

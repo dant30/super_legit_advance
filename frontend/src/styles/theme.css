@@ -6,6 +6,87 @@
 }
 
 @layer components {
+  .ui-control {
+    @apply rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 transition-all;
+  }
+
+  .ui-control-sm {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  .ui-control-md {
+    @apply px-3 py-2.5 text-sm;
+  }
+
+  .ui-control-lg {
+    @apply px-4 py-3 text-base;
+  }
+
+  .ui-focus {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900;
+  }
+
+  .ui-label {
+    @apply mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300;
+  }
+
+  .ui-help {
+    @apply mt-1 text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  .ui-error {
+    @apply mt-1 text-sm text-danger-600 dark:text-danger-400;
+  }
+
+  .ui-menu {
+    @apply rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-medium;
+  }
+
+  .ui-menu-item {
+    @apply flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-left text-gray-700 dark:text-gray-200 transition-colors;
+  }
+
+  .ui-menu-item-hover {
+    @apply hover:bg-gray-100 dark:hover:bg-slate-700;
+  }
+
+  .ui-panel {
+    @apply rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-soft;
+  }
+
+  .ui-chart-shell {
+    @apply ui-panel p-4;
+  }
+
+  .ui-chart-title {
+    @apply text-sm font-semibold text-gray-800 dark:text-gray-100;
+  }
+
+  .ui-chart-meta {
+    @apply text-xs text-gray-500 dark:text-gray-400;
+  }
+
+  .ui-chart-grid {
+    stroke: #cbd5e1;
+    stroke-width: 1;
+  }
+
+  .dark .ui-chart-grid {
+    stroke: #334155;
+  }
+
+  .ui-form-section {
+    @apply ui-panel overflow-hidden;
+  }
+
+  .ui-form-section-header {
+    @apply flex flex-wrap items-start justify-between gap-3 border-b border-gray-200 dark:border-slate-700 px-4 py-3;
+  }
+
+  .ui-form-section-body {
+    @apply grid gap-4 px-4 py-4;
+  }
+
   .app-surface {
     @apply bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700;
     border-radius: var(--radius-lg);

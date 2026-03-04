@@ -9,6 +9,17 @@ export const ROLE = Object.freeze({
   VIEWER: "viewer",
 });
 
+export const ROLE_LABELS = Object.freeze({
+  [ROLE.SUPER_ADMIN]: "Super Admin",
+  [ROLE.ADMIN]: "Administrator",
+  [ROLE.STAFF]: "Staff",
+  [ROLE.OFFICER]: "Loan Officer",
+  [ROLE.ACCOUNTANT]: "Accountant",
+  [ROLE.AUDITOR]: "Auditor",
+  [ROLE.CUSTOMER]: "Customer",
+  [ROLE.VIEWER]: "Viewer",
+})
+
 export const PERMISSIONS = Object.freeze({
   VIEW_DASHBOARD: "view_dashboard",
   VIEW_CUSTOMERS: "view_customers",
@@ -95,4 +106,12 @@ export function hasPermission(role, permission) {
 
 export function hasAnyPermission(role, permissions = []) {
   return permissions.some((permission) => hasPermission(role, permission));
+}
+
+export function hasAllPermissions(role, permissions = []) {
+  return permissions.every((permission) => hasPermission(role, permission))
+}
+
+export function getRoleLabel(role) {
+  return ROLE_LABELS[role] || "Unknown Role"
 }

@@ -1,35 +1,24 @@
-// frontend/src/router/StaffRoute.jsx
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { useAuth } from '@hooks/useAuth'
-import Loading from '@components/ui/Loading'
-import Unauthorized from '@pages/Unauthorized'
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "@hooks/useAuth";
+import Loading from "@components/ui/Loading";
 
-/**
- * 👥 StaffRoute
- * Only allows staff members (admin, staff, officer roles)
- */
 const StaffRoute = () => {
-  const location = useLocation()
-  const { isAuthenticated, isLoading, isStaff } = useAuth()
+  const location = useLocation();
+  const { isAuthenticated, isLoading, isStaff } = useAuth();
 
-  // ⏳ Still loading auth state
   if (isLoading) {
-    return <Loading fullScreen size="xl" message="Checking permissions..." />
+    return <Loading fullScreen size="xl" message="Checking permissions..." />;
   }
 
-  // 🔒 Not authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 🚫 Not staff member
   if (!isStaff()) {
-    return <Unauthorized />
+    return <Navigate to="/unauthorized" replace />;
   }
 
-  // ✅ Is staff - allow access
-  return <Outlet />
-}
+  return <Outlet />;
+};
 
-export default StaffRoute
-
+export default StaffRoute;

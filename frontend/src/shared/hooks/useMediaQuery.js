@@ -1,14 +1,9 @@
 // frontend/src/hooks/useMediaQuery.js
 import { useEffect, useState } from 'react'
 
-/**
- * useMediaQuery
- * @param {string} query - CSS media query (e.g. '(min-width: 768px)')
- * @returns {boolean}
- */
-export function useMediaQuery(query) {
+export function useMediaQuery(query, defaultValue = false) {
   const getMatches = () => {
-    if (typeof window === 'undefined') return false
+    if (typeof window === 'undefined') return defaultValue
     return window.matchMedia(query).matches
   }
 
@@ -45,3 +40,5 @@ export function useMediaQuery(query) {
 
   return matches
 }
+
+export default useMediaQuery

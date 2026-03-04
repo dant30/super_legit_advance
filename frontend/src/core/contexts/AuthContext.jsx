@@ -29,7 +29,7 @@ export function AuthProvider({ children }) {
     }
   })
   const [isAuthenticated, setIsAuthenticated] = useState(!!user)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
 
@@ -71,18 +71,6 @@ export function AuthProvider({ children }) {
     enabled: false,
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    onSuccess: (data) => {
-      setUser(data)
-      setIsAuthenticated(true)
-      setError(null)
-      localStorage.setItem('user', JSON.stringify(data))
-    },
-    onError: (err) => {
-      if (err.message !== 'No access token') {
-        // propagate the error quietly
-        console.error('Fetch current user failed:', err)
-      }
-    },
   })
 
   // Check authentication on app load
@@ -114,8 +102,9 @@ export function AuthProvider({ children }) {
           // Invalid JSON in localStorage, clear it
           localStorage.removeItem('user')
           setIsLoading(false)
+          return
         }
-      } else if (token) {
+      } else {
         // Fetch user data if we have a token
         await refetchUser()
       }
@@ -123,13 +112,24 @@ export function AuthProvider({ children }) {
       setIsLoading(false)
     }
 
-    checkAuth()
-  }, [userData])
+    checkAuth().catch((err) => {
+      handleAuthError(err)
+      setIsLoading(false)
+    })
+  }, [refetchUser, handleAuthError])
 
   // Update loading state
   useEffect(() => {
     setIsLoading(isFetchingUser)
   }, [isFetchingUser])
+
+  useEffect(() => {
+    if (!userData) return
+    setUser(userData)
+    setIsAuthenticated(true)
+    setError(null)
+    localStorage.setItem('user', JSON.stringify(userData))
+  }, [userData])
 
   // Update error state
   useEffect(() => {

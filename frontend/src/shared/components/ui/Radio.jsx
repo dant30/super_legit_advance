@@ -1,5 +1,5 @@
-// frontend/src/components/ui/Radio.jsx
-import React from 'react'
+import React, { useId } from 'react'
+import { cn } from '@utils/cn'
 
 const Radio = ({
   id,
@@ -18,17 +18,20 @@ const Radio = ({
   required = false,
   ...props
 }) => {
+  const generatedId = useId()
+  const radioId = id || `radio-${generatedId}`
+  const errorId = `${radioId}-error`
+  const descriptionId = `${radioId}-description`
+
   const handleChange = (e) => {
-    if (!disabled && onChange) {
-      onChange(e.target.value)
-    }
+    if (!disabled && onChange) onChange(e.target.value)
   }
 
   return (
-    <div className={`relative flex items-start ${className}`}>
-      <div className="flex items-center h-5">
+    <div className={cn('relative flex items-start', className)}>
+      <div className="flex items-center pt-0.5">
         <input
-          id={id}
+          id={radioId}
           name={name}
           type="radio"
           value={value}
@@ -36,45 +39,41 @@ const Radio = ({
           onChange={handleChange}
           disabled={disabled}
           required={required}
-          className={`h-4 w-4 border-gray-300 dark:border-gray-600 text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400 focus:ring-2 ${
-            disabled
-              ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed opacity-50'
-              : 'bg-white dark:bg-gray-800 cursor-pointer'
-          } ${error ? 'border-red-500 dark:border-red-400' : ''} ${inputClassName}`}
-          aria-invalid={error ? 'true' : 'false'}
-          aria-describedby={error ? `${id}-error` : description ? `${id}-description` : undefined}
+          className={cn(
+            'h-4 w-4 border-gray-300 text-primary-600',
+            'focus:ring-2 focus:ring-primary-500',
+            'dark:border-slate-600 dark:bg-slate-800 dark:text-primary-400',
+            disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+            error && 'border-danger-500 dark:border-danger-400',
+            inputClassName
+          )}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={error ? errorId : description ? descriptionId : undefined}
           {...props}
         />
       </div>
 
       <div className="ml-3 text-sm">
         <label
-          htmlFor={id}
-          className={`font-medium text-gray-700 dark:text-gray-300 ${
-            disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-          } ${labelClassName}`}
+          htmlFor={radioId}
+          className={cn(
+            'font-medium text-gray-700 dark:text-gray-300',
+            disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+            labelClassName
+          )}
         >
           {label}
-          {required && <span className="text-red-500 dark:text-red-400 ml-1">*</span>}
+          {required && <span className="ml-1 text-danger-500">*</span>}
         </label>
 
         {description && (
-          <p
-            id={`${id}-description`}
-            className={`text-gray-500 dark:text-gray-400 ${
-              disabled ? 'opacity-50' : ''
-            } ${descriptionClassName}`}
-          >
+          <p id={descriptionId} className={cn('text-gray-500 dark:text-gray-400', disabled && 'opacity-50', descriptionClassName)}>
             {description}
           </p>
         )}
 
         {error && (
-          <p
-            id={`${id}-error`}
-            className="mt-1 text-sm text-red-600 dark:text-red-400"
-            role="alert"
-          >
+          <p id={errorId} className="ui-error" role="alert">
             {error}
           </p>
         )}
@@ -83,7 +82,6 @@ const Radio = ({
   )
 }
 
-// Radio Group Component
 export const RadioGroup = ({
   name,
   value,
@@ -96,21 +94,25 @@ export const RadioGroup = ({
   labelClassName = '',
   descriptionClassName = '',
   required = false,
-  orientation = 'vertical', // 'vertical' or 'horizontal'
+  orientation = 'vertical',
 }) => {
+  const legendId = `${name}-legend`
+  const descriptionId = `${name}-description`
+  const errorId = `${name}-error`
+
   return (
-    <div className={className}>
+    <fieldset className={cn(className)}>
       {(label || description) && (
         <div className="mb-2">
           {label && (
-            <legend className={`text-sm font-medium text-gray-700 dark:text-gray-300 ${labelClassName}`}>
+            <legend id={legendId} className={cn('text-sm font-medium text-gray-700 dark:text-gray-300', labelClassName)}>
               {label}
-              {required && <span className="text-red-500 dark:text-red-400 ml-1">*</span>}
+              {required && <span className="ml-1 text-danger-500">*</span>}
             </legend>
           )}
-          
+
           {description && (
-            <p className={`text-sm text-gray-500 dark:text-gray-400 ${descriptionClassName}`}>
+            <p id={descriptionId} className={cn('text-sm text-gray-500 dark:text-gray-400', descriptionClassName)}>
               {description}
             </p>
           )}
@@ -118,35 +120,28 @@ export const RadioGroup = ({
       )}
 
       <div
-        className={`space-y-3 ${orientation === 'horizontal' ? 'flex flex-wrap gap-6' : ''}`}
+        className={cn('space-y-3', orientation === 'horizontal' && 'flex flex-wrap gap-6 space-y-0')}
         role="radiogroup"
-        aria-labelledby={label ? `${name}-label` : undefined}
-        aria-describedby={error ? `${name}-error` : description ? `${name}-description` : undefined}
+        aria-labelledby={label ? legendId : undefined}
+        aria-describedby={error ? errorId : description ? descriptionId : undefined}
       >
         {React.Children.map(children, (child) => {
-          if (React.isValidElement(child)) {
-            return React.cloneElement(child, {
-              name,
-              checked: child.props.value === value,
-              onChange,
-            })
-          }
-          return child
+          if (!React.isValidElement(child)) return child
+          return React.cloneElement(child, {
+            name,
+            checked: child.props.value === value,
+            onChange,
+          })
         })}
       </div>
 
       {error && (
-        <p
-          id={`${name}-error`}
-          className="mt-2 text-sm text-red-600 dark:text-red-400"
-          role="alert"
-        >
+        <p id={errorId} className="ui-error" role="alert">
           {error}
         </p>
       )}
-    </div>
+    </fieldset>
   )
 }
-
 
 export default Radio

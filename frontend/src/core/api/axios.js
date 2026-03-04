@@ -1,10 +1,15 @@
-// frontend/src/api/axios.js
 import axios from 'axios'
 import { ENV } from '@utils/env'
 
-// Normalize API URL (remove trailing slash)
 const API_URL = ENV.API_URL?.replace(/\/$/, '') || 'http://localhost:8000/api'
 const API_TIMEOUT = ENV.API_TIMEOUT || 30000
+
+function generateCorrelationId(prefix = 'web') {
+  if (globalThis?.crypto?.randomUUID) {
+    return `${prefix}-${globalThis.crypto.randomUUID()}`
+  }
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -14,27 +19,25 @@ const axiosInstance = axios.create({
   },
 })
 
-/**
- * Request Interceptor - Add auth token
- */
 axiosInstance.interceptors.request.use(
   (config) => {
+    if (config.headers) {
+      config.headers['X-Correlation-ID'] = generateCorrelationId()
+    }
+
     const token = localStorage.getItem('access_token')
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
     return config
   },
   (error) => Promise.reject(error)
 )
 
-/**
- * Response Interceptor - Handle 401 and refresh token
- */
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // Don't log in production
     if (ENV.ENVIRONMENT === 'development') {
       console.error('[Axios Error]', {
         status: error.response?.status,
@@ -46,11 +49,11 @@ axiosInstance.interceptors.response.use(
       })
     }
 
-    const originalRequest = error.config
+    const originalRequest = error?.config
 
-    // Only refresh if 401 and not already retried
     if (
-      error.response?.status === 401 &&
+      error?.response?.status === 401 &&
+      originalRequest &&
       !originalRequest._retry &&
       originalRequest.url &&
       !originalRequest.url.includes('/auth/token/') &&
@@ -60,37 +63,40 @@ axiosInstance.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem('refresh_token')
-
         if (!refreshToken) {
           throw new Error('No refresh token')
         }
 
-        // Use SimpleJWT refresh endpoint
         const refreshResponse = await axios.post(
           `${API_URL}/auth/token/refresh/`,
-          { refresh: refreshToken }
+          { refresh: refreshToken },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Correlation-ID': generateCorrelationId('web-refresh'),
+            },
+          }
         )
 
-        const { access } = refreshResponse.data
+        const nextAccess = refreshResponse?.data?.access
+        if (!nextAccess) {
+          throw new Error('No access token in refresh response')
+        }
 
-        // Update stored token
-        localStorage.setItem('access_token', access)
+        localStorage.setItem('access_token', nextAccess)
+        axiosInstance.defaults.headers.common.Authorization = `Bearer ${nextAccess}`
 
-        // Update default header
-        axiosInstance.defaults.headers.common.Authorization = `Bearer ${access}`
-
-        // Retry original request with new token
-        originalRequest.headers.Authorization = `Bearer ${access}`
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${nextAccess}`
+        }
 
         return axiosInstance(originalRequest)
       } catch (refreshError) {
-        // Token refresh failed - clear auth and redirect
         localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
         localStorage.removeItem('user')
         delete axiosInstance.defaults.headers.common.Authorization
 
-        // Only redirect if not already on login page
         if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
           window.location.href = '/login'
         }
@@ -99,9 +105,7 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    // Handle specific error statuses
-    if (error.response?.status === 403) {
-      // Forbidden - redirect to unauthorized page
+    if (error?.response?.status === 403) {
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/unauthorized')) {
         window.location.href = '/unauthorized'
       }
@@ -111,4 +115,5 @@ axiosInstance.interceptors.response.use(
   }
 )
 
+export const api = axiosInstance
 export default axiosInstance

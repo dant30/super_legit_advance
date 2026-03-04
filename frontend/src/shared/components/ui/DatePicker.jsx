@@ -1,5 +1,5 @@
 // frontend/src/components/shared/DatePicker.jsx
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState, useId } from 'react'
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@utils/cn'
 import dayjs from 'dayjs'
@@ -29,6 +29,9 @@ const DatePicker = ({
   const [isOpen, setIsOpen] = useState(false)
   const [currentMonth, setCurrentMonth] = useState(dayjs())
   const [time, setTime] = useState(selectedDate ? dayjs(selectedDate).format('HH:mm') : '00:00')
+  const rootRef = useRef(null)
+  const triggerId = `datepicker-${useId()}`
+  const panelId = `${triggerId}-panel`
 
   const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
@@ -116,10 +119,30 @@ const DatePicker = ({
     return dayjs(date).isSame(dayjs(), 'day')
   }
 
+  useEffect(() => {
+    if (!isOpen) return
+    const handler = (event) => {
+      if (rootRef.current && !rootRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+    const onEscape = (event) => {
+      if (event.key === 'Escape') setIsOpen(false)
+    }
+
+    document.addEventListener('mousedown', handler)
+    document.addEventListener('keydown', onEscape)
+
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('keydown', onEscape)
+    }
+  }, [isOpen])
+
   return (
-    <div className="relative">
+    <div className="relative" ref={rootRef}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="ui-label" htmlFor={triggerId}>
           {label}
           {required && <span className="text-danger-600 ml-1">*</span>}
         </label>
@@ -128,6 +151,7 @@ const DatePicker = ({
       <div className="relative">
         <div className="flex gap-2">
           <button
+            id={triggerId}
             type="button"
             onClick={() => setIsOpen(!isOpen)}
             disabled={disabled}
@@ -140,6 +164,9 @@ const DatePicker = ({
               error && 'border-danger-500 dark:border-danger-400',
               className
             )}
+            aria-haspopup="dialog"
+            aria-expanded={isOpen}
+            aria-controls={isOpen ? panelId : undefined}
           >
             <span className={cn(
               selectedDate ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'
@@ -165,7 +192,13 @@ const DatePicker = ({
         </div>
 
         {isOpen && (
-          <div className="absolute z-50 mt-1 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 shadow-medium w-full min-w-[300px]">
+          <div
+            id={panelId}
+            role="dialog"
+            aria-modal="false"
+            aria-label="Date picker"
+            className="absolute z-50 mt-1 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 shadow-medium w-full min-w-[300px]"
+          >
             {/* Month Navigation */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-700">
               <button
@@ -261,7 +294,7 @@ const DatePicker = ({
       </div>
 
       {error && (
-        <p className="mt-1 text-sm text-danger-600 dark:text-danger-400">{error}</p>
+        <p className="ui-error">{error}</p>
       )}
     </div>
   )

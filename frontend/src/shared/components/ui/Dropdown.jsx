@@ -1,5 +1,4 @@
-// frontend/src/components/ui/Dropdown.jsx
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react'
+import React, { createContext, useContext, useEffect, useId, useMemo, useRef, useState, useCallback } from 'react'
 import { cn } from '@utils/cn'
 
 const DropdownContext = createContext(null)
@@ -10,19 +9,14 @@ function useDropdownContext() {
   return ctx
 }
 
-/**
- * @typedef {Object} DropdownProps
- * @property {React.ReactNode} children
- * @property {boolean} [open]
- * @property {boolean} [defaultOpen]
- * @property {(open: boolean) => void} [onOpenChange]
- * @property {boolean} [closeOnSelect]
- */
-
 const Dropdown = ({ children, open: controlledOpen, defaultOpen = false, onOpenChange, closeOnSelect = true }) => {
   const isControlled = controlledOpen !== undefined
   const [internalOpen, setInternalOpen] = useState(defaultOpen)
   const open = isControlled ? controlledOpen : internalOpen
+  const rootRef = useRef(null)
+  const triggerRef = useRef(null)
+  const menuRef = useRef(null)
+  const baseId = useId()
 
   const setOpen = useCallback(
     (value) => {
@@ -31,8 +25,6 @@ const Dropdown = ({ children, open: controlledOpen, defaultOpen = false, onOpenC
     },
     [isControlled, onOpenChange]
   )
-
-  const rootRef = useRef(null)
 
   useEffect(() => {
     if (!open) return
@@ -46,14 +38,28 @@ const Dropdown = ({ children, open: controlledOpen, defaultOpen = false, onOpenC
   useEffect(() => {
     if (!open) return
     const handleKey = (e) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') {
+        setOpen(false)
+        triggerRef.current?.focus()
+      }
     }
     document.addEventListener('keydown', handleKey)
     return () => document.removeEventListener('keydown', handleKey)
   }, [open, setOpen])
 
+  useEffect(() => {
+    if (!open || !menuRef.current) return
+    const firstItem = menuRef.current.querySelector('[role="menuitem"]:not([disabled])')
+    firstItem?.focus()
+  }, [open])
+
+  const value = useMemo(
+    () => ({ open, setOpen, closeOnSelect, triggerRef, menuRef, baseId }),
+    [open, setOpen, closeOnSelect, baseId]
+  )
+
   return (
-    <DropdownContext.Provider value={{ open, setOpen, closeOnSelect }}>
+    <DropdownContext.Provider value={value}>
       <div ref={rootRef} className="relative inline-block">
         {children}
       </div>
@@ -62,18 +68,38 @@ const Dropdown = ({ children, open: controlledOpen, defaultOpen = false, onOpenC
 }
 
 const DropdownTrigger = ({ children, asChild = false, className = '' }) => {
-  const { open, setOpen } = useDropdownContext()
+  const { open, setOpen, triggerRef, baseId } = useDropdownContext()
+  const menuId = `${baseId}-menu`
+
+  const onKeyDown = (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      setOpen(true)
+    }
+  }
 
   const triggerProps = {
-    role: 'button',
+    ref: triggerRef,
     'aria-haspopup': 'menu',
     'aria-expanded': open,
+    'aria-controls': open ? menuId : undefined,
     onClick: () => setOpen(!open),
-    className,
+    onKeyDown,
+    className: cn('ui-focus', className),
   }
 
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children, triggerProps)
+    return React.cloneElement(children, {
+      ...triggerProps,
+      onClick: (e) => {
+        children.props.onClick?.(e)
+        triggerProps.onClick()
+      },
+      onKeyDown: (e) => {
+        children.props.onKeyDown?.(e)
+        onKeyDown(e)
+      },
+    })
   }
 
   return (
@@ -84,19 +110,41 @@ const DropdownTrigger = ({ children, asChild = false, className = '' }) => {
 }
 
 const DropdownMenu = ({ children, className = '', align = 'left' }) => {
-  const { open } = useDropdownContext()
+  const { open, menuRef, baseId } = useDropdownContext()
   if (!open) return null
 
   const alignment = align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'
 
+  const onKeyDown = (e) => {
+    const items = Array.from(menuRef.current?.querySelectorAll('[role="menuitem"]:not([disabled])') || [])
+    if (!items.length) return
+    const idx = items.indexOf(document.activeElement)
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      items[(idx + 1 + items.length) % items.length]?.focus()
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      items[(idx - 1 + items.length) % items.length]?.focus()
+    }
+    if (e.key === 'Home') {
+      e.preventDefault()
+      items[0]?.focus()
+    }
+    if (e.key === 'End') {
+      e.preventDefault()
+      items[items.length - 1]?.focus()
+    }
+  }
+
   return (
     <div
+      id={`${baseId}-menu`}
+      ref={menuRef}
       role="menu"
-      className={cn(
-        'absolute z-50 mt-2 min-w-[180px] rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-medium focus:outline-none',
-        alignment,
-        className
-      )}
+      tabIndex={-1}
+      onKeyDown={onKeyDown}
+      className={cn('absolute z-50 mt-2 min-w-[180px] ui-menu p-1', alignment, className)}
     >
       {children}
     </div>
@@ -115,11 +163,12 @@ const DropdownItem = ({ children, onSelect, disabled = false, className = '' }) 
   return (
     <button
       role="menuitem"
+      type="button"
       disabled={disabled}
       onClick={handleSelect}
       className={cn(
-        'flex w-full items-center gap-2 px-4 py-2 text-sm text-left transition-colors',
-        disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 dark:hover:bg-slate-700',
+        'ui-menu-item ui-menu-item-hover ui-focus',
+        disabled && 'opacity-50 cursor-not-allowed hover:bg-transparent',
         className
       )}
     >
@@ -133,5 +182,4 @@ const DropdownDivider = ({ className = '' }) => (
 )
 
 export default Dropdown
-
 export { DropdownTrigger, DropdownMenu, DropdownItem, DropdownDivider }

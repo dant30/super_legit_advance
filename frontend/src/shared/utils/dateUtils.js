@@ -1,14 +1,19 @@
-export function toISODate(value) {
-  if (!value) return null;
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toISOString();
+import { APP_DEFAULTS } from './constants'
+
+function toDate(value) {
+  if (!value) return null
+  const date = value instanceof Date ? value : new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
 }
 
-export function formatDate(value, locale = "en-US", options = {}) {
-  if (!value) return "N/A";
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return "N/A";
+export function toISODate(value) {
+  const date = toDate(value)
+  return date ? date.toISOString() : null
+}
+
+export function formatDate(value, locale = APP_DEFAULTS.locale, options = {}) {
+  const date = toDate(value)
+  if (!date) return 'N/A'
   return new Intl.DateTimeFormat(locale, {
     year: "numeric",
     month: "short",
@@ -17,10 +22,9 @@ export function formatDate(value, locale = "en-US", options = {}) {
   }).format(date);
 }
 
-export function formatDateTime(value, locale = "en-US", options = {}) {
-  if (!value) return "N/A";
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return "N/A";
+export function formatDateTime(value, locale = APP_DEFAULTS.locale, options = {}) {
+  const date = toDate(value)
+  if (!date) return 'N/A'
   return new Intl.DateTimeFormat(locale, {
     year: "numeric",
     month: "short",
@@ -32,14 +36,14 @@ export function formatDateTime(value, locale = "en-US", options = {}) {
 }
 
 export function isPast(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return false;
+  const date = toDate(value)
+  if (!date) return false
   return date.getTime() < Date.now();
 }
 
 export function daysUntil(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
+  const date = toDate(value)
+  if (!date) return null
   const diff = date.getTime() - Date.now();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }

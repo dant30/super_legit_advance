@@ -6,10 +6,10 @@ const DEFAULT_POINTS = [
 ];
 
 function intensityColor(intensity) {
-  if (intensity >= 0.8) return "var(--fm-color-danger)";
-  if (intensity >= 0.6) return "var(--fm-color-warning)";
-  if (intensity >= 0.35) return "var(--fm-color-info)";
-  return "var(--fm-color-success)";
+  if (intensity >= 0.8) return "#be123c";
+  if (intensity >= 0.6) return "#b45309";
+  if (intensity >= 0.35) return "#1d4ed8";
+  return "#059669";
 }
 
 export default function MapChart({
@@ -27,13 +27,13 @@ export default function MapChart({
   return (
     <section className={`ui-chart-shell ${className}`}>
       <header className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-        <span className="text-xs text-slate-500">{normalizedPoints.length} points</span>
+        <h3 className="ui-chart-title">{title}</h3>
+        <span className="ui-chart-meta">{normalizedPoints.length} points</span>
       </header>
       <p className="sr-only">{summary}</p>
       <svg
         viewBox="0 0 100 60"
-        className="h-auto w-full rounded-lg bg-slate-50"
+        className="h-auto w-full rounded-lg bg-slate-50 dark:bg-slate-900/50"
         role="img"
         aria-label={`${title} heat map`}
       >
@@ -48,7 +48,7 @@ export default function MapChart({
           </g>
         ))}
       </svg>
-      <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-600">
+      <div className="mt-3 flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-300" aria-label="Heat levels legend">
         <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-600" />Low</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-700" />Medium</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-700" />High</span>

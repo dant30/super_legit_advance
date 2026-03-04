@@ -49,6 +49,49 @@ export const APP_ROUTES = Object.freeze({
   unauthorized: "/unauthorized",
 });
 
+export const ROUTE_LABELS = Object.freeze({
+  [APP_ROUTES.dashboard]: "Dashboard",
+  [APP_ROUTES.customers]: "Borrowers",
+  [APP_ROUTES.customerCreate]: "Register Borrower",
+  [APP_ROUTES.customerImport]: "Import Borrowers",
+  [APP_ROUTES.customerExport]: "Export Borrowers",
+  [APP_ROUTES.loans]: "Loans",
+  [APP_ROUTES.loanCreate]: "Create Loan",
+  [APP_ROUTES.loanCalculator]: "Affordability Calculator",
+  [APP_ROUTES.loanApprovals]: "Loan Approvals",
+  [APP_ROUTES.repayments]: "Repayments",
+  [APP_ROUTES.repaymentCreate]: "Record Repayment",
+  [APP_ROUTES.repaymentHistory]: "Repayment History",
+  [APP_ROUTES.overdueRepayments]: "Overdue Repayments",
+  [APP_ROUTES.reports]: "Reports",
+  [APP_ROUTES.notifications]: "Notifications",
+  [APP_ROUTES.profile]: "My Profile",
+  [APP_ROUTES.adminDashboard]: "Admin Dashboard",
+  [APP_ROUTES.adminStaff]: "Staff Management",
+  [APP_ROUTES.adminRoles]: "Role Management",
+  [APP_ROUTES.adminAudit]: "Audit Logs",
+  [APP_ROUTES.adminSettings]: "System Settings",
+})
+
+export const PUBLIC_ROUTES = Object.freeze([
+  APP_ROUTES.login,
+  APP_ROUTES.register,
+  APP_ROUTES.forgotPassword,
+  APP_ROUTES.resetPassword,
+  APP_ROUTES.verifyEmail,
+  APP_ROUTES.twoFactorAuth,
+])
+
+export const isPublicRoute = (path = "") => {
+  return PUBLIC_ROUTES.some((route) => path === route || path.startsWith(`${route}/`))
+}
+
+export const getRouteLabel = (path = "", fallback = "Page") => {
+  if (ROUTE_LABELS[path]) return ROUTE_LABELS[path]
+  const dynamicMatch = Object.keys(ROUTE_LABELS).find((route) => route.includes(":") && path.startsWith(route.split(":")[0]))
+  return dynamicMatch ? ROUTE_LABELS[dynamicMatch] : fallback
+}
+
 export function withQuery(path, query = {}) {
   const entries = Object.entries(query).filter(
     ([, value]) => value !== undefined && value !== null && value !== ""

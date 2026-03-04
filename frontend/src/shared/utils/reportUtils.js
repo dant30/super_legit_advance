@@ -1,4 +1,4 @@
-// frontend/src/lib/utils/reportUtils.js
+import { APP_DEFAULTS } from './constants'
 
 /**
  * Download blob as file
@@ -30,7 +30,8 @@ export const formatFileSize = (bytes) => {
  */
 export const formatDate = (dateString) => {
   const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', {
+  if (Number.isNaN(date.getTime())) return 'Invalid Date'
+  return date.toLocaleDateString(APP_DEFAULTS.locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -64,7 +65,7 @@ export const getReportCategoryColor = (category) => {
   const colors = {
     'loans': 'bg-blue-100 text-blue-800',
     'payments': 'bg-green-100 text-green-800',
-    'customers': 'bg-purple-100 text-purple-800',
+    'customers': 'bg-cyan-100 text-cyan-800',
     'analytics': 'bg-yellow-100 text-yellow-800',
     'summary': 'bg-indigo-100 text-indigo-800',
     'audit': 'bg-gray-100 text-gray-800',
@@ -196,8 +197,9 @@ export const debounce = (func, wait) => {
  */
 export const sanitizeReportParams = (params) => {
   const sanitized = {}
-  
+
   for (const key in params) {
+    if (!Object.prototype.hasOwnProperty.call(params, key)) continue
     if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
       sanitized[key] = params[key]
     }

@@ -1,9 +1,21 @@
-// frontend/src/components/ui/Accordion.jsx
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useContext, useId, useMemo, useState } from 'react'
+import { ChevronDown, ChevronRight, Minus, Plus } from 'lucide-react'
 import { cn } from '@utils/cn'
-import { ChevronDown, ChevronRight, Plus, Minus } from 'lucide-react'
 
-const AccordionContext = createContext()
+const AccordionContext = createContext(null)
+const AccordionItemContext = createContext(null)
+
+const useAccordion = () => {
+  const ctx = useContext(AccordionContext)
+  if (!ctx) throw new Error('Accordion components must be used within <Accordion />')
+  return ctx
+}
+
+const useAccordionItem = () => {
+  const ctx = useContext(AccordionItemContext)
+  if (!ctx) throw new Error('Accordion Trigger/Content must be used within <Accordion.Item />')
+  return ctx
+}
 
 const Accordion = ({
   children,
@@ -13,33 +25,39 @@ const Accordion = ({
   allowMultiple = false,
   className,
 }) => {
-  const [openItems, setOpenItems] = useState(defaultValue)
+  const initial = Array.isArray(defaultValue) ? defaultValue : [defaultValue]
+  const [openItems, setOpenItems] = useState(initial)
 
   const toggleItem = (id) => {
     setOpenItems((prev) => {
       if (allowMultiple) {
         return prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-      } else {
-        return prev.includes(id) ? [] : [id]
       }
+      return prev.includes(id) ? [] : [id]
     })
   }
 
+  const value = useMemo(
+    () => ({ openItems, toggleItem, variant, size, allowMultiple }),
+    [openItems, variant, size, allowMultiple]
+  )
+
   return (
-    <AccordionContext.Provider value={{ openItems, toggleItem, variant, size, allowMultiple }}>
-      <div className={cn('w-full', className)}>{children}</div>
+    <AccordionContext.Provider value={value}>
+      <div className={cn('w-full', className)} data-accordion-root>
+        {children}
+      </div>
     </AccordionContext.Provider>
   )
 }
 
-const AccordionItem = ({
-  id,
-  children,
-  className,
-  disabled = false,
-}) => {
-  const { openItems, variant } = useContext(AccordionContext)
-  const isOpen = openItems.includes(id)
+const AccordionItem = ({ id: idProp, children, className, disabled = false }) => {
+  const { openItems, variant } = useAccordion()
+  const reactId = useId()
+  const itemId = idProp || `acc-${reactId}`
+  const isOpen = openItems.includes(itemId)
+  const triggerId = `${itemId}-trigger`
+  const panelId = `${itemId}-panel`
 
   const variantClasses = {
     default: '',
@@ -48,17 +66,20 @@ const AccordionItem = ({
   }
 
   return (
-    <div
-      className={cn(
-        'overflow-hidden transition-all duration-200',
-        variantClasses[variant],
-        disabled && 'opacity-50 pointer-events-none',
-        className
-      )}
-      data-state={isOpen ? 'open' : 'closed'}
-    >
-      {children}
-    </div>
+    <AccordionItemContext.Provider value={{ itemId, isOpen, disabled, triggerId, panelId }}>
+      <div
+        className={cn(
+          'overflow-hidden transition-all duration-200',
+          variantClasses[variant],
+          disabled && 'opacity-50',
+          className
+        )}
+        data-state={isOpen ? 'open' : 'closed'}
+        data-disabled={disabled || undefined}
+      >
+        {children}
+      </div>
+    </AccordionItemContext.Provider>
   )
 }
 
@@ -69,26 +90,23 @@ const AccordionTrigger = ({
   iconPosition = 'right',
   iconType = 'chevron',
 }) => {
-  const { openItems, toggleItem, variant, size } = useContext(AccordionContext)
-  const [id] = useState(() => `accordion-${Math.random().toString(36).substr(2, 9)}`)
-  const isOpen = openItems.includes(id)
+  const { toggleItem, variant, size } = useAccordion()
+  const { itemId, isOpen, disabled, triggerId, panelId } = useAccordionItem()
 
   const sizeClasses = {
     sm: 'px-3 py-2 text-sm',
-    md: 'px-4 py-3 text-base',
-    lg: 'px-5 py-4 text-lg',
+    md: 'px-4 py-3 text-sm',
+    lg: 'px-5 py-4 text-base',
   }
 
   const variantClasses = {
     default: cn(
-      'w-full text-left font-medium transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50',
+      'w-full text-left font-medium transition-colors',
+      'hover:bg-gray-50 dark:hover:bg-gray-800/50',
       isOpen && 'bg-gray-50 dark:bg-gray-800/50'
     ),
     border: 'w-full text-left font-medium transition-colors',
-    cards: cn(
-      'w-full text-left font-medium transition-colors',
-      isOpen && 'bg-gray-50 dark:bg-gray-800/50'
-    ),
+    cards: cn('w-full text-left font-medium transition-colors', isOpen && 'bg-gray-50 dark:bg-gray-800/50'),
   }
 
   const iconMap = {
@@ -96,55 +114,61 @@ const AccordionTrigger = ({
     plus: isOpen ? Minus : Plus,
     arrow: isOpen ? ChevronDown : ChevronRight,
   }
-
   const Icon = iconMap[iconType]
+
+  const handleKeyDown = (e) => {
+    const keys = ['ArrowDown', 'ArrowUp', 'Home', 'End']
+    if (!keys.includes(e.key)) return
+
+    const root = e.currentTarget.closest('[data-accordion-root]')
+    if (!root) return
+    const triggers = Array.from(root.querySelectorAll('[data-accordion-trigger]')).filter(
+      (btn) => !btn.hasAttribute('disabled')
+    )
+    const idx = triggers.indexOf(e.currentTarget)
+    if (idx === -1) return
+    e.preventDefault()
+
+    if (e.key === 'Home') triggers[0]?.focus()
+    if (e.key === 'End') triggers[triggers.length - 1]?.focus()
+    if (e.key === 'ArrowDown') triggers[(idx + 1) % triggers.length]?.focus()
+    if (e.key === 'ArrowUp') triggers[(idx - 1 + triggers.length) % triggers.length]?.focus()
+  }
 
   return (
     <button
+      id={triggerId}
       type="button"
-      onClick={() => toggleItem(id)}
+      data-accordion-trigger
+      onClick={() => !disabled && toggleItem(itemId)}
+      onKeyDown={handleKeyDown}
+      disabled={disabled}
       className={cn(
-        'flex items-center justify-between gap-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+        'flex items-center justify-between gap-3 ui-focus',
         sizeClasses[size],
         variantClasses[variant],
+        disabled && 'cursor-not-allowed',
         className
       )}
       aria-expanded={isOpen}
+      aria-controls={panelId}
     >
       {showIcon && iconPosition === 'left' && (
         <Icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200" />
       )}
       <span className="flex-1 text-left">{children}</span>
       {showIcon && iconPosition === 'right' && (
-        <Icon className={cn(
-          'h-4 w-4 flex-shrink-0 transition-transform duration-200',
-          isOpen && 'rotate-180'
-        )} />
+        <Icon className={cn('h-4 w-4 flex-shrink-0 transition-transform duration-200', isOpen && 'rotate-180')} />
       )}
     </button>
   )
 }
 
-const AccordionContent = ({
-  children,
-  className,
-  unmountOnExit = false,
-}) => {
-  const { openItems } = useContext(AccordionContext)
-  const [id] = useState(() => `accordion-${Math.random().toString(36).substr(2, 9)}`)
-  const isOpen = openItems.includes(id)
-  const [height, setHeight] = useState(0)
-  const contentRef = React.useRef(null)
+const AccordionContent = ({ children, className, unmountOnExit = false }) => {
+  const { variant } = useAccordion()
+  const { isOpen, triggerId, panelId } = useAccordionItem()
 
-  React.useEffect(() => {
-    if (contentRef.current) {
-      setHeight(isOpen ? contentRef.current.scrollHeight : 0)
-    }
-  }, [isOpen])
-
-  if (unmountOnExit && !isOpen) {
-    return null
-  }
+  if (unmountOnExit && !isOpen) return null
 
   const variantClasses = {
     default: '',
@@ -154,19 +178,17 @@ const AccordionContent = ({
 
   return (
     <div
-      ref={contentRef}
-      className={cn(
-        'overflow-hidden transition-all duration-200',
-        variantClasses
-      )}
-      style={{ height: unmountOnExit ? 'auto' : `${height}px` }}
+      id={panelId}
+      role="region"
+      aria-labelledby={triggerId}
+      hidden={!isOpen}
+      className={cn('overflow-hidden transition-all duration-200', variantClasses[variant])}
     >
-      <div className={cn('p-4', className)}>{children}</div>
+      <div className={cn('p-4 text-sm text-gray-700 dark:text-gray-200', className)}>{children}</div>
     </div>
   )
 }
 
-// Export all components
 Accordion.Item = AccordionItem
 Accordion.Trigger = AccordionTrigger
 Accordion.Content = AccordionContent

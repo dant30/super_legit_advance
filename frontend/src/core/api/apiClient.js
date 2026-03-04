@@ -1,4 +1,4 @@
-import { api } from "./axiosConfig";
+import { api } from "./axios";
 import { t } from "../i18n/i18n";
 import { getErrorMessage } from "../utils/errorHandler";
 

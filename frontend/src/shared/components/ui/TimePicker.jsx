@@ -1,5 +1,5 @@
 // frontend/src/components/shared/TimePicker.jsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -24,6 +24,7 @@ const TimePicker = ({
 }) => {
   const is12h = format === '12';
   const wrapperRef = useRef(null);
+  const inputId = `timepicker-${useId()}`;
 
   const parsed = parseTime(value);
   const [open, setOpen] = useState(false);
@@ -46,8 +47,15 @@ const TimePicker = ({
         setOpen(false);
       }
     };
+    const onEscape = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('keydown', onEscape);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('keydown', onEscape);
+    };
   }, []);
 
   const applyChange = (h, m, p = period) => {
@@ -89,13 +97,16 @@ const TimePicker = ({
 
   return (
     <div ref={wrapperRef} className={`timepicker ${className}`}>
-      {label && <label className="timepicker-label">{label}</label>}
+      {label && <label htmlFor={inputId} className="timepicker-label">{label}</label>}
 
       <button
+        id={inputId}
         type="button"
         className="timepicker-input"
         disabled={disabled}
         onClick={() => setOpen(!open)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
       >
         {displayValue()}
       </button>
@@ -107,6 +118,7 @@ const TimePicker = ({
               {hoursList.map((h) => (
                 <button
                   key={h}
+                  type="button"
                   className={h === (is12h ? (hours % 12 || 12) : hours) ? 'active' : ''}
                   onClick={() => {
                     setHours(h);
@@ -122,6 +134,7 @@ const TimePicker = ({
               {minutesList.map((m) => (
                 <button
                   key={m}
+                  type="button"
                   className={m === minutes ? 'active' : ''}
                   onClick={() => {
                     setMinutes(m);
@@ -138,6 +151,7 @@ const TimePicker = ({
                 {['AM', 'PM'].map((p) => (
                   <button
                     key={p}
+                    type="button"
                     className={p === period ? 'active' : ''}
                     onClick={() => {
                       setPeriod(p);

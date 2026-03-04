@@ -1,139 +1,90 @@
-// frontend/src/components/ui/Checkbox.jsx
-import React from 'react'
+import React, { useId } from 'react'
 import { Check } from 'lucide-react'
 import { cn } from '@utils/cn'
 
-export const Checkbox = React.forwardRef(({
-  className,
-  label,
-  error,
-  disabled,
-  onCheckedChange,
-  onChange,
-  ...props
-}, ref) => {
-  return (
-    <label
-      className={cn(
-        'group inline-flex items-center gap-3 select-none',
-        disabled && 'cursor-not-allowed opacity-60'
-      )}
-    >
-      <span className="relative flex items-center">
-        <input
-          ref={ref}
-          type="checkbox"
-          disabled={disabled}
-          className={cn(
-            'peer sr-only',
-            className
-          )}
-          {...props}
-          onChange={(e) => {
-            // call native onChange if provided
-            onChange?.(e)
-            // call the more convenient onCheckedChange with boolean
-            onCheckedChange?.(e.target.checked)
-          }}
-        />
+export const Checkbox = React.forwardRef(
+  (
+    { className, label, description, error, disabled, id, checked, onCheckedChange, onChange, required, ...props },
+    ref
+  ) => {
+    const generatedId = useId()
+    const inputId = id || `checkbox-${generatedId}`
+    const errorId = `${inputId}-error`
+    const descriptionId = `${inputId}-description`
 
-        {/* Box */}
-        <span
-          className={cn(
-            'flex h-5 w-5 items-center justify-center rounded-md border',
-            'border-white/20 bg-white/5',
-            'transition-all duration-200 ease-out',
-            'peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500',
-            'peer-checked:border-emerald-500 peer-checked:bg-emerald-500',
-            'peer-hover:border-white/40'
-          )}
+    return (
+      <div className="space-y-1.5">
+        <label
+          htmlFor={inputId}
+          className={cn('group inline-flex items-start gap-3 select-none', disabled && 'cursor-not-allowed opacity-60')}
         >
-          <Check
-            className={cn(
-              'h-3.5 w-3.5 text-black scale-0 opacity-0',
-              'transition-all duration-200 ease-out',
-              'peer-checked:scale-100 peer-checked:opacity-100'
-            )}
-            strokeWidth={3}
-          />
-        </span>
-      </span>
+          <span className="relative mt-0.5 flex items-center">
+            <input
+              ref={ref}
+              id={inputId}
+              type="checkbox"
+              checked={checked}
+              disabled={disabled}
+              required={required}
+              aria-invalid={error ? 'true' : undefined}
+              aria-describedby={error ? errorId : description ? descriptionId : undefined}
+              className={cn('peer sr-only', className)}
+              {...props}
+              onChange={(e) => {
+                onChange?.(e)
+                onCheckedChange?.(e.target.checked)
+              }}
+            />
 
-      {/* Label */}
-      {label && (
-        <span className="text-sm text-white/80 group-hover:text-white transition-colors">
-          {label}
-        </span>
-      )}
+            <span
+              className={cn(
+                'flex h-5 w-5 items-center justify-center rounded-md border transition-all',
+                'border-gray-300 bg-white dark:border-slate-600 dark:bg-slate-800',
+                'peer-checked:border-primary-600 peer-checked:bg-primary-600',
+                'peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500 peer-focus-visible:ring-offset-2',
+                'group-hover:border-primary-400 dark:group-hover:border-primary-500'
+              )}
+            >
+              <Check
+                className={cn(
+                  'h-3.5 w-3.5 text-white scale-0 opacity-0 transition-all',
+                  'peer-checked:scale-100 peer-checked:opacity-100'
+                )}
+                strokeWidth={3}
+              />
+            </span>
+          </span>
 
-      {/* Error */}
-      {error && (
-        <span className="block text-xs text-red-400 mt-1">
-          {error}
-        </span>
-      )}
-    </label>
-  )
-})
+          {(label || description) && (
+            <span className="space-y-0.5">
+              {label && (
+                <span className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {label}
+                  {required && <span className="ml-1 text-danger-500">*</span>}
+                </span>
+              )}
+              {description && (
+                <span id={descriptionId} className="block text-sm text-gray-500 dark:text-gray-400">
+                  {description}
+                </span>
+              )}
+            </span>
+          )}
+        </label>
+
+        {error && (
+          <p id={errorId} className="ui-error" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+    )
+  }
+)
 
 Checkbox.displayName = 'Checkbox'
 
-// Alternative Checkbox with better Tailwind integration
-export const Checkbox2 = React.forwardRef(({
-  label,
-  description,
-  error,
-  className,
-  containerClassName,
-  checked,
-  disabled = false,
-  onChange,
-  ...props
-}, ref) => {
-  return (
-    <div className={cn('space-y-2', containerClassName)}>
-      <div className="flex items-center">
-        <input
-          ref={ref}
-          type="checkbox"
-          checked={checked}
-          onChange={onChange}
-          disabled={disabled}
-          className={cn(
-            'h-4 w-4 rounded border-gray-300 text-primary-600',
-            'focus:ring-primary-500 focus:ring-offset-0',
-            'disabled:opacity-50 disabled:cursor-not-allowed',
-            error && 'border-danger-500',
-            className
-          )}
-          {...props}
-        />
-        {label && (
-          <label
-            htmlFor={props.id}
-            className={cn(
-              'ml-2 text-sm font-medium',
-              disabled ? 'text-gray-400' : 'text-gray-700 dark:text-gray-300'
-            )}
-          >
-            {label}
-          </label>
-        )}
-      </div>
-      {description && (
-        <p className="ml-6 text-sm text-gray-500 dark:text-gray-400">
-          {description}
-        </p>
-      )}
-      {error && (
-        <p className="ml-6 text-sm text-danger-600 dark:text-danger-400">
-          {error}
-        </p>
-      )}
-    </div>
-  )
-})
-
+export const Checkbox2 = Checkbox
 Checkbox2.displayName = 'Checkbox2'
 
 export default Checkbox
