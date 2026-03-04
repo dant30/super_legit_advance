@@ -4,6 +4,8 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@hooks/useAuth'
 import { useQuery } from '@tanstack/react-query'
 import axios from '@api/axios'
+import { APP_ROUTES } from '../../constants/routes'
+import { t } from '../../../core/i18n/i18n'
 import {
   Home,
   Users,
@@ -33,7 +35,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@utils/cn'
 
-const Sidebar = ({ onClose }) => {
+const Sidebar = ({ onNavigate, onClose }) => {
   const { user, isAdmin } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -252,6 +254,7 @@ const Sidebar = ({ onClose }) => {
   }
 
   const handleNavClick = () => {
+    if (onNavigate) onNavigate()
     if (onClose) onClose()
   }
 
@@ -281,32 +284,36 @@ const Sidebar = ({ onClose }) => {
   }
 
   return (
-    <>
-      {/* Sidebar Header */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-slate-700">
-        <button type="button" className="flex items-center gap-3 cursor-pointer text-left" onClick={() => navigate('/')} aria-label="Go to dashboard">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
-            SL
-          </div>
-          <div>
-            <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">Super Legit</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Advance</p>
-          </div>
-        </button>
-        {onClose && (
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Sidebar Header (mobile only) */}
+      {onClose && (
+        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-slate-700">
+          <button
+            type="button"
+            className="flex items-center gap-3 cursor-pointer text-left"
+            onClick={() => navigate(APP_ROUTES.dashboard)}
+            aria-label={t('layout.sidebar.goToDashboard', 'Go to dashboard')}
+          >
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
+              SL
+            </div>
+            <div>
+              <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">Super Legit</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Advance</p>
+            </div>
+          </button>
           <button
             onClick={onClose}
             type="button"
             className="lg:hidden p-1.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
-            aria-label="Close sidebar"
+            aria-label={t('layout.sidebar.close', 'Close sidebar')}
           >
             <X className="h-5 w-5" />
           </button>
-        )}
-      </div>
-
+        </div>
+      )}
       {/* Quick Stats */}
-      <div className="px-4 py-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-800 dark:to-blue-900/10">
+      <div className="shrink-0 px-4 py-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-800 dark:to-blue-900/10">
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
@@ -327,7 +334,7 @@ const Sidebar = ({ onClose }) => {
       </div>
 
       {/* Navigation */}
-      <nav id="app-sidebar" className="flex-1 overflow-y-auto py-4" aria-label="Primary">
+      <nav id="app-sidebar" className="flex-1 overflow-y-auto py-4" aria-label={t('layout.sidebar.primary', 'Primary')}>
         <div className="px-2 space-y-1">
           {filteredMenuItems.map((item) => {
             const isActive = isMenuItemActive(item)
@@ -414,30 +421,36 @@ const Sidebar = ({ onClose }) => {
                     to={item.path}
                     end={item.exact}
                     onClick={handleNavClick}
-                    className={({ isActive }) =>
-                      cn(
-                        'flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
-                        'hover:bg-gray-100 dark:hover:bg-slate-700/50',
-                        isActive
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                          : 'text-gray-700 dark:text-gray-300'
-                      )
-                    }
+                    className="block"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className={cn(
-                        "transition-colors",
-                        isActive ? "text-blue-500 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"
-                      )}>
-                        {item.icon}
-                      </span>
-                      <span>{item.title}</span>
-                      {(item.badge ?? 0) > 0 && (
-                        <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-full">
-                          {item.badge}
-                        </span>
-                      )}
-                    </div>
+                    {({ isActive }) => (
+                      <div
+                        className={cn(
+                          'flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
+                          'hover:bg-gray-100 dark:hover:bg-slate-700/50',
+                          isActive
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                            : 'text-gray-700 dark:text-gray-300'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={cn(
+                              'transition-colors',
+                              isActive ? 'text-blue-500 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'
+                            )}
+                          >
+                            {item.icon}
+                          </span>
+                          <span>{item.title}</span>
+                          {(item.badge ?? 0) > 0 && (
+                            <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-full">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </NavLink>
                 )}
               </div>
@@ -446,30 +459,15 @@ const Sidebar = ({ onClose }) => {
         </div>
       </nav>
 
-      {/* User Info Footer */}
-      <div className="border-t border-gray-200 dark:border-slate-700 p-4 bg-gray-50 dark:bg-slate-800/50">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold">
-            {user?.first_name?.charAt(0) || 'U'}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-              {user?.full_name || 'User'}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-              {user?.role || 'staff'}
-            </p>
-          </div>
-        </div>
+      <div className="shrink-0 border-t border-gray-200 dark:border-slate-700 p-4 bg-gray-50 dark:bg-slate-800/50">
         <div className="text-xs text-gray-500 dark:text-gray-500 space-y-1">
           <p className="flex items-center justify-between">
-            <span>Version:</span>
+            <span>{t('layout.sidebar.version', 'Version')}:</span>
             <span className="font-medium">v2.1.0</span>
           </p>
-          <p className="pt-1 text-center">(c) {new Date().getFullYear()} Super Legit Advance</p>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

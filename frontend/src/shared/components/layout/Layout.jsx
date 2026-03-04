@@ -1,49 +1,71 @@
-// frontend/src/components/layout/Layout.jsx
-import React, { useEffect, useState } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
-import { Menu, X, ArrowUp } from 'lucide-react'
-import { useAuth } from '@hooks/useAuth'
+import React, { useEffect, useRef, useState } from 'react'
+import { Outlet } from 'react-router-dom'
+import { ArrowUp } from 'lucide-react'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import Header from './Header'
 import Sidebar from './Sidebar'
 import Footer from './Footer'
 import Button from '@components/ui/Button'
 import { cn } from '@utils/cn'
+import { t } from '../../../core/i18n/i18n'
 
-const DESKTOP_QUERY = '(min-width: 1020px)'
+const DESKTOP_QUERY = '(min-width: 768px)'
 const SCROLL_THRESHOLD = 300
 
 const Layout = () => {
-  const location = useLocation()
-  useAuth()
   const isDesktop = useMediaQuery(DESKTOP_QUERY)
-  
+
   const [showBackToTop, setShowBackToTop] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+  const mobileDrawerRef = useRef(null)
 
-  // Initialize on mount
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  // Sync sidebar with breakpoint changes
   useEffect(() => {
     if (isDesktop) {
-      setSidebarOpen(true)
-    } else {
-      setSidebarOpen(false)
+      setMobileSidebarOpen(false)
     }
   }, [isDesktop])
 
-  // Close mobile sidebar on route change
   useEffect(() => {
-    if (!isDesktop) {
-      setSidebarOpen(false)
-    }
-  }, [location.pathname, isDesktop])
+    if (!mobileSidebarOpen) return undefined
 
-  // Scroll to top button visibility
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setMobileSidebarOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [mobileSidebarOpen])
+
+  useEffect(() => {
+    if (!mobileSidebarOpen || !mobileDrawerRef.current) return undefined
+
+    const drawer = mobileDrawerRef.current
+    const focusableSelector =
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    const focusables = Array.from(drawer.querySelectorAll(focusableSelector))
+    const first = focusables[0]
+    const last = focusables[focusables.length - 1]
+
+    first?.focus()
+
+    const handleTrap = (event) => {
+      if (event.key !== 'Tab' || focusables.length === 0) return
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last?.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first?.focus()
+      }
+    }
+
+    drawer.addEventListener('keydown', handleTrap)
+    return () => drawer.removeEventListener('keydown', handleTrap)
+  }, [mobileSidebarOpen])
+
   useEffect(() => {
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > SCROLL_THRESHOLD)
@@ -53,156 +75,99 @@ const Layout = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Lock body scroll when mobile sidebar is open
   useEffect(() => {
-    if (!isDesktop && sidebarOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'auto'
-    }
+    if (!mobileSidebarOpen) return undefined
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
     return () => {
-      document.body.style.overflow = 'auto'
+      document.body.style.overflow = previousOverflow
     }
-  }, [isDesktop, sidebarOpen])
+  }, [mobileSidebarOpen])
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const toggleSidebar = () => {
-    setSidebarOpen(prev => !prev)
-  }
-
-  const closeSidebar = () => {
-    setSidebarOpen(false)
-  }
-
-  // Don't render until mounted to avoid hydration mismatch
-  if (!mounted) return null
-
   return (
-    <div className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
+    <div className="flex h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-700 focus:shadow-lg"
       >
-        Skip to main content
+        {t('layout.main.skipToContent', 'Skip to main content')}
       </a>
 
-      {/* Mobile Header */}
-      {!isDesktop && (
-        <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-soft flex items-center justify-between px-4">
-            <button
-              onClick={toggleSidebar}
-              type="button"
-              className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition"
-              aria-label={sidebarOpen ? 'Close navigation' : 'Open navigation'}
-              aria-expanded={sidebarOpen}
-              aria-controls="app-sidebar"
-            >
-              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+      <Header onToggleSidebar={() => setMobileSidebarOpen((prev) => !prev)} />
 
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm">
-              SL
-            </div>
-            <span className="font-bold text-gray-900 dark:text-white text-sm">
-              Super Legit
-            </span>
-          </div>
-
-          <div className="w-10" aria-hidden="true" /> {/* Spacer for alignment */}
-        </header>
-      )}
-
-      {/* Desktop Layout */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Desktop Sidebar */}
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         {isDesktop && (
-          <aside className={cn(
-            "w-64 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden",
-            "transition-all duration-300",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          )}>
+          <div className="min-h-0 w-72 shrink-0">
+          <aside className="h-full w-72 border-r border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-800">
             <Sidebar />
           </aside>
-        )}
-
-        {/* Mobile Overlay */}
-        {!isDesktop && sidebarOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-black/40 dark:bg-black/60 transition-opacity"
-            onClick={closeSidebar}
-            onKeyDown={(e) => e.key === 'Escape' && closeSidebar()}
-            role="button"
-            tabIndex={0}
-            aria-label="Close navigation overlay"
-          />
-        )}
-
-        {/* Mobile Sidebar */}
-        {!isDesktop && (
-          <aside
-            className={cn(
-              'fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out',
-              sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-            )}
-            role="navigation"
-            aria-label="Mobile navigation"
-            aria-hidden={!sidebarOpen}
-          >
-            <div className="h-full bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden">
-              <Sidebar onClose={closeSidebar} />
-            </div>
-          </aside>
-        )}
-
-        {/* Main content area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header - always visible */}
-          <div className={cn(isDesktop ? 'relative' : 'relative mt-16')}>
-            <Header onMenuClick={isDesktop ? toggleSidebar : undefined} />
           </div>
+        )}
 
-          {/* Content area */}
-          <main id="main-content" className="flex-1 overflow-y-auto">
-            <div className="p-4 sm:p-6 lg:p-8">
-              <Outlet />
-            </div>
-
-            <Footer />
-          </main>
-
-          {/* Back to Top Button */}
-          {showBackToTop && (
-            <div className="fixed bottom-6 right-6 z-50">
-              <Button
-                variant="primary"
-                size="sm"
-                icon={<ArrowUp className="h-4 w-4" />}
-                onClick={scrollToTop}
-                aria-label="Back to top"
-                className="rounded-full shadow-lg animate-bounce-slow"
-              >
-                Top
-              </Button>
-            </div>
+        <div
+          className={cn(
+            'fixed inset-0 z-[60]',
+            isDesktop ? 'hidden' : '',
+            mobileSidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'
           )}
-        </div>
-      </div>
-
-      {/* Desktop Sidebar Toggle Button (when collapsed) */}
-      {isDesktop && !sidebarOpen && (
-        <button
-          onClick={toggleSidebar}
-          type="button"
-          className="fixed left-0 top-1/2 transform -translate-y-1/2 z-40 bg-primary-600 text-white p-2 rounded-r-lg shadow-lg hover:bg-primary-700 transition-all"
-          aria-label="Open sidebar"
+          aria-hidden={mobileSidebarOpen ? 'false' : 'true'}
         >
-          <Menu className="h-5 w-5" />
-        </button>
-      )}
+          <button
+            type="button"
+            onClick={() => setMobileSidebarOpen(false)}
+            className={cn(
+              'absolute inset-0 bg-slate-900/40 transition-opacity duration-200 ease-out',
+              mobileSidebarOpen ? 'opacity-100' : 'opacity-0'
+            )}
+            aria-label={t('layout.main.closeSidebarBackdrop', 'Close sidebar backdrop')}
+          />
+
+          <div
+            className={cn(
+              'relative z-10 h-full w-72 max-w-[88vw] transform-gpu transition-transform duration-200 ease-out',
+              mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            )}
+            ref={mobileDrawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('layout.sidebar.navigation', 'Navigation')}
+          >
+            <aside className="h-full border-r border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+              <Sidebar
+                onNavigate={() => setMobileSidebarOpen(false)}
+                onClose={() => setMobileSidebarOpen(false)}
+              />
+            </aside>
+          </div>
+        </div>
+
+        <main id="main-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="mx-auto w-full max-w-[1480px] p-4 sm:p-6 lg:p-8">
+            <Outlet />
+          </div>
+          <Footer />
+        </main>
+
+        {showBackToTop && (
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<ArrowUp className="h-4 w-4" />}
+            onClick={scrollToTop}
+            type="button"
+            aria-label={t('layout.main.backToTop', 'Back to top')}
+            className="fixed bottom-6 right-6 z-50 rounded-full shadow-lg"
+          >
+            {t('layout.main.backToTopShort', 'Top')}
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

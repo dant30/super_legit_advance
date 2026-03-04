@@ -5,6 +5,9 @@ import { useAuth } from '@hooks/useAuth'
 import { useTheme } from '@contexts/ThemeContext'
 import { useQuery } from '@tanstack/react-query'
 import axios from '@api/axios'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
+import { APP_ROUTES } from '../../constants/routes'
+import { t } from '../../../core/i18n/i18n'
 import {
   Bell,
   User,
@@ -23,10 +26,11 @@ import {
 } from 'lucide-react'
 import { cn } from '@utils/cn'
 
-const Header = ({ onMenuClick }) => {
+const Header = ({ onToggleSidebar }) => {
   const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const { user, logout, isAdmin } = useAuth()
   const { toggleTheme, isDark } = useTheme()
+  const isDesktop = useMediaQuery('(min-width: 768px)')
   const hasAccessToken = Boolean(localStorage.getItem('access_token'))
   
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
@@ -38,6 +42,10 @@ const Header = ({ onMenuClick }) => {
   const profileRef = useRef(null)
   const notificationsRef = useRef(null)
   const mobileSearchRef = useRef(null)
+  const profileMenuRef = useRef(null)
+  const notificationsMenuRef = useRef(null)
+  const profileButtonRef = useRef(null)
+  const notificationsButtonRef = useRef(null)
 
   // Fetch notifications
   const { data: notificationsData, isLoading: notificationsLoading } = useQuery({
@@ -99,6 +107,76 @@ const Header = ({ onMenuClick }) => {
     return () => document.removeEventListener('keydown', handleEscape)
   }, [])
 
+  useEffect(() => {
+    if (!isNotificationsOpen || !notificationsMenuRef.current) return undefined
+
+    const menu = notificationsMenuRef.current
+    const focusableSelector =
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    const focusables = Array.from(menu.querySelectorAll(focusableSelector))
+    const first = focusables[0]
+    const last = focusables[focusables.length - 1]
+
+    first?.focus()
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setIsNotificationsOpen(false)
+        notificationsButtonRef.current?.focus()
+        return
+      }
+
+      if (event.key !== 'Tab' || focusables.length === 0) return
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last?.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first?.focus()
+      }
+    }
+
+    menu.addEventListener('keydown', onKeyDown)
+    return () => menu.removeEventListener('keydown', onKeyDown)
+  }, [isNotificationsOpen])
+
+  useEffect(() => {
+    if (!isProfileOpen || !profileMenuRef.current) return undefined
+
+    const menu = profileMenuRef.current
+    const focusableSelector =
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    const focusables = Array.from(menu.querySelectorAll(focusableSelector))
+    const first = focusables[0]
+    const last = focusables[focusables.length - 1]
+
+    first?.focus()
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setIsProfileOpen(false)
+        profileButtonRef.current?.focus()
+        return
+      }
+
+      if (event.key !== 'Tab' || focusables.length === 0) return
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last?.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first?.focus()
+      }
+    }
+
+    menu.addEventListener('keydown', onKeyDown)
+    return () => menu.removeEventListener('keydown', onKeyDown)
+  }, [isProfileOpen])
+
   // Prevent body scroll when mobile search is open
   useEffect(() => {
     if (isMobileSearchOpen) {
@@ -123,7 +201,7 @@ const Header = ({ onMenuClick }) => {
   const handleSearch = useCallback((e) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`)
+      navigate(`${APP_ROUTES.customers}?search=${encodeURIComponent(searchQuery)}`)
       setSearchQuery('')
       setIsMobileSearchOpen(false)
     }
@@ -182,14 +260,14 @@ const Header = ({ onMenuClick }) => {
 
       {/* Main Header */}
       <header className="sticky top-0 z-40 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-soft h-16">
-        <div className="flex items-center justify-between h-full px-4 sm:px-6">
-          {/* Left side - Menu button and breadcrumb */}
-          <div className="flex items-center gap-4">
-            {onMenuClick && (
+        <div className="flex h-full items-center gap-3 px-4 sm:gap-4 sm:px-6">
+          {/* Left side */}
+          <div className="flex shrink-0 items-center gap-3">
+            {!isDesktop && onToggleSidebar && (
               <button
-                onClick={onMenuClick}
-                className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors lg:hidden"
-                aria-label="Toggle menu"
+                onClick={onToggleSidebar}
+                className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors md:hidden"
+                aria-label={t('layout.header.openNavMenu', 'Open navigation menu')}
                 aria-controls="app-sidebar"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,37 +276,58 @@ const Header = ({ onMenuClick }) => {
               </button>
             )}
 
-            {/* Desktop Search Bar */}
-            <div className="hidden md:flex flex-1 max-w-lg lg:max-w-xl">
-              <form onSubmit={handleSearch} className="relative w-full">
+            {isDesktop && (
+              <button
+                type="button"
+                onClick={() => navigate(APP_ROUTES.dashboard)}
+                className="flex items-center gap-2 text-left"
+                aria-label={t('layout.sidebar.goToDashboard', 'Go to dashboard')}
+              >
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                  SL
+                </div>
+                <div className="leading-tight">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">Super Legit</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Advance</p>
+                </div>
+              </button>
+            )}
+          </div>
+
+          {/* Desktop Search Bar */}
+          {isDesktop && (
+            <div className="min-w-0 flex-1">
+              <form onSubmit={handleSearch} className="relative mx-auto w-full max-w-2xl">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search customers, loans, payments..."
-                  className="form-input pl-10 w-full"
+                  className="form-input w-full pl-10"
                 />
               </form>
             </div>
-          </div>
+          )}
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="ml-auto flex shrink-0 items-center gap-2">
             {/* Mobile Search */}
-              <button
+              {!isDesktop && (
+                <button
                 onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
                 type="button"
                 className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
                 aria-label="Search"
                 aria-expanded={isMobileSearchOpen}
-            >
-              <Search className="h-5 w-5" />
-            </button>
+                >
+                  <Search className="h-5 w-5" />
+                </button>
+              )}
 
             {/* Help */}
             <button
-              onClick={() => navigate('/help')}
+              onClick={() => navigate(APP_ROUTES.help)}
               type="button"
               className="hidden sm:flex p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
               aria-label="Help"
@@ -239,6 +338,7 @@ const Header = ({ onMenuClick }) => {
             {/* Notifications */}
             <div ref={notificationsRef} className="relative">
               <button
+                ref={notificationsButtonRef}
                 onClick={() => {
                   setIsNotificationsOpen(!isNotificationsOpen)
                   setIsProfileOpen(false)
@@ -248,6 +348,7 @@ const Header = ({ onMenuClick }) => {
                 aria-label={`Notifications (${unreadCount} unread)`}
                 aria-expanded={isNotificationsOpen}
                 aria-haspopup="menu"
+                aria-controls="header-notifications-menu"
               >
                 <Bell className="h-5 w-5" />
                 {unreadCount > 0 && (
@@ -266,7 +367,12 @@ const Header = ({ onMenuClick }) => {
                   "border-gray-200 dark:border-slate-700 z-50",
                   "max-h-[calc(100vh-6rem)] md:max-h-96",
                   "animate-scale-in"
-                )}>
+                )}
+                ref={notificationsMenuRef}
+                id="header-notifications-menu"
+                role="menu"
+                tabIndex={-1}
+                >
                   <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
                     <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                       Notifications
@@ -282,7 +388,7 @@ const Header = ({ onMenuClick }) => {
                         type="button"
                         className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
                       >
-                        View all
+                        {t('layout.header.viewAllNotifications', 'View all')}
                       </button>
                     </div>
                   </div>
@@ -291,7 +397,9 @@ const Header = ({ onMenuClick }) => {
                     {notificationsLoading ? (
                       <div className="p-8 text-center">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading...</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                          {t('common.loading', 'Loading...')}
+                        </p>
                       </div>
                     ) : notifications.length > 0 ? (
                       <div className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -304,7 +412,7 @@ const Header = ({ onMenuClick }) => {
                               !notif.is_read && "bg-blue-50/50 dark:bg-blue-900/10"
                             )}
                             onClick={() => {
-                              navigate(`/notifications/${notif.id}`)
+                              navigate(APP_ROUTES.notifications)
                               setIsNotificationsOpen(false)
                             }}
                           >
@@ -336,8 +444,12 @@ const Header = ({ onMenuClick }) => {
                     ) : (
                       <div className="p-8 text-center">
                         <Inbox className="h-12 w-12 mx-auto mb-3 text-gray-400" />
-                        <p className="text-sm text-gray-500 dark:text-gray-400">No notifications</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">You&apos;re all caught up!</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {t('layout.header.noNotifications', 'No notifications')}
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                          {t('layout.header.noNotificationsHint', "You're all caught up!")}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -362,6 +474,7 @@ const Header = ({ onMenuClick }) => {
             {/* Profile Dropdown */}
             <div ref={profileRef} className="relative">
               <button
+                ref={profileButtonRef}
                 onClick={() => {
                   setIsProfileOpen(!isProfileOpen)
                   setIsNotificationsOpen(false)
@@ -371,17 +484,8 @@ const Header = ({ onMenuClick }) => {
                 aria-label="Profile menu"
                 aria-expanded={isProfileOpen}
                 aria-haspopup="menu"
+                aria-controls="header-profile-menu"
               >
-                <div className="hidden sm:flex items-center gap-2">
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">
-                      {user?.first_name || 'User'}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                      {user?.role || 'customer'}
-                    </p>
-                  </div>
-                </div>
                 <div className="h-9 w-9 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold shadow-md group-hover:shadow-lg transition-shadow">
                   {user?.first_name?.charAt(0) || 'U'}
                 </div>
@@ -398,7 +502,12 @@ const Header = ({ onMenuClick }) => {
                   "bg-white dark:bg-slate-800 rounded-lg shadow-hard border",
                   "border-gray-200 dark:border-slate-700 z-50",
                   "animate-scale-in"
-                )}>
+                )}
+                ref={profileMenuRef}
+                id="header-profile-menu"
+                role="menu"
+                tabIndex={-1}
+                >
                   {/* Profile Header */}
                   <div className="px-4 py-4 border-b border-gray-200 dark:border-slate-700">
                     <div className="flex items-center gap-3">
@@ -423,25 +532,25 @@ const Header = ({ onMenuClick }) => {
                   <div className="py-2">
                     <button
                       onClick={() => {
-                        navigate('/profile')
+                        navigate(APP_ROUTES.profile)
                         setIsProfileOpen(false)
                       }}
                       type="button"
                       className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center gap-3 transition-colors"
                     >
                       <User className="h-4 w-4 flex-shrink-0" />
-                      <span>My Profile</span>
+                      <span>{t('layout.header.profile', 'My Profile')}</span>
                     </button>
                     <button
                       onClick={() => {
-                        navigate('/settings')
+                        navigate(isAdmin() ? APP_ROUTES.adminSettings : APP_ROUTES.profile)
                         setIsProfileOpen(false)
                       }}
                       type="button"
                       className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center gap-3 transition-colors"
                     >
                       <Settings className="h-4 w-4 flex-shrink-0" />
-                      <span>Settings</span>
+                      <span>{t('layout.header.settings', 'Settings')}</span>
                     </button>
                   </div>
 
@@ -453,7 +562,7 @@ const Header = ({ onMenuClick }) => {
                       className="w-full text-left px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 transition-colors"
                     >
                       <LogOut className="h-4 w-4 flex-shrink-0" />
-                      <span>Logout</span>
+                      <span>{t('auth.logout', 'Logout')}</span>
                     </button>
                   </div>
                 </div>

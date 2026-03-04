@@ -53,6 +53,35 @@ export const LOCALES = Object.freeze({
       infoTitle: "Info",
       warningTitle: "Attention",
     },
+    layout: {
+      main: {
+        skipToContent: "Skip to main content",
+        closeSidebarBackdrop: "Close sidebar backdrop",
+        backToTop: "Back to top",
+        backToTopShort: "Top",
+      },
+      header: {
+        openNavMenu: "Open navigation menu",
+        viewAllNotifications: "View all",
+        noNotifications: "No notifications",
+        noNotificationsHint: "You're all caught up!",
+        profile: "My Profile",
+        settings: "Settings",
+      },
+      sidebar: {
+        goToDashboard: "Go to dashboard",
+        close: "Close sidebar",
+        navigation: "Navigation",
+        primary: "Primary navigation",
+        version: "Version",
+      },
+      footer: {
+        copyright: "Loan Operations Platform",
+        systemOnline: "System Online",
+        apiVersion: "API v2",
+        secureOps: "Secure operations",
+      },
+    },
     dashboard: {
       overview: {
         borrowersTitle: "Borrowers",
@@ -197,6 +226,35 @@ export const LOCALES = Object.freeze({
       errorTitle: "Hitilafu",
       infoTitle: "Taarifa",
       warningTitle: "Tahadhari",
+    },
+    layout: {
+      main: {
+        skipToContent: "Ruka hadi maudhui makuu",
+        closeSidebarBackdrop: "Funga pazia la pembeni",
+        backToTop: "Rudi juu",
+        backToTopShort: "Juu",
+      },
+      header: {
+        openNavMenu: "Fungua menyu ya uelekezaji",
+        viewAllNotifications: "Tazama zote",
+        noNotifications: "Hakuna arifa",
+        noNotificationsHint: "Umeshughulikia kila kitu!",
+        profile: "Wasifu Wangu",
+        settings: "Mipangilio",
+      },
+      sidebar: {
+        goToDashboard: "Nenda dashibodi",
+        close: "Funga paneli ya pembeni",
+        navigation: "Uelekezaji",
+        primary: "Uelekezaji mkuu",
+        version: "Toleo",
+      },
+      footer: {
+        copyright: "Jukwaa la Uendeshaji Mikopo",
+        systemOnline: "Mfumo Uko Mtandaoni",
+        apiVersion: "API v2",
+        secureOps: "Uendeshaji salama",
+      },
     },
     dashboard: {
       overview: {
