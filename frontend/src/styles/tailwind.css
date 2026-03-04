@@ -1,8 +1,0 @@
-/* Import your layered files FIRST */
-@import "./globals.css";
-@import "./components.css";
-@import "./animations.css";
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;

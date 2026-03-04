@@ -69,7 +69,7 @@
   }
 
   a {
-    @apply text-primary-600 hover:text-primary-700 transition-colors duration-150;
+    @apply text-primary-600 hover:text-primary-700 underline-offset-2 transition-colors duration-150;
   }
 
   /* Dark mode */
@@ -96,5 +96,16 @@
 
   .dark a {
     @apply text-primary-400 hover:text-primary-300;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

@@ -7,7 +7,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { ErrorBoundary } from 'react-error-boundary'
 import { HelmetProvider } from 'react-helmet-async'
 import App from './App'
-import ErrorFallback from '@components/shared/ErrorBoundary'
+import ErrorFallback from '@components/ui/ErrorBoundary'
 import { AuthProvider } from '@contexts/AuthContext'
 import { ToastProvider } from '@contexts/ToastContext'
 import { ThemeProvider } from '@contexts/ThemeContext'
@@ -19,8 +19,7 @@ import { AuditProvider } from '@contexts/AuditContext'
 import { ReportProvider } from '@contexts/ReportContext'
 import { MpesaProvider } from '@contexts/MpesaContext'
 import { AdminProvider } from '@contexts/AdminContext'
-import '@styles/tailwind.css'
-
+import './index.css'
 // ======================================================
 // HMR-safe QueryClient
 // ======================================================

@@ -5,7 +5,7 @@ import { Helmet } from 'react-helmet-async'
 import { AnimatePresence } from 'framer-motion'
 import { useAuth } from '@hooks/useAuth'
 import Layout from '@components/layout/Layout'
-import Loading from '@components/shared/Loading'
+import Loading from '@components/ui/Loading'
 import PrivateRoute from '@router/PrivateRoute'
 import StaffRoute from '@router/StaffRoute'
 import AdminRoute from '@router/AdminRoute'
@@ -164,3 +164,4 @@ function App() {
 }
 
 export default App
+

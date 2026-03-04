@@ -4,6 +4,17 @@ import typography from '@tailwindcss/typography';
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
+
+  container: {
+    center: true,
+    padding: {
+      DEFAULT: '1rem',
+      sm: '1.5rem',
+      lg: '2rem',
+      xl: '2.5rem',
+      '2xl': '3rem',
+    },
+  },
   
   theme: {
     screens: {
@@ -81,8 +92,12 @@ export default {
       },
       
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['Space Grotesk', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+      },
+
+      transitionTimingFunction: {
+        'standard': 'cubic-bezier(0.2, 0.8, 0.2, 1)',
       },
       
       spacing: {
