@@ -21,7 +21,7 @@ export async function get(url, config = {}) {
   } catch (error) {
     if (!config?.suppressErrorToast) {
       notifyToast({
-        variant: "danger",
+        variant: "error",
         message:
           config?.toastError ||
           getErrorMessage(error, t("errors.requestFailed", "Request failed.")),
@@ -47,7 +47,7 @@ export async function post(url, payload = {}, config = {}) {
   } catch (error) {
     if (!config?.suppressErrorToast) {
       notifyToast({
-        variant: "danger",
+        variant: "error",
         message:
           config?.toastError ||
           getErrorMessage(error, t("errors.requestFailed", "Request failed.")),
@@ -73,7 +73,7 @@ export async function patch(url, payload = {}, config = {}) {
   } catch (error) {
     if (!config?.suppressErrorToast) {
       notifyToast({
-        variant: "danger",
+        variant: "error",
         message:
           config?.toastError ||
           getErrorMessage(error, t("errors.requestFailed", "Request failed.")),
@@ -99,7 +99,7 @@ export async function del(url, config = {}) {
   } catch (error) {
     if (!config?.suppressErrorToast) {
       notifyToast({
-        variant: "danger",
+        variant: "error",
         message:
           config?.toastError ||
           getErrorMessage(error, t("errors.requestFailed", "Request failed.")),

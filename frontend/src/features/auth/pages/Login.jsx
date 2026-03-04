@@ -16,6 +16,11 @@ import Particles from '@tsparticles/react'
 import { loadSlim } from '@tsparticles/slim'
 
 import { useAuth } from '@hooks/useAuth'
+import {
+  AUTH_EMAIL_REGEX,
+  AUTH_PASSWORD_POLICY,
+  AUTH_STORAGE_KEYS,
+} from '../types'
 
 const Login = () => {
   const navigate = useNavigate()
@@ -40,7 +45,7 @@ const Login = () => {
   const isLoading = authLoading || isSubmitting
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem('remembered_email')
+    const savedEmail = localStorage.getItem(AUTH_STORAGE_KEYS.rememberedEmail)
     if (savedEmail) {
       setFormData(prev => ({ ...prev, email: savedEmail, remember: true }))
     }
@@ -77,8 +82,7 @@ const Login = () => {
       return false
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(formData.email)) {
+    if (!AUTH_EMAIL_REGEX.test(formData.email)) {
       setValidationError('Please enter a valid email address')
       return false
     }
@@ -88,8 +92,8 @@ const Login = () => {
       return false
     }
 
-    if (formData.password.length < 6) {
-      setValidationError('Password must be at least 6 characters')
+    if (formData.password.length < AUTH_PASSWORD_POLICY.minLength) {
+      setValidationError(`Password must be at least ${AUTH_PASSWORD_POLICY.minLength} characters`)
       return false
     }
 
@@ -105,9 +109,9 @@ const Login = () => {
     setLocalError('')
 
     if (formData.remember) {
-      localStorage.setItem('remembered_email', formData.email)
+      localStorage.setItem(AUTH_STORAGE_KEYS.rememberedEmail, formData.email)
     } else {
-      localStorage.removeItem('remembered_email')
+      localStorage.removeItem(AUTH_STORAGE_KEYS.rememberedEmail)
     }
 
     setIsSubmitting(true)

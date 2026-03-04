@@ -1,18 +1,60 @@
-// frontend/src/api/auth.js - COMPREHENSIVE AUTH API INTERACTIONS
 import axiosInstance from '@api/axios'
 import { ENV } from '@utils/env'
 
-class AuthAPI {
-  constructor() {
-    this.baseURL = '/users'
+const AUTH_ENDPOINTS = Object.freeze({
+  login: '/users/auth/login/',
+  logout: '/users/auth/logout/',
+  currentUser: '/users/users/me/',
+  refreshToken: '/auth/token/refresh/',
+  verifyToken: '/auth/token/verify/',
+  updateProfile: '/users/users/me/update/',
+  changePassword: '/users/users/change-password/',
+  requestPasswordReset: '/users/auth/password-reset/',
+  confirmPasswordReset: '/users/auth/password-reset-confirm/',
+  verifyEmail: '/users/auth/verify-email/',
+  resendVerificationEmail: '/users/auth/resend-verification/',
+})
+
+function firstFieldError(payload) {
+  if (!payload || typeof payload !== 'object') return null
+  const firstValue = Object.values(payload)[0]
+  if (Array.isArray(firstValue)) return firstValue[0] || null
+  if (typeof firstValue === 'string') return firstValue
+  return null
+}
+
+function resolveErrorMessage(error, fallback) {
+  const payload = error?.response?.data
+
+  if (payload?.detail) return payload.detail
+  if (payload?.message) return payload.message
+  if (payload?.non_field_errors) {
+    return Array.isArray(payload.non_field_errors)
+      ? payload.non_field_errors[0]
+      : payload.non_field_errors
   }
 
-  async login(credentials) {
+  const fieldError = firstFieldError(payload)
+  if (fieldError) return fieldError
+
+  return error?.message || fallback
+}
+
+function normalizeCurrentUser(payload) {
+  if (payload && payload.id) return payload
+  if (payload?.data?.id) return payload.data
+  if (payload?.user?.id) return payload.user
+  if (payload?.data?.user?.id) return payload.data.user
+  return null
+}
+
+class AuthAPI {
+  async login(credentials = {}) {
     try {
       const payload = { password: credentials.password }
 
       if (credentials.email) {
-        payload.email = credentials.email.trim().toLowerCase()
+        payload.email = String(credentials.email).trim().toLowerCase()
       } else if (credentials.phone_number) {
         payload.phone_number = credentials.phone_number
       } else if (credentials.username) {
@@ -21,63 +63,31 @@ class AuthAPI {
         throw new Error('Email, phone number, or username is required')
       }
 
-      const response = await axiosInstance.post(`${this.baseURL}/auth/login/`, payload)
+      const response = await axiosInstance.post(AUTH_ENDPOINTS.login, payload)
+      const data = response.data
 
-      if (!response.data || !response.data.access || !response.data.refresh) {
+      if (!data?.access || !data?.refresh) {
         throw new Error('Invalid login response structure')
       }
 
-      return response.data
+      return data
     } catch (error) {
-      let errorMsg = 'Login failed'
-
-      if (error.response) {
-        if (error.response.data?.detail) {
-          errorMsg = error.response.data.detail
-        } else if (error.response.data?.non_field_errors) {
-          errorMsg = Array.isArray(error.response.data.non_field_errors)
-            ? error.response.data.non_field_errors[0]
-            : error.response.data.non_field_errors
-        } else if (typeof error.response.data === 'object') {
-          const firstError = Object.values(error.response.data)[0]
-          if (Array.isArray(firstError)) {
-            errorMsg = firstError[0]
-          } else if (typeof firstError === 'string') {
-            errorMsg = firstError
-          }
-        }
-      } else if (error.message) {
-        errorMsg = error.message
-      }
-
-      throw new Error(errorMsg)
+      throw new Error(resolveErrorMessage(error, 'Login failed'))
     }
   }
 
   async getCurrentUser() {
     try {
-      const response = await axiosInstance.get(`${this.baseURL}/users/me/`)
-      const payload = response.data
+      const response = await axiosInstance.get(AUTH_ENDPOINTS.currentUser)
+      const user = normalizeCurrentUser(response.data)
 
-      // Accept raw user object
-      if (payload && payload.id) return payload
+      if (!user) {
+        throw new Error('Invalid user response structure')
+      }
 
-      // Accept API envelope: { success, message, data: { ...user } }
-      if (payload && payload.data && payload.data.id) return payload.data
-
-      // Accept envelope with user key: { access, refresh, user }
-      if (payload && payload.user && payload.user.id) return payload.user
-
-      // Nested envelope: { success, data: { user: { ... } } }
-      if (payload && payload.data && payload.data.user && payload.data.user.id) return payload.data.user
-
-      throw new Error('Invalid user response structure')
+      return user
     } catch (error) {
-      const errorMsg =
-        error.response?.data?.detail ||
-        error.message ||
-        'Failed to fetch current user'
-      throw new Error(errorMsg)
+      throw new Error(resolveErrorMessage(error, 'Failed to fetch current user'))
     }
   }
 
@@ -85,7 +95,7 @@ class AuthAPI {
     try {
       const refreshToken = localStorage.getItem('refresh_token')
       if (refreshToken) {
-        await axiosInstance.post(`${this.baseURL}/auth/logout/`, { refresh: refreshToken })
+        await axiosInstance.post(AUTH_ENDPOINTS.logout, { refresh: refreshToken })
       }
     } catch (error) {
       if (ENV.ENVIRONMENT === 'development') {
@@ -96,26 +106,25 @@ class AuthAPI {
 
   async refreshToken(refresh) {
     try {
-      const response = await axiosInstance.post('/auth/token/refresh/', { refresh })
-      if (!response.data.access) {
+      const response = await axiosInstance.post(AUTH_ENDPOINTS.refreshToken, { refresh })
+      const data = response.data
+
+      if (!data?.access) {
         throw new Error('Invalid refresh response structure')
       }
-      return response.data
+
+      return data
     } catch (error) {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
-      const errorMsg =
-        error.response?.data?.detail ||
-        error.message ||
-        'Token refresh failed'
-      throw new Error(errorMsg)
+      throw new Error(resolveErrorMessage(error, 'Token refresh failed'))
     }
   }
 
   async verifyToken(token) {
     try {
-      await axiosInstance.post('/auth/token/verify/', { token })
+      await axiosInstance.post(AUTH_ENDPOINTS.verifyToken, { token })
       return { valid: true }
     } catch {
       return { valid: false }
@@ -124,67 +133,51 @@ class AuthAPI {
 
   async updateProfile(data) {
     try {
-      const response = await axiosInstance.patch(`${this.baseURL}/users/me/update/`, data)
-      if (!response.data || !response.data.id) {
+      const response = await axiosInstance.patch(AUTH_ENDPOINTS.updateProfile, data)
+      const payload = response.data
+
+      if (!payload?.id) {
         throw new Error('Invalid profile update response')
       }
-      return response.data
+
+      return payload
     } catch (error) {
-      let errorMsg = 'Failed to update profile'
-      if (error.response?.data?.detail) {
-        errorMsg = error.response.data.detail
-      } else if (error.response?.data) {
-        const errors = Object.values(error.response.data).flat()
-        if (errors.length > 0) {
-          errorMsg = errors.join(', ')
-        }
-      }
-      throw new Error(errorMsg)
+      throw new Error(resolveErrorMessage(error, 'Failed to update profile'))
     }
   }
 
   async changePassword(current_password, new_password, confirm_new_password) {
     try {
-      const response = await axiosInstance.post(`${this.baseURL}/users/change-password/`, {
+      const response = await axiosInstance.post(AUTH_ENDPOINTS.changePassword, {
         current_password,
         new_password,
         confirm_new_password,
       })
-      if (!response.data || !response.data.detail) {
+      const payload = response.data
+
+      if (!payload?.detail) {
         throw new Error('Invalid password change response')
       }
-      return response.data
+
+      return payload
     } catch (error) {
-      let errorMsg = 'Failed to change password'
-      if (error.response?.data?.detail) {
-        errorMsg = error.response.data.detail
-      } else if (error.response?.data) {
-        const errors = Object.values(error.response.data).flat()
-        if (errors.length > 0) {
-          errorMsg = errors.join(', ')
-        }
-      }
-      throw new Error(errorMsg)
+      throw new Error(resolveErrorMessage(error, 'Failed to change password'))
     }
   }
 
   async requestPasswordReset(email) {
     try {
-      const response = await axiosInstance.post(`${this.baseURL}/auth/password-reset/`, { email })
+      const response = await axiosInstance.post(AUTH_ENDPOINTS.requestPasswordReset, { email })
       if (!response.data) throw new Error('Invalid password reset response')
       return response.data
     } catch (error) {
-      const errorMsg =
-        error.response?.data?.detail ||
-        error.message ||
-        'Failed to request password reset'
-      throw new Error(errorMsg)
+      throw new Error(resolveErrorMessage(error, 'Failed to request password reset'))
     }
   }
 
   async confirmPasswordReset(uid, token, password, confirm_password) {
     try {
-      const response = await axiosInstance.post(`${this.baseURL}/auth/password-reset-confirm/`, {
+      const response = await axiosInstance.post(AUTH_ENDPOINTS.confirmPasswordReset, {
         uid,
         token,
         password,
@@ -193,43 +186,30 @@ class AuthAPI {
       if (!response.data) throw new Error('Invalid password reset confirm response')
       return response.data
     } catch (error) {
-      let errorMsg = 'Failed to reset password'
-      if (error.response?.data?.detail) errorMsg = error.response.data.detail
-      else if (error.response?.data) {
-        const errors = Object.values(error.response.data).flat()
-        if (errors.length > 0) errorMsg = errors.join(', ')
-      }
-      throw new Error(errorMsg)
+      throw new Error(resolveErrorMessage(error, 'Failed to reset password'))
     }
   }
 
   async verifyEmail(uid, token) {
     try {
-      const response = await axiosInstance.post(`${this.baseURL}/auth/verify-email/`, { uid, token })
+      const response = await axiosInstance.post(AUTH_ENDPOINTS.verifyEmail, { uid, token })
       if (!response.data) throw new Error('Invalid email verification response')
       return response.data
     } catch (error) {
-      const errorMsg =
-        error.response?.data?.detail ||
-        error.message ||
-        'Failed to verify email'
-      throw new Error(errorMsg)
+      throw new Error(resolveErrorMessage(error, 'Failed to verify email'))
     }
   }
 
   async resendVerificationEmail(email) {
     try {
-      const response = await axiosInstance.post(`${this.baseURL}/auth/resend-verification/`, { email })
+      const response = await axiosInstance.post(AUTH_ENDPOINTS.resendVerificationEmail, { email })
       return response.data
     } catch (error) {
-      const errorMsg =
-        error.response?.data?.detail ||
-        error.message ||
-        'Failed to resend verification email'
-      throw new Error(errorMsg)
+      throw new Error(resolveErrorMessage(error, 'Failed to resend verification email'))
     }
   }
 }
 
+export { AUTH_ENDPOINTS }
 export const authAPI = new AuthAPI()
 export default authAPI

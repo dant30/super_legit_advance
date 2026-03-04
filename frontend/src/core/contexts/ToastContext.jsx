@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useState } from "react";
 import { AlertCircle, AlertTriangle, CheckCircle, Info, X } from "lucide-react";
 import { cn } from "@utils/cn";
+import { t } from "../i18n/i18n";
 
 const ToastContext = createContext(null);
 
@@ -15,6 +16,27 @@ export const useToast = () => {
 export const ToastProvider = ({ children, position = "top-right", maxToasts = 5 }) => {
   const [toasts, setToasts] = useState([]);
 
+  const normalizeToastType = useCallback((type) => {
+    const raw = String(type || "info").toLowerCase();
+    if (raw === "danger") return "error";
+    if (raw === "warn") return "warning";
+    return raw;
+  }, []);
+
+  const getDefaultTitle = useCallback((type) => {
+    if (type === "success") return t("toast.successTitle", "Success");
+    if (type === "error") return t("toast.errorTitle", "Error");
+    if (type === "warning") return t("toast.warningTitle", "Attention");
+    return t("toast.infoTitle", "Info");
+  }, []);
+
+  const getDefaultDuration = useCallback((type) => {
+    if (type === "error") return 6000;
+    if (type === "warning") return 5000;
+    if (type === "success") return 3500;
+    return 4000;
+  }, []);
+
   const addToast = useCallback(
     (toastOrMessage, options = {}) => {
       const toast =
@@ -28,15 +50,15 @@ export const ToastProvider = ({ children, position = "top-right", maxToasts = 5 
           : toastOrMessage || {};
 
       const id = Math.random().toString(36).slice(2, 11);
-      const normalizedType = toast.type || toast.variant || "info";
+      const normalizedType = normalizeToastType(toast.type || toast.variant || "info");
 
       const nextToast = {
         id,
-        title: toast.title || "",
+        title: toast.title || getDefaultTitle(normalizedType),
         message: toast.message || "",
         type: normalizedType,
         variant: normalizedType,
-        duration: toast.duration || 5000,
+        duration: toast.duration ?? getDefaultDuration(normalizedType),
         onClose: toast.onClose,
         createdAt: Date.now(),
       };
@@ -44,7 +66,7 @@ export const ToastProvider = ({ children, position = "top-right", maxToasts = 5 
       setToasts((prev) => [nextToast, ...prev].slice(0, maxToasts));
       return id;
     },
-    [maxToasts]
+    [maxToasts, getDefaultDuration, getDefaultTitle, normalizeToastType]
   );
 
   const removeToast = useCallback((id) => {
@@ -208,7 +230,7 @@ const ToastItem = ({
         className
       )}
       role="alert"
-      aria-live="assertive"
+      aria-live={type === "error" || type === "warning" ? "assertive" : "polite"}
       aria-atomic="true"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

@@ -9,39 +9,70 @@ import React, {
 } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axiosInstance from '@api/axios'
-import { authAPI } from '@api/auth'
+import { AUTH_ENDPOINTS, authAPI } from '@api/auth'
 import { useToast } from './ToastContext'
+import { t } from '../i18n/i18n'
+import {
+  AUTH_ROLE,
+  AUTH_STATUS,
+  AUTH_STORAGE_KEYS,
+} from '../../features/auth/types'
 
 // Create Auth Context
-export const AuthContext = createContext({})
+export const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const queryClient = useQueryClient()
   const { addToast } = useToast()
 
+  const readStorage = useCallback((key) => localStorage.getItem(key), [])
+  const writeStorage = useCallback((key, value) => localStorage.setItem(key, value), [])
+  const removeStorage = useCallback((key) => localStorage.removeItem(key), [])
+  const clearStoredAuth = useCallback(() => {
+    removeStorage(AUTH_STORAGE_KEYS.accessToken)
+    removeStorage(AUTH_STORAGE_KEYS.refreshToken)
+    removeStorage(AUTH_STORAGE_KEYS.user)
+  }, [removeStorage])
+
   // State
   const [user, setUser] = useState(() => {
     try {
-      const raw = localStorage.getItem('user')
+      const raw = localStorage.getItem(AUTH_STORAGE_KEYS.user)
       return raw ? JSON.parse(raw) : null
     } catch {
       return null
     }
   })
   const [isAuthenticated, setIsAuthenticated] = useState(!!user)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isBootstrapping, setIsBootstrapping] = useState(true)
   const [error, setError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
 
+  const notifySuccess = useCallback((message, options = {}) => {
+    addToast({
+      type: 'success',
+      message,
+      duration: options.duration ?? 3500,
+      ...options,
+    })
+  }, [addToast])
+
+  const notifyError = useCallback((message, options = {}) => {
+    addToast({
+      type: 'error',
+      message,
+      duration: options.duration ?? 6000,
+      ...options,
+    })
+  }, [addToast])
+
   // Handle authentication errors
   const handleAuthError = useCallback((err) => {
-    const msg = err?.message || 'Authentication error'
+    const msg = err?.message || t('errors.authFailed', 'Authentication failed.')
     setError(msg)
 
     // Clear stored tokens and user
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
-    localStorage.removeItem('user')
+    clearStoredAuth()
     delete axiosInstance.defaults.headers.common.Authorization
 
     setUser(null)
@@ -49,7 +80,7 @@ export function AuthProvider({ children }) {
 
     // Optional redirect handled by callers (keeps context testable)
     return msg
-  }, [])
+  }, [clearStoredAuth])
 
   // React Query for fetching current user
   const {
@@ -60,7 +91,7 @@ export function AuthProvider({ children }) {
   } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
-      const token = localStorage.getItem('access_token')
+      const token = readStorage(AUTH_STORAGE_KEYS.accessToken)
       if (!token) {
         throw new Error('No access token')
       }
@@ -76,11 +107,12 @@ export function AuthProvider({ children }) {
   // Check authentication on app load
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('access_token')
-      const storedUser = localStorage.getItem('user')
+      setIsBootstrapping(true)
+      const token = readStorage(AUTH_STORAGE_KEYS.accessToken)
+      const storedUser = readStorage(AUTH_STORAGE_KEYS.user)
       
       if (!token) {
-        setIsLoading(false)
+        setIsBootstrapping(false)
         return
       }
       
@@ -100,8 +132,8 @@ export function AuthProvider({ children }) {
           }
         } catch {
           // Invalid JSON in localStorage, clear it
-          localStorage.removeItem('user')
-          setIsLoading(false)
+          removeStorage(AUTH_STORAGE_KEYS.user)
+          setIsBootstrapping(false)
           return
         }
       } else {
@@ -109,27 +141,22 @@ export function AuthProvider({ children }) {
         await refetchUser()
       }
       
-      setIsLoading(false)
+      setIsBootstrapping(false)
     }
 
     checkAuth().catch((err) => {
       handleAuthError(err)
-      setIsLoading(false)
+      setIsBootstrapping(false)
     })
-  }, [refetchUser, handleAuthError])
-
-  // Update loading state
-  useEffect(() => {
-    setIsLoading(isFetchingUser)
-  }, [isFetchingUser])
+  }, [refetchUser, handleAuthError, readStorage, removeStorage])
 
   useEffect(() => {
     if (!userData) return
     setUser(userData)
     setIsAuthenticated(true)
     setError(null)
-    localStorage.setItem('user', JSON.stringify(userData))
-  }, [userData])
+    writeStorage(AUTH_STORAGE_KEYS.user, JSON.stringify(userData))
+  }, [userData, writeStorage])
 
   // Update error state
   useEffect(() => {
@@ -143,24 +170,22 @@ export function AuthProvider({ children }) {
     mutationFn: (credentials) => authAPI.login(credentials),
     onSuccess: (data) => {
       const { access, refresh, user: userData } = data
-      localStorage.setItem('access_token', access)
-      localStorage.setItem('refresh_token', refresh)
-      localStorage.setItem('user', JSON.stringify(userData))
+      writeStorage(AUTH_STORAGE_KEYS.accessToken, access)
+      writeStorage(AUTH_STORAGE_KEYS.refreshToken, refresh)
+      writeStorage(AUTH_STORAGE_KEYS.user, JSON.stringify(userData))
       axiosInstance.defaults.headers.common.Authorization = `Bearer ${access}`
       setUser(userData)
       setIsAuthenticated(true)
       setError(null)
-      addToast('Logged in successfully', { title: 'Success' })
+      notifySuccess(t('auth.loginSuccess', 'Signed in successfully.'))
       queryClient.invalidateQueries(['currentUser'])
       return userData
     },
     onError: (err) => {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user')
-      const msg = err?.message || 'Login failed'
+      clearStoredAuth()
+      const msg = err?.message || t('auth.loginFailed', 'Sign in failed.')
       setError(msg)
-      addToast(msg, { title: 'Login Failed' })
+      notifyError(msg)
       throw err
     },
   })
@@ -169,25 +194,21 @@ export function AuthProvider({ children }) {
   const logoutMutation = useMutation({
     mutationFn: () => authAPI.logout(),
     onSuccess: () => {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user')
+      clearStoredAuth()
       delete axiosInstance.defaults.headers.common.Authorization
       setUser(null)
       setIsAuthenticated(false)
       setError(null)
       queryClient.clear()
-      addToast('You have been logged out', { title: 'Logged out' })
+      notifySuccess(t('auth.logoutSuccess', 'You have been signed out.'), { duration: 2500 })
     },
     onError: (err) => {
       console.error('Logout error:', err)
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user')
+      clearStoredAuth()
       delete axiosInstance.defaults.headers.common.Authorization
       setUser(null)
       setIsAuthenticated(false)
-      addToast('You have been logged out', { title: 'Logged out' })
+      notifySuccess(t('auth.logoutSuccess', 'You have been signed out.'), { duration: 2500 })
     },
   })
 
@@ -195,18 +216,18 @@ export function AuthProvider({ children }) {
   const updateProfileMutation = useMutation({
     mutationFn: (data) => authAPI.updateProfile(data),
     onSuccess: (updatedUser) => {
-      localStorage.setItem('user', JSON.stringify(updatedUser))
+      writeStorage(AUTH_STORAGE_KEYS.user, JSON.stringify(updatedUser))
       setUser(updatedUser)
-      setSuccessMessage('Profile updated successfully')
+      setSuccessMessage(t('auth.profileUpdated', 'Profile updated successfully.'))
       setError(null)
       queryClient.setQueryData(['currentUser'], updatedUser)
-      addToast('Profile updated successfully', { title: 'Success' })
+      notifySuccess(t('auth.profileUpdated', 'Profile updated successfully.'))
       return updatedUser
     },
     onError: (err) => {
-      const msg = err?.message || 'Failed to update profile'
+      const msg = err?.message || t('auth.profileUpdateFailed', 'Failed to update profile.')
       setError(msg)
-      addToast(msg, { title: 'Update Failed' })
+      notifyError(msg)
       throw err
     },
   })
@@ -216,38 +237,42 @@ export function AuthProvider({ children }) {
     mutationFn: ({ current_password, new_password, confirm_new_password }) =>
       authAPI.changePassword(current_password, new_password, confirm_new_password),
     onSuccess: (res) => {
-      const message = res?.detail || 'Password changed successfully'
+      const message = res?.detail || t('auth.passwordChanged', 'Password changed successfully.')
       setSuccessMessage(message)
       setError(null)
-      addToast(message, { title: 'Success' })
+      notifySuccess(message)
       return res
     },
     onError: (err) => {
-      const msg = err?.message || 'Failed to change password'
+      const msg = err?.message || t('auth.passwordChangeFailed', 'Failed to change password.')
       setError(msg)
-      addToast(msg, { title: 'Password Change Failed' })
+      notifyError(msg)
       throw err
     },
   })
 
   // Check authentication (for manual refresh)
   const checkAuth = useCallback(async () => {
-    const access = localStorage.getItem('access_token')
-    const refresh = localStorage.getItem('refresh_token')
+    setIsBootstrapping(true)
+    const access = readStorage(AUTH_STORAGE_KEYS.accessToken)
+    const refresh = readStorage(AUTH_STORAGE_KEYS.refreshToken)
     if (!access) {
       // try refresh if possible
       if (refresh) {
         try {
           const data = await authAPI.refreshToken(refresh)
           const newAccess = data.access
-          localStorage.setItem('access_token', newAccess)
+          writeStorage(AUTH_STORAGE_KEYS.accessToken, newAccess)
           axiosInstance.defaults.headers.common.Authorization = `Bearer ${newAccess}`
         } catch (err) {
           handleAuthError(err)
+          notifyError(t('auth.sessionExpired', 'Your session has expired. Please sign in again.'))
+          setIsBootstrapping(false)
           return false
         }
       } else {
         handleAuthError(new Error('No access token'))
+        setIsBootstrapping(false)
         return false
       }
     } else {
@@ -256,12 +281,14 @@ export function AuthProvider({ children }) {
 
     try {
       await refetchUser()
+      setIsBootstrapping(false)
       return true
     } catch (err) {
       handleAuthError(err)
+      setIsBootstrapping(false)
       return false
     }
-  }, [refetchUser, handleAuthError])
+  }, [refetchUser, handleAuthError, notifyError, readStorage, writeStorage])
 
   // role & permission helpers
   const hasRole = useCallback((role) => {
@@ -290,10 +317,13 @@ export function AuthProvider({ children }) {
     return max == null ? true : amount <= max
   }, [user])
 
-  const isAdmin = useCallback(() => hasRole('admin'), [hasRole])
-  const isStaff = useCallback(() => hasRole(['admin', 'staff', 'officer']), [hasRole])
-  const isOfficer = useCallback(() => hasRole('officer'), [hasRole])
-  const isCustomer = useCallback(() => hasRole('customer'), [hasRole])
+  const isAdmin = useCallback(() => hasRole(AUTH_ROLE.admin), [hasRole])
+  const isStaff = useCallback(
+    () => hasRole([AUTH_ROLE.admin, AUTH_ROLE.staff, AUTH_ROLE.officer]),
+    [hasRole]
+  )
+  const isOfficer = useCallback(() => hasRole(AUTH_ROLE.officer), [hasRole])
+  const isCustomer = useCallback(() => hasRole(AUTH_ROLE.customer), [hasRole])
 
   const isVerified = useCallback(() => user?.is_verified || false, [user])
   const isLocked = useCallback(() => {
@@ -338,14 +368,28 @@ export function AuthProvider({ children }) {
   const clearError = useCallback(() => setError(null), [])
   const clearSuccess = useCallback(() => setSuccessMessage(null), [])
 
+  const isLoading = isBootstrapping || isFetchingUser
+  const authStatus = isLoading
+    ? AUTH_STATUS.bootstrapping
+    : isAuthenticated
+      ? AUTH_STATUS.authenticated
+      : AUTH_STATUS.unauthenticated
+
   // Context value
   const value = useMemo(() => ({
     // State
     user,
     isAuthenticated,
     isLoading,
+    authStatus,
     error,
     successMessage,
+    contract: {
+      endpoints: AUTH_ENDPOINTS,
+      storageKeys: AUTH_STORAGE_KEYS,
+      roles: AUTH_ROLE,
+      statuses: AUTH_STATUS,
+    },
     
     // Methods
     login: loginMutation.mutateAsync,
@@ -387,6 +431,7 @@ export function AuthProvider({ children }) {
     user,
     isAuthenticated,
     isLoading,
+    authStatus,
     error,
     successMessage,
     loginMutation,

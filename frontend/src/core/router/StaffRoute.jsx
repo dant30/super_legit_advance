@@ -1,13 +1,20 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@hooks/useAuth";
 import Loading from "@components/ui/Loading";
+import { t } from "../i18n/i18n";
 
 const StaffRoute = () => {
   const location = useLocation();
   const { isAuthenticated, isLoading, isStaff } = useAuth();
 
   if (isLoading) {
-    return <Loading fullScreen size="xl" message="Checking permissions..." />;
+    return (
+      <Loading
+        fullScreen
+        size="xl"
+        message={t("routes.checkingPermissions", "Checking permissions...")}
+      />
+    );
   }
 
   if (!isAuthenticated) {
@@ -15,7 +22,13 @@ const StaffRoute = () => {
   }
 
   if (!isStaff()) {
-    return <Navigate to="/unauthorized" replace />;
+    return (
+      <Navigate
+        to="/unauthorized"
+        state={{ from: location.pathname, reason: "staff_access_required" }}
+        replace
+      />
+    );
   }
 
   return <Outlet />;

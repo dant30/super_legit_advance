@@ -11,6 +11,7 @@ import StaffRoute from '@router/StaffRoute'
 import AdminRoute from '@router/AdminRoute'
 import ThemeInitializer from '@components/ui/ThemeInitializer'
 import { publicRoutes, protectedRoutes, errorRoutes } from '@router/routes'
+import { t } from './core/i18n/i18n'
 
 // 🔁 Recursive route mapper (stable keys)
 const renderRoutes = (routes, parentKey = '') =>
@@ -45,7 +46,9 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('access_token')
     if (token) {
-      checkAuth()
+      checkAuth().catch(() => {
+        // handled in AuthContext
+      })
     }
     // Note: We're not setting isLoading here anymore
     // The AuthContext will handle loading state
@@ -80,8 +83,12 @@ function App() {
   const hasToken = localStorage.getItem('access_token')
   if (isLoading && hasToken) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <Loading size="lg" />
+      <div
+        className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900"
+        role="status"
+        aria-live="polite"
+      >
+        <Loading size="lg" message={t('auth.checkingSession', 'Checking your session...')} />
       </div>
     )
   }
@@ -116,8 +123,8 @@ function App() {
       <AnimatePresence mode="wait">
         <Suspense
           fallback={
-            <div className="min-h-screen flex items-center justify-center">
-              <Loading size="lg" />
+            <div className="min-h-screen flex items-center justify-center" role="status" aria-live="polite">
+              <Loading size="lg" message={t('routes.loadingPage', 'Loading page...')} />
             </div>
           }
         >

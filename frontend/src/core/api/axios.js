@@ -11,6 +11,8 @@ function generateCorrelationId(prefix = 'web') {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
+const ENABLE_CORRELATION_ID = import.meta.env.VITE_ENABLE_CORRELATION_ID === 'true'
+
 const axiosInstance = axios.create({
   baseURL: API_URL,
   timeout: API_TIMEOUT,
@@ -21,7 +23,7 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    if (config.headers) {
+    if (ENABLE_CORRELATION_ID && config.headers) {
       config.headers['X-Correlation-ID'] = generateCorrelationId()
     }
 
@@ -71,10 +73,12 @@ axiosInstance.interceptors.response.use(
           `${API_URL}/auth/token/refresh/`,
           { refresh: refreshToken },
           {
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Correlation-ID': generateCorrelationId('web-refresh'),
-            },
+            headers: ENABLE_CORRELATION_ID
+              ? {
+                  'Content-Type': 'application/json',
+                  'X-Correlation-ID': generateCorrelationId('web-refresh'),
+                }
+              : { 'Content-Type': 'application/json' },
           }
         )
 
