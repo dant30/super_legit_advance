@@ -1,5 +1,26 @@
 // frontend/src/router/routes.jsx
-import { lazy } from 'react'
+import { lazy as reactLazy } from 'react'
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const importWithRetry = async (importer, retries = 2, delayMs = 350) => {
+  let lastError
+
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await importer()
+    } catch (error) {
+      lastError = error
+      if (attempt < retries) {
+        await wait(delayMs * (attempt + 1))
+      }
+    }
+  }
+
+  throw lastError
+}
+
+const lazy = (importer) => reactLazy(() => importWithRetry(importer))
 
 // ========================================================
 // PUBLIC PAGES (No Authentication Required)
