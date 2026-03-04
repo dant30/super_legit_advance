@@ -1,29 +1,32 @@
 import React from 'react'
 import { Card } from '@components/ui'
+import { formatRelativeTime } from '@utils/formatters'
+import { t } from '../../../core/i18n/i18n'
 
-const RecentActivity = ({ items = [] }) => {
-  const data = items.length > 0 ? items : [
-    { id: 1, title: 'Payment received', detail: 'KES 12,000 from Mary W.', time: '2h ago' },
-    { id: 2, title: 'Loan approved', detail: 'Loan LN-1022 for Peter O.', time: '5h ago' },
-    { id: 3, title: 'Customer updated', detail: 'Amina S. changed phone number', time: 'Yesterday' },
-  ]
+const RecentActivity = ({ items = [] }) => (
+  <Card className="border border-slate-200 bg-white shadow-sm">
+    <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
+      {t('dashboard.activity.title', 'Recent Activity')}
+    </h3>
 
-  return (
-    <Card>
-      <h3 className="text-sm font-semibold text-gray-900">Recent Activity</h3>
-      <div className="mt-3 space-y-3">
-        {data.map((item) => (
-          <div key={item.id} className="rounded-lg border border-gray-100 p-3">
+    {items.length === 0 ? (
+      <p className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-sm text-slate-600">
+        {t('dashboard.activity.empty', 'No recent activity in the selected window.')}
+      </p>
+    ) : (
+      <ul className="mt-3 space-y-3">
+        {items.map((item) => (
+          <li key={item.id} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-gray-900">{item.title}</p>
-              <span className="text-xs text-gray-400">{item.time}</span>
+              <p className="text-sm font-medium text-slate-900">{item.title}</p>
+              <time className="text-xs text-slate-500">{formatRelativeTime(item.time)}</time>
             </div>
-            <p className="mt-1 text-xs text-gray-500">{item.detail}</p>
-          </div>
+            <p className="mt-1 text-xs text-slate-600">{item.detail}</p>
+          </li>
         ))}
-      </div>
-    </Card>
-  )
-}
+      </ul>
+    )}
+  </Card>
+)
 
 export default RecentActivity

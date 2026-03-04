@@ -1,4 +1,4 @@
-services:
+services: # Define all services for the application- the blueprints (backend, frontend (static), database, cache)
   # Backend API
   - type: web
     name: super-legit-backend

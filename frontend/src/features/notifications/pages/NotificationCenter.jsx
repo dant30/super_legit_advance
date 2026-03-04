@@ -1,36 +1,39 @@
 import React, { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useSelector } from 'react-redux'
 import { useNotificationContext } from '@contexts/NotificationContext'
-import { notificationsAPI } from '@api/notifications'
 import PageHeader from '@components/ui/PageHeader'
 import { NotificationList, NotificationSettings, BulkMessenger } from '@components/notifications'
 import { Card } from '@components/ui'
 import { Bell, Settings, Send, BarChart3 } from 'lucide-react'
+import useNotifications from '../hooks/useNotifications'
+import {
+  selectNotificationStats,
+  selectNotificationTemplates,
+  selectNotifications,
+  selectNotificationsLoading,
+  selectUnreadNotificationsCount,
+} from '../store'
 
 const NotificationCenter = () => {
+  const notifications = useSelector(selectNotifications)
+  const unreadCount = useSelector(selectUnreadNotificationsCount)
+  const statsData = useSelector(selectNotificationStats)
+  const templates = useSelector(selectNotificationTemplates)
+  const isLoading = useSelector(selectNotificationsLoading)
+
   const {
-    notifications,
-    unreadCount,
     markAsRead,
     markAllAsRead,
     deleteNotification,
     refetchNotifications,
-    isLoading,
   } = useNotificationContext()
 
   const [activeTab, setActiveTab] = useState('all')
   const [page, setPage] = useState(1)
+  const { useGetTemplates, useGetStats, bulkSend } = useNotifications()
 
-  // Fetch templates for bulk messenger
-  const { data: templatesData } = useQuery({
-    queryKey: ['templates'],
-    queryFn: () => notificationsAPI.getTemplates({ active: true }),
-  })
-
-  // Fetch stats
-  const { data: statsData } = useQuery({
-    queryKey: ['notification-stats'],
-    queryFn: () => notificationsAPI.getStats({ days: 7 }),
+  useGetTemplates({ active: true })
+  useGetStats({ days: 7 }, {
     refetchInterval: 60000, // Refetch every minute
   })
 
@@ -158,9 +161,9 @@ const NotificationCenter = () => {
 
           {activeTab === 'bulk' && (
             <BulkMessenger
-              templates={templatesData?.results || []}
+              templates={templates}
               onSend={async (data) => {
-                await notificationsAPI.bulkSend(data)
+                await bulkSend(data)
                 await refetchNotifications()
               }}
             />

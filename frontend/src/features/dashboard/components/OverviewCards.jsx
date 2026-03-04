@@ -1,58 +1,46 @@
 import React, { useMemo } from 'react'
 import { Users, CreditCard, Wallet, TrendingUp } from 'lucide-react'
+import { formatNumber } from '@utils/formatters'
+import { t } from '../../../core/i18n/i18n'
 
-const StatCard = ({ title, value, icon: Icon, delta, deltaLabel }) => (
-  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-    <div className="flex items-start justify-between">
-      <div>
-        <p className="text-xs font-medium text-gray-500">{title}</p>
-        <p className="mt-1 text-2xl font-bold text-gray-900">{value}</p>
-      </div>
-      <Icon className="h-5 w-5 text-primary-600" />
+const StatCard = ({ title, value, icon: Icon, helper }) => (
+  <article className="rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm transition-colors hover:border-slate-300">
+    <div className="mb-3 flex items-center justify-between">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</p>
+      <span className="rounded-md bg-slate-100 p-2 text-slate-700">
+        <Icon className="h-4 w-4" aria-hidden="true" />
+      </span>
     </div>
-    <p className="mt-2 text-xs text-gray-500">
-      <span className="font-semibold text-gray-700">{delta}</span> {deltaLabel}
-    </p>
-  </div>
+    <p className="text-2xl font-semibold text-slate-900">{value}</p>
+    <p className="mt-1 text-xs text-slate-500">{helper}</p>
+  </article>
 )
 
 const OverviewCards = ({ stats }) => {
   const items = useMemo(() => ([
     {
-      title: 'Assigned Customers',
-      value: stats?.customers ?? 128,
+      title: t('dashboard.overview.borrowersTitle', 'Borrowers'),
+      value: formatNumber(stats?.customers),
       icon: Users,
-      delta: '+6.2%',
-      deltaLabel: 'vs last week',
-      deltaDirection: 'up',
-      accent: 'primary',
+      helper: t('dashboard.overview.borrowersHelper', 'Managed borrower accounts'),
     },
     {
-      title: 'Active Loans',
-      value: stats?.activeLoans ?? 54,
+      title: t('dashboard.overview.activeLoansTitle', 'Active Loans'),
+      value: formatNumber(stats?.activeLoans),
       icon: CreditCard,
-      delta: '+2.1%',
-      deltaLabel: 'vs last week',
-      deltaDirection: 'up',
-      accent: 'info',
+      helper: t('dashboard.overview.activeLoansHelper', 'Currently disbursed facilities'),
     },
     {
-      title: 'Due Today',
-      value: stats?.dueToday ?? 12,
+      title: t('dashboard.overview.dueTodayTitle', 'Due Today'),
+      value: formatNumber(stats?.dueToday),
       icon: Wallet,
-      delta: '-3.4%',
-      deltaLabel: 'vs yesterday',
-      deltaDirection: 'down',
-      accent: 'warning',
+      helper: t('dashboard.overview.dueTodayHelper', 'Repayments requiring collection'),
     },
     {
-      title: 'Collection Rate',
-      value: `${stats?.collectionRate ?? 92}%`,
+      title: t('dashboard.overview.collectionRateTitle', 'Collection Rate'),
+      value: `${formatNumber(stats?.collectionRate)}%`,
       icon: TrendingUp,
-      delta: '+1.3%',
-      deltaLabel: 'this month',
-      deltaDirection: 'up',
-      accent: 'success',
+      helper: t('dashboard.overview.collectionRateHelper', 'Portfolio recovery performance'),
     },
   ]), [stats])
 

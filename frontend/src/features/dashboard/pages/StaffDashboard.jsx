@@ -1,7 +1,13 @@
 // frontend/src/pages/dashboard/StaffDashboard.jsx
-import React from 'react'
+import React, { useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { PageHeader, Card } from '@components/ui'
 import { useAuth } from '@hooks/useAuth'
+import { Plus, FileText, Users, CreditCard } from 'lucide-react'
+import { APP_ROUTES } from '../../../shared/constants/routes'
+import { formatDateTime } from '@utils/formatters'
+import { t } from '../../../core/i18n/i18n'
 import {
   Collections,
   MyCustomers,
@@ -11,95 +17,143 @@ import {
   Performance,
   RecentActivity,
 } from '@components/dashboard'
-import { Plus, FileText, Users, CreditCard } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import useDashboard from '../hooks/useDashboard'
+import {
+  selectDashboardCollections,
+  selectDashboardCustomers,
+  selectDashboardError,
+  selectDashboardLastUpdatedAt,
+  selectDashboardLoading,
+  selectDashboardLoans,
+  selectDashboardOverview,
+  selectDashboardPendingApprovals,
+  selectDashboardPerformance,
+  selectDashboardRecentActivity,
+} from '../store'
 
 const StaffDashboard = () => {
   const { user } = useAuth()
+  const { loadDashboard } = useDashboard()
 
-  // Inline one-liner to capitalize first letter
+  const overview = useSelector(selectDashboardOverview)
+  const customers = useSelector(selectDashboardCustomers)
+  const loans = useSelector(selectDashboardLoans)
+  const pendingApprovals = useSelector(selectDashboardPendingApprovals)
+  const collections = useSelector(selectDashboardCollections)
+  const performance = useSelector(selectDashboardPerformance)
+  const recentActivity = useSelector(selectDashboardRecentActivity)
+  const loading = useSelector(selectDashboardLoading)
+  const error = useSelector(selectDashboardError)
+  const lastUpdatedAt = useSelector(selectDashboardLastUpdatedAt)
+
+  useEffect(() => {
+    loadDashboard().catch(() => {})
+  }, [loadDashboard])
+
   const staffName = user?.first_name
     ? user.first_name.charAt(0).toUpperCase() + user.first_name.slice(1)
-    : 'Staff'
+    : t('dashboard.page.fallbackStaff', 'Staff')
 
   const getGreeting = () => {
     const hour = new Date().getHours()
-    if (hour < 12) return 'Good Morning'
-    if (hour < 18) return 'Good Afternoon'
-    return 'Good Evening'
+    if (hour < 12) return t('dashboard.page.greetings.morning', 'Good morning')
+    if (hour < 18) return t('dashboard.page.greetings.afternoon', 'Good afternoon')
+    return t('dashboard.page.greetings.evening', 'Good evening')
   }
 
   const quickActions = [
     {
       key: 'new-customer',
-      label: 'New Customer',
-      description: 'Create a customer profile',
+      label: t('dashboard.page.actions.newCustomer.label', 'New Customer'),
+      description: t('dashboard.page.actions.newCustomer.description', 'Create customer profile'),
       icon: Users,
-      to: '/customers/create',
+      to: APP_ROUTES.customerCreate,
     },
     {
       key: 'new-loan',
-      label: 'New Loan',
-      description: 'Start a new loan application',
+      label: t('dashboard.page.actions.newLoan.label', 'New Loan'),
+      description: t('dashboard.page.actions.newLoan.description', 'Start loan application'),
       icon: CreditCard,
-      to: '/loans/create',
+      to: APP_ROUTES.loanCreate,
     },
     {
       key: 'import',
-      label: 'Import Customers',
-      description: 'Bulk upload customer data',
+      label: t('dashboard.page.actions.importCustomers.label', 'Import Customers'),
+      description: t('dashboard.page.actions.importCustomers.description', 'Bulk upload records'),
       icon: FileText,
-      to: '/customers/import',
+      to: APP_ROUTES.customerImport,
     },
     {
       key: 'quick-collect',
-      label: 'Quick Collect',
-      description: 'Record a repayment now',
+      label: t('dashboard.page.actions.recordRepayment.label', 'Record Repayment'),
+      description: t(
+        'dashboard.page.actions.recordRepayment.description',
+        'Post payment quickly'
+      ),
       icon: Plus,
-      to: '/repayments/create',
+      to: APP_ROUTES.repaymentCreate,
     },
   ]
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`${getGreeting()}, ${staffName} 👋`}
-        subTitle="Overview of your daily operations"
+        title={`${getGreeting()}, ${staffName}`}
+        subTitle={t('dashboard.page.subtitle', 'Portfolio and operations summary')}
       />
 
-      <OverviewCards />
+      <OverviewCards stats={overview} />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div className="space-y-6 xl:col-span-2">
-          <MyCustomers />
-          <MyLoans />
-          <PendingApprovals />
+          <MyCustomers customers={customers} />
+          <MyLoans loans={loans} />
+          <PendingApprovals approvals={pendingApprovals} />
         </div>
 
         <div className="space-y-6">
-          <Card>
-            <h3 className="text-sm font-semibold text-gray-900">Quick Actions</h3>
+          <Card className="border border-slate-200 bg-white shadow-sm">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
+              {t('dashboard.page.quickActionsTitle', 'Quick Actions')}
+            </h3>
             <div className="mt-3 space-y-2">
               {quickActions.map((action) => (
                 <Link
                   key={action.key}
                   to={action.to}
-                  className="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-2 hover:bg-gray-50"
+                  className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
-                  <action.icon className="h-4 w-4 text-primary-600" />
+                  <action.icon className="h-4 w-4 text-slate-700" />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{action.label}</p>
-                    <p className="text-xs text-gray-500">{action.description}</p>
+                    <p className="text-sm font-medium text-slate-900">{action.label}</p>
+                    <p className="text-xs text-slate-500">{action.description}</p>
                   </div>
                 </Link>
               ))}
             </div>
           </Card>
-          <Collections />
-          <Performance />
-          <RecentActivity />
+
+          <Collections summary={collections} />
+          <Performance metrics={performance} />
+          <RecentActivity items={recentActivity} />
         </div>
       </div>
+
+      {loading && (
+        <p className="text-xs text-slate-500" role="status" aria-live="polite">
+          {t('dashboard.page.loading', 'Refreshing dashboard metrics...')}
+        </p>
+      )}
+      {!loading && error && (
+        <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
+          {error}
+        </p>
+      )}
+      {lastUpdatedAt && (
+        <p className="text-xs text-slate-500">
+          {t('dashboard.page.lastUpdated', 'Last updated')}: {formatDateTime(lastUpdatedAt)}
+        </p>
+      )}
     </div>
   )
 }

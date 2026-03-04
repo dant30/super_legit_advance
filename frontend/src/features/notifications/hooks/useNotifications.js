@@ -1,9 +1,23 @@
-// frontend/src/hooks/useNotifications.js
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useDispatch } from 'react-redux'
 import { notificationsAPI } from '@api/notifications'
+import {
+  setNotificationSmsLogs,
+  setNotificationSmsStats,
+  setNotificationStats,
+  setNotificationSuccessMessage,
+  setNotificationTemplates,
+  setNotifications,
+  setNotificationsError,
+  setNotificationsLoading,
+  setNotificationsState,
+  setRecentNotifications,
+  setSelectedNotification,
+  setTotalNotifications,
+  setUnreadCount,
+} from '../store'
 
-/* Query keys */
 export const notificationKeys = {
   all: ['notifications'],
   lists: () => [...notificationKeys.all, 'list'],
@@ -18,41 +32,66 @@ export const notificationKeys = {
     list: (filters = {}) => [...notificationKeys.all, 'sms-logs', JSON.stringify(filters)],
     detail: (id) => [...notificationKeys.all, 'sms-logs', 'detail', id],
     stats: (params = {}) => [...notificationKeys.all, 'sms-stats', JSON.stringify(params)],
-  }
+  },
 }
 
-/* Main hook */
 export const useNotifications = () => {
   const qc = useQueryClient()
-
+  const dispatch = useDispatch()
   const [error, setError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
 
   const handleError = useCallback((err) => {
     const msg = err?.message || 'An unexpected error occurred'
     setError(msg)
-    setTimeout(() => setError(null), 5000)
+    dispatch(setNotificationsError(msg))
+    setTimeout(() => {
+      setError(null)
+      dispatch(setNotificationsError(null))
+    }, 5000)
     throw err
-  }, [])
+  }, [dispatch])
 
   const handleSuccess = useCallback((msg) => {
     setSuccessMessage(msg)
-    setTimeout(() => setSuccessMessage(null), 3000)
-  }, [])
+    dispatch(setNotificationSuccessMessage(msg))
+    setTimeout(() => {
+      setSuccessMessage(null)
+      dispatch(setNotificationSuccessMessage(null))
+    }, 3000)
+  }, [dispatch])
 
-  // ----- Queries -----
-
-  const useGetNotifications = (filters = {}, options = {}) =>
-    useQuery({
+  const useGetNotifications = (filters = {}, options = {}) => {
+    const query = useQuery({
       queryKey: notificationKeys.list(filters),
       queryFn: () => notificationsAPI.getNotifications(filters),
-      onError: handleError,
       keepPreviousData: true,
+      onError: handleError,
       ...options,
     })
 
-  const useGetNotification = (id, options = {}) =>
-    useQuery({
+    useEffect(() => {
+      dispatch(setNotificationsLoading(query.isLoading))
+    }, [dispatch, query.isLoading])
+
+    useEffect(() => {
+      const data = query.data
+      if (!data) return
+
+      const results = data?.results || []
+      const unread = results.filter((n) => ['SENT', 'DELIVERED'].includes(n.status)).length
+      dispatch(setNotifications(results))
+      dispatch(setTotalNotifications(data?.count || results.length))
+      dispatch(setUnreadCount(unread))
+      dispatch(setRecentNotifications(results.slice(0, 5)))
+      dispatch(setNotificationsError(null))
+    }, [dispatch, query.data])
+
+    return query
+  }
+
+  const useGetNotification = (id, options = {}) => {
+    const query = useQuery({
       queryKey: notificationKeys.detail(id),
       queryFn: () => notificationsAPI.getNotification(id),
       enabled: !!id,
@@ -60,21 +99,114 @@ export const useNotifications = () => {
       ...options,
     })
 
-  const useGetStats = (params = {}, options = {}) =>
-    useQuery({
+    useEffect(() => {
+      dispatch(
+        setNotificationsState({
+          selectedNotificationLoading: query.isLoading,
+        })
+      )
+    }, [dispatch, query.isLoading])
+
+    useEffect(() => {
+      if (query.data) {
+        dispatch(setSelectedNotification(query.data))
+      }
+      if (query.error) {
+        dispatch(
+          setNotificationsState({
+            selectedNotificationError:
+              query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch notification',
+          })
+        )
+      } else if (query.data) {
+        dispatch(
+          setNotificationsState({
+            selectedNotificationError: null,
+          })
+        )
+      }
+    }, [dispatch, query.data, query.error])
+
+    return query
+  }
+
+  const useGetStats = (params = {}, options = {}) => {
+    const query = useQuery({
       queryKey: notificationKeys.stats(params),
       queryFn: () => notificationsAPI.getStats(params),
       onError: handleError,
       ...options,
     })
 
-  const useGetTemplates = (filters = {}, options = {}) =>
-    useQuery({
+    useEffect(() => {
+      dispatch(
+        setNotificationsState({
+          statsLoading: query.isLoading,
+        })
+      )
+    }, [dispatch, query.isLoading])
+
+    useEffect(() => {
+      if (query.data) {
+        dispatch(setNotificationStats(query.data))
+      }
+      if (query.error) {
+        dispatch(
+          setNotificationsState({
+            statsError: query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch stats',
+          })
+        )
+      } else if (query.data) {
+        dispatch(
+          setNotificationsState({
+            statsError: null,
+          })
+        )
+      }
+    }, [dispatch, query.data, query.error])
+
+    return query
+  }
+
+  const useGetTemplates = (filters = {}, options = {}) => {
+    const query = useQuery({
       queryKey: notificationKeys.templates.list(filters),
       queryFn: () => notificationsAPI.getTemplates(filters),
       onError: handleError,
       ...options,
     })
+
+    useEffect(() => {
+      dispatch(
+        setNotificationsState({
+          templatesLoading: query.isLoading,
+        })
+      )
+    }, [dispatch, query.isLoading])
+
+    useEffect(() => {
+      const data = query.data
+      if (data) {
+        dispatch(setNotificationTemplates(data?.results || data || []))
+      }
+      if (query.error) {
+        dispatch(
+          setNotificationsState({
+            templatesError:
+              query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch templates',
+          })
+        )
+      } else if (data) {
+        dispatch(
+          setNotificationsState({
+            templatesError: null,
+          })
+        )
+      }
+    }, [dispatch, query.data, query.error])
+
+    return query
+  }
 
   const useGetTemplate = (id, options = {}) =>
     useQuery({
@@ -85,13 +217,45 @@ export const useNotifications = () => {
       ...options,
     })
 
-  const useGetSMSLogs = (filters = {}, options = {}) =>
-    useQuery({
+  const useGetSMSLogs = (filters = {}, options = {}) => {
+    const query = useQuery({
       queryKey: notificationKeys.sms.list(filters),
       queryFn: () => notificationsAPI.getSMSLogs(filters),
       onError: handleError,
       ...options,
     })
+
+    useEffect(() => {
+      dispatch(
+        setNotificationsState({
+          smsLogsLoading: query.isLoading,
+        })
+      )
+    }, [dispatch, query.isLoading])
+
+    useEffect(() => {
+      const data = query.data
+      if (data) {
+        dispatch(setNotificationSmsLogs(data?.results || data || []))
+      }
+      if (query.error) {
+        dispatch(
+          setNotificationsState({
+            smsLogsError:
+              query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch SMS logs',
+          })
+        )
+      } else if (data) {
+        dispatch(
+          setNotificationsState({
+            smsLogsError: null,
+          })
+        )
+      }
+    }, [dispatch, query.data, query.error])
+
+    return query
+  }
 
   const useGetSMSLog = (id, options = {}) =>
     useQuery({
@@ -102,15 +266,44 @@ export const useNotifications = () => {
       ...options,
     })
 
-  const useGetSMSStats = (params = {}, options = {}) =>
-    useQuery({
+  const useGetSMSStats = (params = {}, options = {}) => {
+    const query = useQuery({
       queryKey: notificationKeys.sms.stats(params),
       queryFn: () => notificationsAPI.getSMSStats(params),
       onError: handleError,
       ...options,
     })
 
-  // ----- Mutations -----
+    useEffect(() => {
+      dispatch(
+        setNotificationsState({
+          smsStatsLoading: query.isLoading,
+        })
+      )
+    }, [dispatch, query.isLoading])
+
+    useEffect(() => {
+      if (query.data) {
+        dispatch(setNotificationSmsStats(query.data))
+      }
+      if (query.error) {
+        dispatch(
+          setNotificationsState({
+            smsStatsError:
+              query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch SMS stats',
+          })
+        )
+      } else if (query.data) {
+        dispatch(
+          setNotificationsState({
+            smsStatsError: null,
+          })
+        )
+      }
+    }, [dispatch, query.data, query.error])
+
+    return query
+  }
 
   const createNotification = useMutation({
     mutationFn: (data) => notificationsAPI.createNotification(data),
@@ -175,11 +368,10 @@ export const useNotifications = () => {
     onError: handleError,
   })
 
-  // Templates mutations
   const createTemplate = useMutation({
     mutationFn: (data) => notificationsAPI.createTemplate(data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: notificationKeys.templates.lists() })
+      qc.invalidateQueries({ queryKey: notificationKeys.templates.list() })
       handleSuccess('Template created')
     },
     onError: handleError,
@@ -189,7 +381,7 @@ export const useNotifications = () => {
     mutationFn: ({ id, data }) => notificationsAPI.updateTemplate(id, data),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: notificationKeys.templates.detail(vars.id) })
-      qc.invalidateQueries({ queryKey: notificationKeys.templates.lists() })
+      qc.invalidateQueries({ queryKey: notificationKeys.templates.list() })
       handleSuccess('Template updated')
     },
     onError: handleError,
@@ -203,20 +395,24 @@ export const useNotifications = () => {
   const duplicateTemplate = useMutation({
     mutationFn: ({ id, newName }) => notificationsAPI.duplicateTemplate(id, newName),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: notificationKeys.templates.lists() })
+      qc.invalidateQueries({ queryKey: notificationKeys.templates.list() })
       handleSuccess('Template duplicated')
     },
     onError: handleError,
   })
 
   return {
-    // state
     error,
     successMessage,
-    clearError: () => setError(null),
-    clearSuccess: () => setSuccessMessage(null),
+    clearError: () => {
+      setError(null)
+      dispatch(setNotificationsError(null))
+    },
+    clearSuccess: () => {
+      setSuccessMessage(null)
+      dispatch(setNotificationSuccessMessage(null))
+    },
 
-    // queries
     useGetNotifications,
     useGetNotification,
     useGetStats,
@@ -226,7 +422,6 @@ export const useNotifications = () => {
     useGetSMSLog,
     useGetSMSStats,
 
-    // mutations
     createNotification: createNotification.mutateAsync,
     createNotificationLoading: createNotification.isLoading,
 
@@ -248,13 +443,11 @@ export const useNotifications = () => {
     sendTestNotification: sendTestNotification.mutateAsync,
     sendTestNotificationLoading: sendTestNotification.isLoading,
 
-    // templates
     createTemplate: createTemplate.mutateAsync,
     updateTemplate: updateTemplate.mutateAsync,
     previewTemplate: previewTemplate.mutateAsync,
     duplicateTemplate: duplicateTemplate.mutateAsync,
 
-    // API utils
     notificationsAPI,
   }
 }
