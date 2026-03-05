@@ -8,7 +8,8 @@ from typing import List, Dict, Optional
 
 from apps.notifications.models import Notification, Template
 from apps.notifications.services.notification_service import NotificationService
-from apps.loans.models import Loan, RepaymentSchedule
+from apps.loans.models import Loan
+from apps.repayments.models import RepaymentSchedule
 from apps.customers.models import Customer
 from apps.core.utils.helpers import format_currency, get_business_days
 from apps.core.utils.date_utils import is_business_day

@@ -1,87 +1,116 @@
-services: # Define all services for the application- the blueprints (backend, frontend (static), database, cache)
-  # Backend API
+services:
   - type: web
     name: super-legit-backend
     env: python
     plan: free
     region: ohio
-    
-    buildCommand: >
-      cd backend &&
-      chmod +x build.sh &&
-      ./build.sh
-    
-    startCommand: >
-      cd backend &&
-      gunicorn super_legit_advance.wsgi:application \
-        --bind 0.0.0.0:$PORT \
-        --workers 2 \
-        --timeout 60
-    
+    rootDir: backend
+    autoDeploy: true
+    buildCommand: bash ./build.sh
+    startCommand: gunicorn super_legit_advance.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 60
     envVars:
       - key: PYTHON_VERSION
-        value: "3.11"
-      
+        value: 3.11.11
       - key: DJANGO_SETTINGS_MODULE
-        value: "super_legit_advance.settings.production"
-      
+        value: super_legit_advance.settings.production
       - key: DEBUG
         value: "false"
-      
       - key: SECRET_KEY
         generateValue: true
-      
       - key: ALLOWED_HOSTS
-        value: "*.onrender.com,your-domain.com"
-      
-      - key: CORS_ALLOWED_ORIGINS
-        value: "https://your-frontend-url.onrender.com"
-      
+        value: .onrender.com
       - key: DATABASE_URL
         fromDatabase:
           name: super-legit-db
           property: connectionString
-      
       - key: REDIS_URL
-        value: "redis://default:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}"
-    
-    # Mount static/media files
-    staticPublicPath: /static
-    
-  # Frontend (optional)
-  - type: web
-    name: super-legit-frontend
-    env: node
+        fromService:
+          type: redis
+          name: super-legit-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: super-legit-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: super-legit-redis
+          property: connectionString
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://super-legit-frontend.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://super-legit-backend.onrender.com,https://super-legit-frontend.onrender.com
+      - key: CORS_ALLOW_ALL_ORIGINS
+        value: "false"
+      - key: CORS_ALLOW_CREDENTIALS
+        value: "true"
+
+  - type: worker
+    name: super-legit-celery-worker
+    env: python
     plan: free
     region: ohio
-    
-    buildCommand: >
-      npm ci &&
-      npm run build
-    
-    startCommand: "npm run preview"
-    
-    publishPath: dist
-    
+    rootDir: backend
+    autoDeploy: true
+    buildCommand: pip install --upgrade pip && pip install -r requirements/prod.txt
+    startCommand: celery -A super_legit_advance.celery_app worker --loglevel=INFO --concurrency=2
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: DJANGO_SETTINGS_MODULE
+        value: super_legit_advance.settings.production
+      - key: DEBUG
+        value: "false"
+      - key: SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: super-legit-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: super-legit-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: super-legit-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: super-legit-redis
+          property: connectionString
+
+  - type: static
+    name: super-legit-frontend
+    plan: free
+    region: ohio
+    rootDir: frontend
+    autoDeploy: true
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: "https://super-legit-backend.onrender.com/api"
+        value: https://super-legit-backend.onrender.com/api
 
-  # PostgreSQL Database
-  - type: pserv
-    name: super-legit-db
-    plan: free
-    region: ohio
-    
-    databaseName: sla_db
-    username: postgres
-    ipAllowList:
-      - source: 0.0.0.0/0
-
-  # Redis Cache (optional but recommended)
   - type: redis
     name: super-legit-redis
     plan: free
     region: ohio
     ipAllowList:
       - source: 0.0.0.0/0
+
+databases:
+  - name: super-legit-db
+    databaseName: sla_db
+    user: postgres
+    plan: free
+    region: ohio

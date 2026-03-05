@@ -367,3 +367,29 @@ def mask_sensitive(value: str, data_type: str = "generic") -> str:
         return SecurityHelper.mask_string(value, 4)
     else:
         return SecurityHelper.mask_string(value)
+
+
+def format_currency(amount: float, currency: str = "KES") -> str:
+    """
+    Backward-compatible currency formatter for modules importing this helper directly.
+    """
+    return FinancialHelper.format_currency(amount, currency)
+
+
+def get_business_days(start_date, count: int = 1):
+    """
+    Return the next `count` business days starting from `start_date` (inclusive if business day).
+    """
+    from datetime import timedelta
+
+    if count <= 0:
+        return []
+
+    current = start_date
+    days = []
+    while len(days) < count:
+        if current.weekday() < 5:
+            days.append(current)
+        current = current + timedelta(days=1)
+
+    return days

@@ -138,6 +138,15 @@ def is_weekend(dt: datetime = None) -> bool:
     return dt.weekday() >= 5  # 5 = Saturday, 6 = Sunday
 
 
+def is_business_day(dt: datetime = None) -> bool:
+    """
+    Check if date is a business day (Mon-Fri).
+    """
+    if dt is None:
+        dt = now()
+    return not is_weekend(dt)
+
+
 def add_business_days(start_date: datetime, business_days: int) -> datetime:
     """
     Add business days (excluding weekends).
