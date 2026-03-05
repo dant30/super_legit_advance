@@ -47,44 +47,6 @@ services:
       - key: CORS_ALLOW_CREDENTIALS
         value: "true"
 
-  - type: worker
-    name: super-legit-celery-worker
-    env: python
-    plan: free
-    region: ohio
-    rootDir: backend
-    autoDeploy: true
-    buildCommand: pip install --upgrade pip && pip install -r requirements/prod.txt
-    startCommand: celery -A super_legit_advance.celery_app worker --loglevel=INFO --concurrency=2
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.11
-      - key: DJANGO_SETTINGS_MODULE
-        value: super_legit_advance.settings.production
-      - key: DEBUG
-        value: "false"
-      - key: SECRET_KEY
-        sync: false
-      - key: DATABASE_URL
-        fromDatabase:
-          name: super-legit-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: super-legit-redis
-          property: connectionString
-      - key: CELERY_BROKER_URL
-        fromService:
-          type: redis
-          name: super-legit-redis
-          property: connectionString
-      - key: CELERY_RESULT_BACKEND
-        fromService:
-          type: redis
-          name: super-legit-redis
-          property: connectionString
-
   - type: web
     name: super-legit-frontend
     env: static

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Super Legit Advance - Render Build Script
-# Prepares Django + Frontend for deployment
+# Prepares backend services for deployment
 
 echo "🔨 Building Super Legit Advance..."
 
@@ -72,40 +72,13 @@ echo "🗄️ Running database migrations..."
 python manage.py migrate --noinput
 
 ############################################
-# 4. Build frontend (optional but preferred)
-############################################
-echo "🏗️ Building frontend..."
-
-FRONTEND_DIR="../frontend"
-FRONTEND_BUILD_DIR="dist"
-DJANGO_FRONTEND_TARGET="super_legit_advance/templates/frontend"
-
-if [ -d "$FRONTEND_DIR" ]; then
-    if command -v npm >/dev/null 2>&1; then
-        cd "$FRONTEND_DIR"
-        npm install
-        npm run build
-        cd ../backend
-
-        mkdir -p "$DJANGO_FRONTEND_TARGET"
-        cp -r "$FRONTEND_DIR/$FRONTEND_BUILD_DIR/"* "$DJANGO_FRONTEND_TARGET/" 2>/dev/null || true
-
-        echo "✅ Frontend built and copied to Django templates"
-    else
-        echo "⚠️ npm not found — skipping frontend build"
-    fi
-else
-    echo "⚠️ Frontend directory not found — skipping frontend build"
-fi
-
-############################################
-# 5. Collect static files
+# 4. Collect static files
 ############################################
 echo "📁 Collecting static files..."
 python manage.py collectstatic --noinput --clear
 
 ############################################
-# 6. Create or update superuser
+# 5. Create or update superuser
 ############################################
 echo "👑 Setting up superuser..."
 
@@ -158,13 +131,13 @@ except Exception as e:
 EOF
 
 ############################################
-# 7. Setup default data
+# 6. Setup default data
 ############################################
 echo "🌱 Setting up default data..."
 python manage.py setup_default_data || echo "⚠️ setup_default_data failed or not defined"
 
 ############################################
-# 8. Verify setup
+# 7. Verify setup
 ############################################
 echo "🔍 Verifying setup..."
 
@@ -189,3 +162,4 @@ EOF
 # Done
 ############################################
 echo "🎉 Build completed successfully!"
+
