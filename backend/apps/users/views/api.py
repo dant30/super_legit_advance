@@ -2,9 +2,9 @@
 import logging
 from django.utils import timezone
 from django.contrib.auth import authenticate
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from rest_framework import status, viewsets, permissions
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -51,10 +51,10 @@ class LoginView(TokenObtainPairView, APIResponseMixin):
         
         try:
             serializer.is_valid(raise_exception=True)
-        except ValidationError as e:
+        except DRFValidationError as e:
             return Response(
-                {'detail': str(e.detail)},
-                status=status.HTTP_400_BAD_REQUEST
+                {'detail': e.detail},
+                status=status.HTTP_401_UNAUTHORIZED
             )
         except Exception as e:
             logger.error(f'Exception in LoginView: {str(e)}')
