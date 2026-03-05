@@ -41,7 +41,7 @@ services:
       - key: CORS_ALLOWED_ORIGINS
         value: https://super-legit-frontend.onrender.com
       - key: CSRF_TRUSTED_ORIGINS
-        value: https://super-legit-backend.onrender.com,https://super-legit-frontend.onrender.com
+        value: https://super-legit-backend-lyqr.onrender.com,https://super-legit-frontend.onrender.com
       - key: CORS_ALLOW_ALL_ORIGINS
         value: "false"
       - key: CORS_ALLOW_CREDENTIALS
@@ -98,7 +98,9 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://super-legit-backend.onrender.com/api
+        value: https://super-legit-backend-lyqr.onrender.com/api
+      - key: VITE_APP_ENVIRONMENT
+        value: production
 
   - type: redis
     name: super-legit-redis

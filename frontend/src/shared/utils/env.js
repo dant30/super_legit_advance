@@ -1,4 +1,4 @@
-const REQUIRED_VARS = ['VITE_API_URL', 'VITE_APP_ENVIRONMENT']
+const REQUIRED_VARS = ['VITE_API_URL']
 
 REQUIRED_VARS.forEach((key) => {
   if (!import.meta.env[key]) {
@@ -8,7 +8,7 @@ REQUIRED_VARS.forEach((key) => {
 
 export const ENV = {
   API_URL: import.meta.env.VITE_API_URL,
-  ENVIRONMENT: import.meta.env.VITE_APP_ENVIRONMENT,
+  ENVIRONMENT: import.meta.env.VITE_APP_ENVIRONMENT || import.meta.env.MODE || 'production',
   API_TIMEOUT: Number(import.meta.env.VITE_API_TIMEOUT) || 30000,
   APP_NAME: import.meta.env.VITE_APP_NAME || 'Super Legit Advance',
   ENABLE_ANALYTICS: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',
