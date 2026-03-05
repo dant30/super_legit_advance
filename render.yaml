@@ -89,7 +89,6 @@ services:
     name: super-legit-frontend
     env: static
     plan: free
-    region: ohio
     rootDir: frontend
     autoDeploy: true
     buildCommand: npm ci && npm run build
@@ -112,6 +111,5 @@ services:
 databases:
   - name: super-legit-db
     databaseName: sla_db
-    user: postgres
     plan: free
     region: ohio
