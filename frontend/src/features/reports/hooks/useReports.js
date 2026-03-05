@@ -1,10 +1,45 @@
 // frontend/src/hooks/useReports.js
 
 import { useState, useCallback, useRef } from 'react'
+import { useDispatch } from 'react-redux'
 import { useToast } from '@contexts/ToastContext'
 import { reportsAPI } from '@api/reports'
+import { setReportsState } from '../store'
+
+const REPORT_ENDPOINT_BUCKET_MAP = Object.freeze({
+  loans: 'loans',
+  payments: 'payments',
+  customers: 'customers',
+  performance: 'performance',
+  audit: 'audit',
+  collection: 'collection',
+})
+
+export const normalizeReportError = (error, fallback = 'Request failed') => {
+  if (!error) return fallback
+  if (typeof error === 'string') return error
+  if (error instanceof Error) return error.message || fallback
+
+  const payload = error?.response?.data || error
+  if (typeof payload === 'string') return payload
+
+  const preferred =
+    payload?.message ||
+    payload?.detail ||
+    payload?.error ||
+    payload?.title
+
+  if (typeof preferred === 'string' && preferred.trim()) return preferred
+
+  if (typeof payload?.code === 'string') {
+    return `${payload.code}: ${fallback}`
+  }
+
+  return fallback
+}
 
 export const useReports = () => {
+  const dispatch = useDispatch()
   const [state, setState] = useState({
     reports: [],
     currentReport: null,
@@ -23,12 +58,17 @@ export const useReports = () => {
   const { addToast } = useToast()
   const downloadAbortRef = useRef(null)
 
-  const setPartial = useCallback((patch) => setState(prev => ({ ...prev, ...patch })), [])
+  const setPartial = useCallback((patch) => {
+    setState(prev => ({ ...prev, ...patch }))
+    dispatch(setReportsState(patch))
+  }, [dispatch])
 
   const setLoading = useCallback((loading) => setPartial({ loading }), [setPartial])
   const setGenerating = useCallback((generating) => setPartial({ generating }), [setPartial])
   const setExporting = useCallback((exporting) => setPartial({ exporting }), [setPartial])
-  const setError = useCallback((error) => setPartial({ error }), [setPartial])
+  const setError = useCallback((error) => {
+    setPartial({ error: normalizeReportError(error, 'Request failed') })
+  }, [setPartial])
   const setSuccess = useCallback((success) => setPartial({ success }), [setPartial])
   const setCurrentReport = useCallback((r) => setPartial({ currentReport: r }), [setPartial])
   const setFilterParams = useCallback((p) => setPartial({ filterParams: { ...state.filterParams, ...p } }), [state.filterParams])
@@ -44,7 +84,7 @@ export const useReports = () => {
       addToast('Reports loaded', 'success')
       return types
     } catch (err) {
-      const msg = err?.response?.data?.error || err.message || 'Failed to fetch reports'
+      const msg = normalizeReportError(err, 'Failed to fetch reports')
       setError(msg); addToast(msg, 'error'); throw err
     } finally { setLoading(false) }
   }, [addToast, setLoading, setError])
@@ -56,7 +96,7 @@ export const useReports = () => {
       setPartial({ reports: res.results || res })
       return res
     } catch (err) {
-      const msg = err?.response?.data?.error || 'Failed to list reports'
+      const msg = normalizeReportError(err, 'Failed to list reports')
       setError(msg); addToast(msg, 'error'); throw err
     } finally { setLoading(false) }
   }, [addToast])
@@ -83,14 +123,21 @@ export const useReports = () => {
         return { filename }
       }
     } catch (err) {
-      const msg = err?.response?.data?.error || err.message || 'Failed to generate report'
+      const msg = normalizeReportError(err, 'Failed to generate report')
       setError(msg); setGenerationProgress(0); addToast(msg, 'error'); throw err
     } finally { setGenerating(false) }
   }, [addToast])
 
   // Specialized fetch wrapper
   const fetchReport = useCallback(async (reportType, params = {}) => {
+    const bucket = REPORT_ENDPOINT_BUCKET_MAP[reportType]
     setLoading(true); setError(null)
+    if (bucket) {
+      setPartial({
+        [`${bucket}Loading`]: true,
+        [`${bucket}Error`]: null,
+      })
+    }
     try {
       const methodMap = {
         loans: reportsAPI.getLoansReport.bind(reportsAPI),
@@ -109,15 +156,34 @@ export const useReports = () => {
       setCurrentReport(res)
       return res
     } catch (err) {
-      const msg = err?.response?.data?.error || err.message || `Failed to fetch ${reportType}`
-      setError(msg); addToast(msg, 'error'); throw err
-    } finally { setLoading(false) }
-  }, [addToast])
+      const msg = normalizeReportError(err, `Failed to fetch ${reportType}`)
+      setError(msg)
+      if (bucket) {
+        setPartial({
+          [`${bucket}Error`]: msg,
+        })
+      }
+      addToast(msg, 'error')
+      throw err
+    } finally {
+      setLoading(false)
+      if (bucket) {
+        setPartial({
+          [`${bucket}Loading`]: false,
+        })
+      }
+    }
+  }, [addToast, setLoading, setError, setPartial, setCurrentReport])
 
   const fetchLoansReport = useCallback((p = {}) => fetchReport('loans', p), [fetchReport])
   const fetchPaymentsReport = useCallback((p = {}) => fetchReport('payments', p), [fetchReport])
   const fetchCustomersReport = useCallback((p = {}) => fetchReport('customers', p), [fetchReport])
   const fetchPerformanceReport = useCallback((p = {}) => fetchReport('performance', p), [fetchReport])
+  const fetchDailySummary = useCallback((p = {}) => fetchReport('dailySummary', p), [fetchReport])
+  const fetchMonthlySummary = useCallback((p = {}) => fetchReport('monthlySummary', p), [fetchReport])
+  const fetchAuditReport = useCallback((p = {}) => fetchReport('audit', p), [fetchReport])
+  const fetchCollectionReport = useCallback((p = {}) => fetchReport('collection', p), [fetchReport])
+  const fetchRiskAssessment = useCallback((p = {}) => fetchReport('riskAssessment', p), [fetchReport])
 
   // Exports
   const exportData = useCallback(async (dataType, format = 'pdf', filters = {}) => {
@@ -134,7 +200,7 @@ export const useReports = () => {
       setTimeout(() => setGenerationProgress(0), 800)
       return { filename }
     } catch (err) {
-      const msg = err?.response?.data?.error || err.message || `Failed to export ${format}`
+      const msg = normalizeReportError(err, `Failed to export ${format}`)
       setError(msg); setGenerationProgress(0); addToast(msg, 'error'); throw err
     } finally { setExporting(false) }
   }, [addToast])
@@ -151,7 +217,7 @@ export const useReports = () => {
       setPartial({ reportHistory: h })
       return h
     } catch (err) {
-      const msg = err?.response?.data?.error || err.message || 'Failed to fetch history'
+      const msg = normalizeReportError(err, 'Failed to fetch history')
       setError(msg); addToast(msg, 'error'); throw err
     } finally { setLoading(false) }
   }, [addToast])
@@ -164,7 +230,7 @@ export const useReports = () => {
       reportsAPI.downloadFile(blob, filename)
       setGenerationProgress(100); addToast('Report downloaded', 'success'); return filename
     } catch (err) {
-      const msg = err?.response?.data?.error || err.message || 'Download failed'
+      const msg = normalizeReportError(err, 'Download failed')
       setError(msg); addToast(msg, 'error'); throw err
     } finally { setExporting(false); setGenerationProgress(0) }
   }, [addToast])
@@ -176,7 +242,7 @@ export const useReports = () => {
       setPartial({ schedules: s })
       return s
     } catch (err) {
-      const msg = err?.response?.data?.error || err.message || 'Failed to fetch schedules'
+      const msg = normalizeReportError(err, 'Failed to fetch schedules')
       setError(msg); addToast(msg, 'error'); throw err
     } finally { setLoading(false) }
   }, [addToast])
@@ -190,7 +256,7 @@ export const useReports = () => {
       addToast('Schedule created', 'success')
       return res
     } catch (err) {
-      const msg = err?.response?.data?.error || err.message || 'Failed to create schedule'
+      const msg = normalizeReportError(err, 'Failed to create schedule')
       setError(msg); addToast(msg, 'error'); throw err
     } finally { setLoading(false) }
   }, [addToast, fetchSchedules])
@@ -222,11 +288,7 @@ export const useReports = () => {
     generateReportByType,
     // specialized
     fetchLoansReport, fetchPaymentsReport, fetchCustomersReport, fetchPerformanceReport,
-    fetchDailySummary: (p) => fetchReport('dailySummary', p),
-    fetchMonthlySummary: (p) => fetchReport('monthlySummary', p),
-    fetchAuditReport: (p) => fetchReport('audit', p),
-    fetchCollectionReport: (p) => fetchReport('collection', p),
-    fetchRiskAssessment: (p) => fetchReport('riskAssessment', p),
+    fetchDailySummary, fetchMonthlySummary, fetchAuditReport, fetchCollectionReport, fetchRiskAssessment,
     // exports
     exportPDF, exportExcel, quickExport,
     // history & schedules

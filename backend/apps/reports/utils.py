@@ -94,12 +94,15 @@ def calculate_collection_efficiency(start_date=None, end_date=None):
     # Collection metrics
     total_due = Loan.objects.filter(
         status='ACTIVE'
-    ).aggregate(total=Sum('monthly_installment'))['total'] or 0
+    ).aggregate(total=Sum('installment_amount'))['total'] or 0
     
-    total_collected = payments.aggregate(total=Sum('amount'))['total'] or 0
+    total_collected = payments.aggregate(total=Sum('amount_paid'))['total'] or 0
     
     # On-time payments
-    on_time_payments = payments.filter(is_on_time=True).count()
+    on_time_payments = payments.filter(
+        payment_date__isnull=False,
+        payment_date__date__lte=F('due_date')
+    ).count()
     total_payments = payments.count()
     
     # Calculate rates
@@ -142,22 +145,22 @@ def calculate_portfolio_at_risk(as_of_date=None):
     
     # PAR by days overdue
     par_1_30 = active_loans.filter(
-        due_date__lt=as_of_date,
-        due_date__gte=as_of_date - timedelta(days=30)
+        maturity_date__lt=as_of_date,
+        maturity_date__gte=as_of_date - timedelta(days=30)
     ).aggregate(total=Sum('outstanding_balance'))['total'] or 0
     
     par_31_60 = active_loans.filter(
-        due_date__lt=as_of_date - timedelta(days=30),
-        due_date__gte=as_of_date - timedelta(days=60)
+        maturity_date__lt=as_of_date - timedelta(days=30),
+        maturity_date__gte=as_of_date - timedelta(days=60)
     ).aggregate(total=Sum('outstanding_balance'))['total'] or 0
     
     par_61_90 = active_loans.filter(
-        due_date__lt=as_of_date - timedelta(days=60),
-        due_date__gte=as_of_date - timedelta(days=90)
+        maturity_date__lt=as_of_date - timedelta(days=60),
+        maturity_date__gte=as_of_date - timedelta(days=90)
     ).aggregate(total=Sum('outstanding_balance'))['total'] or 0
     
     par_90_plus = active_loans.filter(
-        due_date__lt=as_of_date - timedelta(days=90)
+        maturity_date__lt=as_of_date - timedelta(days=90)
     ).aggregate(total=Sum('outstanding_balance'))['total'] or 0
     
     # Total PAR

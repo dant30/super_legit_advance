@@ -267,9 +267,7 @@ class ReportGenerateView(AuditMixin, APIView):
         loan_officer = parameters.get('loan_officer')
         
         # Build query
-        loans = Loan.objects.all().select_related(
-            'customer', 'loan_officer', 'application'
-        )
+        loans = Loan.objects.all().select_related('customer', 'created_by')
         
         if start_date:
             loans = loans.filter(created_at__date__gte=start_date)
@@ -278,7 +276,7 @@ class ReportGenerateView(AuditMixin, APIView):
         if loan_status:
             loans = loans.filter(status=loan_status)
         if loan_officer:
-            loans = loans.filter(loan_officer_id=loan_officer)
+            loans = loans.filter(created_by_id=loan_officer)
         
         # Calculate statistics
         total_loans = loans.count()
@@ -294,8 +292,8 @@ class ReportGenerateView(AuditMixin, APIView):
         
         # Officer performance
         officer_performance = loans.values(
-            'loan_officer__first_name',
-            'loan_officer__last_name'
+            'created_by__first_name',
+            'created_by__last_name'
         ).annotate(
             count=Count('id'),
             total_amount=Sum('amount_approved'),
@@ -303,7 +301,7 @@ class ReportGenerateView(AuditMixin, APIView):
         ).order_by('-total_amount')
         
         # Product type distribution
-        product_distribution = loans.values('loan_product__name').annotate(
+        product_distribution = loans.values('loan_type').annotate(
             count=Count('id'),
             amount=Sum('amount_approved')
         ).order_by('-amount')
@@ -326,7 +324,7 @@ class ReportGenerateView(AuditMixin, APIView):
                 'loan_number',
                 'customer__first_name',
                 'customer__last_name',
-                'loan_product__name',
+                'loan_type',
                 'amount_approved',
                 'amount_disbursed',
                 'outstanding_balance',
@@ -352,30 +350,30 @@ class ReportGenerateView(AuditMixin, APIView):
         )
         
         if start_date:
-            payments = payments.filter(payment_date__gte=start_date)
+            payments = payments.filter(initiated_at__date__gte=start_date)
         if end_date:
-            payments = payments.filter(payment_date__lte=end_date)
+            payments = payments.filter(initiated_at__date__lte=end_date)
         if payment_method:
-            payments = payments.filter(payment_method=payment_method)
+            payments = payments.filter(payment_type=payment_method)
         if payment_status:
             payments = payments.filter(status=payment_status)
         
         # Calculate statistics
         total_payments = payments.count()
         total_amount = payments.aggregate(total=Sum('amount'))['total'] or 0
-        successful_payments = payments.filter(status='COMPLETED').count()
+        successful_payments = payments.filter(status='SUCCESSFUL').count()
         failed_payments = payments.filter(status='FAILED').count()
         
         # Daily trend
         daily_trend = payments.filter(
-            payment_date__gte=timezone.now() - timedelta(days=30)
-        ).values('payment_date').annotate(
+            initiated_at__gte=timezone.now() - timedelta(days=30)
+        ).values('initiated_at__date').annotate(
             count=Count('id'),
             amount=Sum('amount')
-        ).order_by('payment_date')
+        ).order_by('initiated_at__date')
         
         # Method distribution
-        method_distribution = payments.values('payment_method').annotate(
+        method_distribution = payments.values('payment_type').annotate(
             count=Count('id'),
             amount=Sum('amount')
         ).order_by('-amount')
@@ -410,9 +408,9 @@ class ReportGenerateView(AuditMixin, APIView):
                 'loan__customer__first_name',
                 'loan__customer__last_name',
                 'amount',
-                'payment_method',
+                'payment_type',
                 'status',
-                'payment_date',
+                'initiated_at',
                 'created_at',
             )[:100])
         }
@@ -555,11 +553,11 @@ class ReportGenerateView(AuditMixin, APIView):
         
         # Payment Metrics
         payment_metrics = Payment.objects.filter(
-            payment_date__gte=start_date,
-            payment_date__lte=end_date,
-            status='COMPLETED'
+            initiated_at__gte=start_date,
+            initiated_at__lte=end_date,
+            status='SUCCESSFUL'
         ).annotate(
-            period=trunc_func('payment_date')
+            period=trunc_func('initiated_at')
         ).values('period').annotate(
             total_payments=Count('id'),
             total_collected=Sum('amount'),
@@ -586,8 +584,8 @@ class ReportGenerateView(AuditMixin, APIView):
             collection_rate=Avg(
                 Case(
                     When(
-                        total_repaid__gt=0,
-                        then=F('total_repaid') * 100 / F('amount_approved')
+                        amount_paid__gt=0,
+                        then=F('amount_paid') * 100 / F('amount_approved')
                     ),
                     default=Value(0),
                     output_field=DecimalField(max_digits=5, decimal_places=2)
@@ -647,11 +645,11 @@ class ReportGenerateView(AuditMixin, APIView):
         daily_loans = Loan.objects.filter(
             created_at__gte=start_datetime,
             created_at__lte=end_datetime
-        ).select_related('customer', 'loan_officer')
+        ).select_related('customer', 'created_by')
         
         # Payments for the day
         daily_payments = Payment.objects.filter(
-            payment_date=report_date
+            initiated_at__date=report_date
         ).select_related('loan', 'loan__customer')
         
         # New customers for the day
@@ -670,7 +668,7 @@ class ReportGenerateView(AuditMixin, APIView):
             total=Sum('amount_disbursed')
         )['total'] or 0
         
-        total_collections = daily_payments.filter(status='COMPLETED').aggregate(
+        total_collections = daily_payments.filter(status='SUCCESSFUL').aggregate(
             total=Sum('amount')
         )['total'] or 0
         
@@ -678,7 +676,7 @@ class ReportGenerateView(AuditMixin, APIView):
         
         # Top transactions
         top_loans = daily_loans.filter(status__in=['APPROVED', 'ACTIVE']).order_by('-amount_approved')[:5]
-        top_payments = daily_payments.filter(status='COMPLETED').order_by('-amount')[:5]
+        top_payments = daily_payments.filter(status='SUCCESSFUL').order_by('-amount')[:5]
         
         # Prepare data
         report_data = {
@@ -708,8 +706,8 @@ class ReportGenerateView(AuditMixin, APIView):
                 'loan__customer__first_name',
                 'loan__customer__last_name',
                 'amount',
-                'payment_method',
-                'payment_date',
+                'payment_type',
+                'initiated_at',
             )),
             'new_customers': list(new_customers.values(
                 'customer_number',
@@ -744,8 +742,8 @@ class ReportGenerateView(AuditMixin, APIView):
         
         # Monthly payments
         monthly_payments = Payment.objects.filter(
-            payment_date__gte=start_date,
-            payment_date__lte=end_date
+            initiated_at__date__gte=start_date,
+            initiated_at__date__lte=end_date
         )
         
         # Monthly customers
@@ -765,7 +763,7 @@ class ReportGenerateView(AuditMixin, APIView):
             total=Sum('amount_disbursed')
         )['total'] or 0
         
-        total_collections = monthly_payments.filter(status='COMPLETED').aggregate(
+        total_collections = monthly_payments.filter(status='SUCCESSFUL').aggregate(
             total=Sum('amount')
         )['total'] or 0
         
@@ -782,7 +780,7 @@ class ReportGenerateView(AuditMixin, APIView):
         ).order_by('created_at__date')
         
         # Product performance
-        product_performance = monthly_loans.values('loan_product__name').annotate(
+        product_performance = monthly_loans.values('loan_type').annotate(
             count=Count('id'),
             amount=Sum('amount_approved'),
             avg_amount=Avg('amount_approved')
@@ -790,8 +788,8 @@ class ReportGenerateView(AuditMixin, APIView):
         
         # Officer performance
         officer_performance = monthly_loans.values(
-            'loan_officer__first_name',
-            'loan_officer__last_name'
+            'created_by__first_name',
+            'created_by__last_name'
         ).annotate(
             count=Count('id'),
             amount=Sum('amount_approved'),
@@ -862,7 +860,7 @@ class ReportGenerateView(AuditMixin, APIView):
         user_activity = audit_logs.values(
             'user__first_name',
             'user__last_name',
-            'user__username'
+            'user__email'
         ).annotate(
             count=Count('id'),
             last_activity=Max('timestamp')
@@ -886,14 +884,14 @@ class ReportGenerateView(AuditMixin, APIView):
             'user_activity': list(user_activity),
             'module_activity': list(module_activity),
             'audit_logs': list(audit_logs.values(
-                'user__username',
+                'user__email',
                 'user__first_name',
                 'user__last_name',
                 'action',
                 'model_name',
                 'object_id',
                 'changes',
-                'ip_address',
+                'user_ip',
                 'user_agent',
                 'timestamp',
             )[:100])
@@ -910,14 +908,14 @@ class ReportGenerateView(AuditMixin, APIView):
         # Build query for overdue loans
         overdue_loans = Loan.objects.filter(
             status='OVERDUE'
-        ).select_related('customer', 'loan_officer')
+        ).select_related('customer', 'created_by')
         
         if start_date:
-            overdue_loans = overdue_loans.filter(due_date__gte=start_date)
+            overdue_loans = overdue_loans.filter(maturity_date__gte=start_date)
         if end_date:
-            overdue_loans = overdue_loans.filter(due_date__lte=end_date)
+            overdue_loans = overdue_loans.filter(maturity_date__lte=end_date)
         if officer_id:
-            overdue_loans = overdue_loans.filter(loan_officer_id=officer_id)
+            overdue_loans = overdue_loans.filter(created_by_id=officer_id)
         
         # Calculate collection statistics
         total_overdue = overdue_loans.count()
@@ -928,7 +926,7 @@ class ReportGenerateView(AuditMixin, APIView):
         # Age analysis
         age_analysis = overdue_loans.annotate(
             days_overdue=ExpressionWrapper(
-                timezone.now().date() - F('due_date'),
+                timezone.now().date() - F('maturity_date'),
                 output_field=IntegerField()
             )
         ).annotate(
@@ -945,14 +943,14 @@ class ReportGenerateView(AuditMixin, APIView):
         
         # Collection officer performance
         officer_performance = overdue_loans.values(
-            'loan_officer__first_name',
-            'loan_officer__last_name'
+            'created_by__first_name',
+            'created_by__last_name'
         ).annotate(
             total_cases=Count('id'),
             total_amount=Sum('outstanding_balance'),
             avg_days_overdue=Avg(
                 ExpressionWrapper(
-                    timezone.now().date() - F('due_date'),
+                    timezone.now().date() - F('maturity_date'),
                     output_field=IntegerField()
                 )
             )
@@ -960,14 +958,14 @@ class ReportGenerateView(AuditMixin, APIView):
         
         # Recovery analysis
         recovery_analysis = Payment.objects.filter(
-            payment_date__gte=start_date or timezone.now().date() - timedelta(days=30),
-            payment_date__lte=end_date or timezone.now().date(),
-            status='COMPLETED',
+            initiated_at__date__gte=start_date or timezone.now().date() - timedelta(days=30),
+            initiated_at__date__lte=end_date or timezone.now().date(),
+            status='SUCCESSFUL',
             loan__status='OVERDUE'
-        ).values('payment_date').annotate(
+        ).values('initiated_at__date').annotate(
             count=Count('id'),
             amount=Sum('amount')
-        ).order_by('payment_date')
+        ).order_by('initiated_at__date')
         
         # Prepare data
         report_data = {
@@ -979,7 +977,7 @@ class ReportGenerateView(AuditMixin, APIView):
                 'portfolio_at_risk_percentage': (total_overdue_amount / Loan.objects.filter(status='ACTIVE').aggregate(total=Sum('outstanding_balance'))['total'] * 100) if Loan.objects.filter(status='ACTIVE').exists() else 0,
                 'average_days_overdue': overdue_loans.annotate(
                     days_overdue=ExpressionWrapper(
-                        timezone.now().date() - F('due_date'),
+                        timezone.now().date() - F('maturity_date'),
                         output_field=IntegerField()
                     )
                 ).aggregate(avg=Avg('days_overdue'))['avg'] or 0,
@@ -993,12 +991,12 @@ class ReportGenerateView(AuditMixin, APIView):
                 'customer__last_name',
                 'customer__phone_number',
                 'outstanding_balance',
-                'due_date',
-                'loan_officer__first_name',
-                'loan_officer__last_name',
+                'maturity_date',
+                'created_by__first_name',
+                'created_by__last_name',
             ).annotate(
                 days_overdue=ExpressionWrapper(
-                    timezone.now().date() - F('due_date'),
+                    timezone.now().date() - F('maturity_date'),
                     output_field=IntegerField()
                 )
             ).order_by('-outstanding_balance')[:20]),
@@ -1013,9 +1011,7 @@ class ReportGenerateView(AuditMixin, APIView):
         assessment_date = parameters.get('assessment_date', timezone.now().date())
         
         # Get loans for assessment
-        loans = Loan.objects.filter(status='ACTIVE').select_related(
-            'customer', 'loan_product'
-        )
+        loans = Loan.objects.filter(status='ACTIVE').select_related('customer')
         
         if risk_level:
             loans = loans.filter(customer__risk_level=risk_level)
@@ -1050,7 +1046,7 @@ class ReportGenerateView(AuditMixin, APIView):
         ).order_by('-amount')[:10]
         
         # Product risk
-        product_risk = loans.values('loan_product__name').annotate(
+        product_risk = loans.values('loan_type').annotate(
             count=Count('id'),
             amount=Sum('outstanding_balance'),
             avg_risk_score=Avg('customer__credit_score'),
@@ -1163,7 +1159,9 @@ class ReportGenerateView(AuditMixin, APIView):
             return 0
         
         # Factors (simplified)
-        repeat_customers = Customer.objects.filter(loans__count__gt=1).distinct().count()
+        repeat_customers = Customer.objects.annotate(
+            loan_count=Count('loans')
+        ).filter(loan_count__gt=1).count()
         timely_payments = Repayment.objects.filter(status='COMPLETED', is_on_time=True).count()
         total_payments = Repayment.objects.filter(status='COMPLETED').count()
         
@@ -1214,11 +1212,11 @@ class ReportGenerateView(AuditMixin, APIView):
         
         # Payment trend
         payment_trend = Payment.objects.filter(
-            payment_date__gte=six_months_ago,
-            payment_date__lte=end_date,
-            status='COMPLETED'
+            initiated_at__gte=six_months_ago,
+            initiated_at__lte=end_date,
+            status='SUCCESSFUL'
         ).annotate(
-            month=TruncMonth('payment_date')
+            month=TruncMonth('initiated_at')
         ).values('month').annotate(
             count=Count('id'),
             amount=Sum('amount')
@@ -1245,9 +1243,9 @@ class ReportGenerateView(AuditMixin, APIView):
         staff_performance = Loan.objects.filter(
             created_at__date=report_date
         ).values(
-            'loan_officer__first_name',
-            'loan_officer__last_name',
-            'loan_officer__username'
+            'created_by__first_name',
+            'created_by__last_name',
+            'created_by__email'
         ).annotate(
             loans_processed=Count('id'),
             total_approved=Sum('amount_approved'),
@@ -1318,7 +1316,7 @@ class ReportGenerateView(AuditMixin, APIView):
         # Analyze by days overdue
         age_groups = overdue_loans.annotate(
             days_overdue=ExpressionWrapper(
-                timezone.now().date() - F('due_date'),
+                timezone.now().date() - F('maturity_date'),
                 output_field=IntegerField()
             )
         )
@@ -1471,10 +1469,11 @@ class LoansReportView(AuditMixin, APIView):
         status = request.query_params.get('status')
         product_id = request.query_params.get('product_id')
         officer_id = request.query_params.get('officer_id')
+        loan_type = request.query_params.get('loan_type')
         
         # Build query
         loans = Loan.objects.all().select_related(
-            'customer', 'loan_officer', 'loan_product'
+            'customer', 'created_by'
         )
         
         if start_date:
@@ -1483,10 +1482,14 @@ class LoansReportView(AuditMixin, APIView):
             loans = loans.filter(created_at__date__lte=end_date)
         if status:
             loans = loans.filter(status=status)
+        # Keep backward compatibility: legacy product_id now maps to loan_type.
         if product_id:
-            loans = loans.filter(loan_product_id=product_id)
+            loans = loans.filter(loan_type=product_id)
+        if loan_type:
+            loans = loans.filter(loan_type=loan_type)
+        # Keep backward compatibility: officer filter now maps to created_by.
         if officer_id:
-            loans = loans.filter(loan_officer_id=officer_id)
+            loans = loans.filter(created_by_id=officer_id)
         
         # Format response
         report_data = {
@@ -1495,13 +1498,13 @@ class LoansReportView(AuditMixin, APIView):
                 'customer__first_name',
                 'customer__last_name',
                 'customer__customer_number',
-                'loan_product__name',
+                'loan_type',
                 'amount_approved',
                 'amount_disbursed',
                 'outstanding_balance',
                 'status',
                 'disbursement_date',
-                'due_date',
+                'maturity_date',
                 'created_at',
             )),
             'summary': {
@@ -1539,13 +1542,13 @@ class PaymentsReportView(AuditMixin, APIView):
         )
         
         if start_date:
-            payments = payments.filter(payment_date__gte=start_date)
+            payments = payments.filter(initiated_at__date__gte=start_date)
         if end_date:
-            payments = payments.filter(payment_date__lte=end_date)
+            payments = payments.filter(initiated_at__date__lte=end_date)
         if status:
             payments = payments.filter(status=status)
         if method:
-            payments = payments.filter(payment_method=method)
+            payments = payments.filter(payment_type=method)
         if customer_id:
             payments = payments.filter(loan__customer_id=customer_id)
         
@@ -1557,16 +1560,16 @@ class PaymentsReportView(AuditMixin, APIView):
                 'loan__customer__first_name',
                 'loan__customer__last_name',
                 'amount',
-                'payment_method',
+                'payment_type',
                 'status',
-                'payment_date',
+                'initiated_at',
                 'created_at',
             )),
             'summary': {
                 'total_payments': payments.count(),
                 'total_amount': payments.aggregate(total=Sum('amount'))['total'] or 0,
-                'successful_payments': payments.filter(status='COMPLETED').count(),
-                'method_distribution': list(payments.values('payment_method').annotate(
+                'successful_payments': payments.filter(status='SUCCESSFUL').count(),
+                'method_distribution': list(payments.values('payment_type').annotate(
                     count=Count('id'),
                     amount=Sum('amount')
                 ).order_by('-amount')),
@@ -1957,7 +1960,7 @@ class ExportToPDFView(AuditMixin, APIView):
     
     def _get_loans_data(self, filters):
         """Get loans data for export."""
-        loans = Loan.objects.all().select_related('customer', 'loan_product', 'loan_officer')
+        loans = Loan.objects.all().select_related('customer', 'created_by')
         
         # Apply filters
         if filters.get('start_date'):
@@ -1972,14 +1975,14 @@ class ExportToPDFView(AuditMixin, APIView):
             'customer__first_name',
             'customer__last_name',
             'customer__customer_number',
-            'loan_product__name',
+            'loan_type',
             'amount_approved',
             'amount_disbursed',
             'outstanding_balance',
             'status',
             'interest_rate',
             'disbursement_date',
-            'due_date',
+            'maturity_date',
             'created_at',
         ))
     
@@ -1989,13 +1992,13 @@ class ExportToPDFView(AuditMixin, APIView):
         
         # Apply filters
         if filters.get('start_date'):
-            payments = payments.filter(payment_date__gte=filters['start_date'])
+            payments = payments.filter(initiated_at__date__gte=filters['start_date'])
         if filters.get('end_date'):
-            payments = payments.filter(payment_date__lte=filters['end_date'])
+            payments = payments.filter(initiated_at__date__lte=filters['end_date'])
         if filters.get('status'):
             payments = payments.filter(status=filters['status'])
         if filters.get('method'):
-            payments = payments.filter(payment_method=filters['method'])
+            payments = payments.filter(payment_type=filters['method'])
         
         return list(payments.values(
             'payment_reference',
@@ -2003,9 +2006,9 @@ class ExportToPDFView(AuditMixin, APIView):
             'loan__customer__first_name',
             'loan__customer__last_name',
             'amount',
-            'payment_method',
+            'payment_type',
             'status',
-            'payment_date',
+            'initiated_at',
             'created_at',
         ))
     
@@ -2124,7 +2127,7 @@ class ExportToExcelView(AuditMixin, APIView):
     def _get_loans_data(self, filters):
         """Get loans data for Excel export."""
         # Same as PDF export, but formatted for Excel
-        loans = Loan.objects.all().select_related('customer', 'loan_product')
+        loans = Loan.objects.all().select_related('customer')
         
         # Apply filters
         if filters.get('start_date'):
@@ -2140,14 +2143,14 @@ class ExportToExcelView(AuditMixin, APIView):
                 loan.loan_number,
                 f"{loan.customer.first_name} {loan.customer.last_name}",
                 loan.customer.customer_number,
-                loan.loan_product.name if loan.loan_product else 'N/A',
+                loan.get_loan_type_display() if hasattr(loan, 'get_loan_type_display') else loan.loan_type,
                 float(loan.amount_approved),
                 float(loan.amount_disbursed),
                 float(loan.outstanding_balance),
                 loan.get_status_display(),
                 float(loan.interest_rate),
                 loan.disbursement_date.strftime('%Y-%m-%d') if loan.disbursement_date else 'N/A',
-                loan.due_date.strftime('%Y-%m-%d') if loan.due_date else 'N/A',
+                loan.maturity_date.strftime('%Y-%m-%d') if loan.maturity_date else 'N/A',
                 loan.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             ])
         
@@ -2159,13 +2162,13 @@ class ExportToExcelView(AuditMixin, APIView):
         
         # Apply filters
         if filters.get('start_date'):
-            payments = payments.filter(payment_date__gte=filters['start_date'])
+            payments = payments.filter(initiated_at__date__gte=filters['start_date'])
         if filters.get('end_date'):
-            payments = payments.filter(payment_date__lte=filters['end_date'])
+            payments = payments.filter(initiated_at__date__lte=filters['end_date'])
         if filters.get('status'):
             payments = payments.filter(status=filters['status'])
         if filters.get('method'):
-            payments = payments.filter(payment_method=filters['method'])
+            payments = payments.filter(payment_type=filters['method'])
         
         data = []
         for payment in payments:
@@ -2174,9 +2177,9 @@ class ExportToExcelView(AuditMixin, APIView):
                 payment.loan.loan_number if payment.loan else 'N/A',
                 f"{payment.loan.customer.first_name} {payment.loan.customer.last_name}" if payment.loan and payment.loan.customer else 'N/A',
                 float(payment.amount),
-                payment.get_payment_method_display(),
+                payment.get_payment_type_display(),
                 payment.get_status_display(),
-                payment.payment_date.strftime('%Y-%m-%d'),
+                payment.initiated_at.strftime('%Y-%m-%d'),
                 payment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             ])
         
