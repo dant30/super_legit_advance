@@ -136,8 +136,27 @@ EOF
 echo "🌱 Setting up default data..."
 python manage.py setup_default_data || echo "⚠️ setup_default_data failed or not defined"
 
+
 ############################################
-# 7. Verify setup
+# 7. Seed sample data (optional)
+############################################
+SEED_DATA_ON_BUILD="${SEED_DATA_ON_BUILD:-true}"
+SEED_DATA_CUSTOMERS="${SEED_DATA_CUSTOMERS:-10}"
+SEED_DATA_RANDOM_SEED="${SEED_DATA_RANDOM_SEED:-42}"
+SEED_DATA_RESET="${SEED_DATA_RESET:-false}"
+
+if [ "$SEED_DATA_ON_BUILD" = "true" ]; then
+  echo "Seeding sample data..."
+  if [ "$SEED_DATA_RESET" = "true" ]; then
+    python manage.py seed_data --customers "$SEED_DATA_CUSTOMERS" --seed "$SEED_DATA_RANDOM_SEED" --reset || echo "seed_data failed"
+  else
+    python manage.py seed_data --customers "$SEED_DATA_CUSTOMERS" --seed "$SEED_DATA_RANDOM_SEED" || echo "seed_data failed"
+  fi
+else
+  echo "Skipping seed_data (SEED_DATA_ON_BUILD=$SEED_DATA_ON_BUILD)"
+fi
+############################################
+# 8. Verify setup
 ############################################
 echo "🔍 Verifying setup..."
 
@@ -162,4 +181,5 @@ EOF
 # Done
 ############################################
 echo "🎉 Build completed successfully!"
+
 
