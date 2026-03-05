@@ -46,9 +46,9 @@ const RepaymentDetail = () => {
   }, [id])
 
   useEffect(() => {
-    const loanId = selectedRepayment?.loan?.id
+    const loanId = selectedRepayment?.loan || selectedRepayment?.loan?.id
     if (loanId) getSchedules(loanId)
-  }, [selectedRepayment?.loan?.id])
+  }, [selectedRepayment?.loan, selectedRepayment?.loan?.id])
 
   const handleProcess = async () => {
     await processRepayment(id, {

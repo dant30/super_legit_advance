@@ -42,28 +42,28 @@ urlpatterns = [
     path('reminders/', RepaymentReminderView.as_view(), name='repayment-reminders'),
     
     # Repayment detail URLs
-    path('<int:pk>/', RepaymentDetailView.as_view(), name='repayment-detail'),
-    path('<int:pk>/process/', RepaymentProcessView.as_view(), name='repayment-process'),
-    path('<int:pk>/waive/', RepaymentWaiverView.as_view(), name='repayment-waive'),
-    path('<int:pk>/cancel/', RepaymentCancelView.as_view(), name='repayment-cancel'),
+    path('<uuid:pk>/', RepaymentDetailView.as_view(), name='repayment-detail'),
+    path('<uuid:pk>/process/', RepaymentProcessView.as_view(), name='repayment-process'),
+    path('<uuid:pk>/waive/', RepaymentWaiverView.as_view(), name='repayment-waive'),
+    path('<uuid:pk>/cancel/', RepaymentCancelView.as_view(), name='repayment-cancel'),
     
     # Customer repayments
-    path('customer/<int:customer_id>/', CustomerRepaymentsView.as_view(), name='customer-repayments'),
+    path('customer/<uuid:customer_id>/', CustomerRepaymentsView.as_view(), name='customer-repayments'),
     
     # Loan repayments
-    path('loan/<int:loan_id>/', LoanRepaymentsView.as_view(), name='loan-repayments'),
-    path('loan/<int:loan_id>/schedule/', ScheduleListView.as_view(), name='loan-schedule'),
-    path('loan/<int:loan_id>/schedule/generate/', ScheduleGenerateView.as_view(), name='schedule-generate'),
+    path('loan/<uuid:loan_id>/', LoanRepaymentsView.as_view(), name='loan-repayments'),
+    path('loan/<uuid:loan_id>/schedule/', ScheduleListView.as_view(), name='loan-schedule'),
+    path('loan/<uuid:loan_id>/schedule/generate/', ScheduleGenerateView.as_view(), name='schedule-generate'),
     
     # Schedule URLs
-    path('schedule/<int:pk>/adjust/', ScheduleAdjustView.as_view(), name='schedule-adjust'),
+    path('schedule/<uuid:pk>/adjust/', ScheduleAdjustView.as_view(), name='schedule-adjust'),
     
     # Penalty URLs
     path('penalties/', PenaltyListView.as_view(), name='penalty-list'),
     path('penalties/create/', PenaltyCreateView.as_view(), name='penalty-create'),
-    path('penalties/<int:pk>/', PenaltyDetailView.as_view(), name='penalty-detail'),
-    path('penalties/<int:pk>/apply/', PenaltyApplyView.as_view(), name='penalty-apply'),
-    path('penalties/<int:pk>/waive/', PenaltyWaiverView.as_view(), name='penalty-waive'),
+    path('penalties/<uuid:pk>/', PenaltyDetailView.as_view(), name='penalty-detail'),
+    path('penalties/<uuid:pk>/apply/', PenaltyApplyView.as_view(), name='penalty-apply'),
+    path('penalties/<uuid:pk>/waive/', PenaltyWaiverView.as_view(), name='penalty-waive'),
     
     # Special views
     path('overdue/', OverdueRepaymentsView.as_view(), name='overdue-repayments'),

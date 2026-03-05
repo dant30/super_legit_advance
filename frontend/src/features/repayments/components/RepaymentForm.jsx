@@ -10,14 +10,14 @@ import { PAYMENT_METHOD, REPAYMENT_TYPE } from '../types'
 const methodOptions = [
   { value: PAYMENT_METHOD.CASH, label: 'Cash' },
   { value: PAYMENT_METHOD.MPESA, label: 'M-Pesa' },
-  { value: PAYMENT_METHOD.BANK, label: 'Bank' },
+  { value: 'BANK_TRANSFER', label: 'Bank Transfer' },
   { value: PAYMENT_METHOD.CHEQUE, label: 'Cheque' },
 ]
 
 const typeOptions = [
   { value: REPAYMENT_TYPE.FULL, label: 'Full' },
   { value: REPAYMENT_TYPE.PARTIAL, label: 'Partial' },
-  { value: REPAYMENT_TYPE.INTEREST_ONLY, label: 'Interest Only' },
+  { value: 'INTEREST', label: 'Interest' },
 ]
 
 const RepaymentForm = ({
@@ -29,8 +29,7 @@ const RepaymentForm = ({
   className,
 }) => {
   const [form, setForm] = useState({
-    loan_id: '',
-    customer_id: '',
+    loan: '',
     amount_due: '',
     amount_paid: '',
     due_date: '',
@@ -67,16 +66,10 @@ const RepaymentForm = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Loan ID"
-              value={form.loan_id}
-              onChange={(e) => update('loan_id', e.target.value)}
+              value={form.loan}
+              onChange={(e) => update('loan', e.target.value)}
               placeholder="Loan ID"
               required
-            />
-            <Input
-              label="Customer ID"
-              value={form.customer_id}
-              onChange={(e) => update('customer_id', e.target.value)}
-              placeholder="Customer ID"
             />
             <Input
               label="Amount Due"

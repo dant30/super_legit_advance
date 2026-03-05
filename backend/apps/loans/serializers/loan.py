@@ -237,7 +237,7 @@ class LoanCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Create loan with initial calculations."""
         try:
-            loan = Loan.objects.create(**validated_data)
+            loan = Loan.objects.create(status='PENDING', **validated_data)
             
             # Calculate initial values
             if loan.amount_requested and loan.interest_rate and loan.term_months:
@@ -247,7 +247,7 @@ class LoanCreateSerializer(serializers.ModelSerializer):
                     term_months=loan.term_months,
                     interest_type=loan.interest_type,
                     repayment_frequency=loan.repayment_frequency,
-                    processing_fee_percentage=loan.processing_fee_percentage
+                    processing_fee=(loan.amount_requested * loan.processing_fee_percentage) / Decimal('100')
                 )
                 
                 calculations = calculator.calculate()

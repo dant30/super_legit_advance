@@ -1,6 +1,7 @@
 # backend/apps/notifications/serializers/notification.py
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from apps.notifications.models import Notification, Template
 from apps.notifications.services.notification_service import NotificationService
 from apps.core.utils.validators import validate_phone_number
@@ -12,22 +13,10 @@ User = get_user_model()
 class NotificationSerializer(serializers.ModelSerializer):
     """Serializer for notification listing."""
     
-    notification_type_display = serializers.CharField(
-        source='get_notification_type_display',
-        read_only=True
-    )
-    channel_display = serializers.CharField(
-        source='get_channel_display',
-        read_only=True
-    )
-    status_display = serializers.CharField(
-        source='get_status_display',
-        read_only=True
-    )
-    priority_display = serializers.CharField(
-        source='get_priority_display',
-        read_only=True
-    )
+    notification_type_display = serializers.SerializerMethodField()
+    channel_display = serializers.SerializerMethodField()
+    status_display = serializers.SerializerMethodField()
+    priority_display = serializers.SerializerMethodField()
     recipient_info = serializers.SerializerMethodField()
     sender_name = serializers.CharField(read_only=True)
     template_name = serializers.CharField(
@@ -64,7 +53,23 @@ class NotificationSerializer(serializers.ModelSerializer):
     
     def get_recipient_info(self, obj):
         """Get recipient information."""
-        return obj.recipient_info
+        info = obj.recipient_info or {}
+        phone = info.get('phone')
+        if phone is not None:
+            info['phone'] = str(phone)
+        return info
+
+    def get_notification_type_display(self, obj):
+        return obj.get_notification_type_display()
+
+    def get_channel_display(self, obj):
+        return obj.get_channel_display()
+
+    def get_status_display(self, obj):
+        return obj.get_status_display()
+
+    def get_priority_display(self, obj):
+        return obj.get_priority_display()
 
 
 class NotificationCreateSerializer(serializers.ModelSerializer):
@@ -186,22 +191,10 @@ class NotificationCreateSerializer(serializers.ModelSerializer):
 class NotificationDetailSerializer(serializers.ModelSerializer):
     """Detailed serializer for notifications."""
     
-    notification_type_display = serializers.CharField(
-        source='get_notification_type_display',
-        read_only=True
-    )
-    channel_display = serializers.CharField(
-        source='get_channel_display',
-        read_only=True
-    )
-    status_display = serializers.CharField(
-        source='get_status_display',
-        read_only=True
-    )
-    priority_display = serializers.CharField(
-        source='get_priority_display',
-        read_only=True
-    )
+    notification_type_display = serializers.SerializerMethodField()
+    channel_display = serializers.SerializerMethodField()
+    status_display = serializers.SerializerMethodField()
+    priority_display = serializers.SerializerMethodField()
     recipient_info = serializers.SerializerMethodField()
     sender_info = serializers.SerializerMethodField()
     template_info = serializers.SerializerMethodField()
@@ -250,15 +243,21 @@ class NotificationDetailSerializer(serializers.ModelSerializer):
     
     def get_recipient_info(self, obj):
         """Get detailed recipient information."""
-        info = obj.recipient_info
+        info = obj.recipient_info or {}
+        phone = info.get('phone')
+        if phone is not None:
+            info['phone'] = str(phone)
         
         # Add additional info if recipient is a user
         if obj.recipient:
+            recipient_is_customer = getattr(obj.recipient, 'is_customer', False)
+            if callable(recipient_is_customer):
+                recipient_is_customer = recipient_is_customer()
             info.update({
-                'user_id': obj.recipient.id,
-                'username': obj.recipient.username,
+                'user_id': str(obj.recipient.id),
+                'username': getattr(obj.recipient, 'username', None) or obj.recipient.email,
                 'is_staff': obj.recipient.is_staff,
-                'is_customer': getattr(obj.recipient, 'is_customer', False),
+                'is_customer': recipient_is_customer,
             })
         
         return info
@@ -266,11 +265,13 @@ class NotificationDetailSerializer(serializers.ModelSerializer):
     def get_sender_info(self, obj):
         """Get sender information."""
         if obj.sender:
+            sender_name = obj.sender.get_full_name() if callable(getattr(obj.sender, 'get_full_name', None)) else getattr(obj.sender, 'get_full_name', '')
+            sender_phone = getattr(obj.sender, 'phone_number', None)
             return {
-                'id': obj.sender.id,
-                'name': obj.sender.get_full_name(),
-                'email': obj.sender.email,
-                'phone': getattr(obj.sender, 'phone_number', None),
+                'id': str(obj.sender.id),
+                'name': sender_name or obj.sender.email,
+                'email': str(obj.sender.email) if obj.sender.email else '',
+                'phone': str(sender_phone) if sender_phone is not None else None,
                 'is_staff': obj.sender.is_staff,
             }
         return None
@@ -279,7 +280,7 @@ class NotificationDetailSerializer(serializers.ModelSerializer):
         """Get template information."""
         if obj.template:
             return {
-                'id': obj.template.id,
+                'id': str(obj.template.id),
                 'name': obj.template.name,
                 'type': obj.template.template_type,
                 'category': obj.template.category,
@@ -296,6 +297,18 @@ class NotificationDetailSerializer(serializers.ModelSerializer):
                 'str_representation': str(related_object),
             }
         return None
+
+    def get_notification_type_display(self, obj):
+        return obj.get_notification_type_display()
+
+    def get_channel_display(self, obj):
+        return obj.get_channel_display()
+
+    def get_status_display(self, obj):
+        return obj.get_status_display()
+
+    def get_priority_display(self, obj):
+        return obj.get_priority_display()
 
 
 class SendNotificationSerializer(serializers.Serializer):

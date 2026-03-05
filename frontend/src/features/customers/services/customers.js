@@ -50,6 +50,13 @@ function parseResponse(response) {
   return { success: true, data, pagination: null, message: null }
 }
 
+export function normalizeCustomerEntity(payload) {
+  if (!payload || typeof payload !== 'object') return payload
+  if (payload.customer && typeof payload.customer === 'object') return payload.customer
+  if (payload.data && typeof payload.data === 'object') return normalizeCustomerEntity(payload.data)
+  return payload
+}
+
 function handleError(error) {
   const payload = error?.response?.data || {}
   const message =

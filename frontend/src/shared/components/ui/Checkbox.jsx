@@ -1,16 +1,37 @@
-import React, { useId } from 'react'
+import React, { useEffect, useId, useRef } from 'react'
 import { Check } from 'lucide-react'
 import { cn } from '@utils/cn'
 
 export const Checkbox = React.forwardRef(
   (
-    { className, label, description, error, disabled, id, checked, onCheckedChange, onChange, required, ...props },
+    {
+      className,
+      label,
+      description,
+      error,
+      disabled,
+      id,
+      checked,
+      onCheckedChange,
+      onChange,
+      required,
+      children,
+      indeterminate,
+      ...props
+    },
     ref
   ) => {
     const generatedId = useId()
     const inputId = id || `checkbox-${generatedId}`
     const errorId = `${inputId}-error`
     const descriptionId = `${inputId}-description`
+    const inputRef = useRef(null)
+
+    useEffect(() => {
+      if (inputRef.current) {
+        inputRef.current.indeterminate = Boolean(indeterminate)
+      }
+    }, [indeterminate])
 
     return (
       <div className="space-y-1.5">
@@ -20,7 +41,14 @@ export const Checkbox = React.forwardRef(
         >
           <span className="relative mt-0.5 flex items-center">
             <input
-              ref={ref}
+              ref={(node) => {
+                inputRef.current = node
+                if (typeof ref === 'function') {
+                  ref(node)
+                } else if (ref) {
+                  ref.current = node
+                }
+              }}
               id={inputId}
               type="checkbox"
               checked={checked}
@@ -55,11 +83,11 @@ export const Checkbox = React.forwardRef(
             </span>
           </span>
 
-          {(label || description) && (
+          {(label || description || children) && (
             <span className="space-y-0.5">
-              {label && (
+              {(label || children) && (
                 <span className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {label}
+                  {label || children}
                   {required && <span className="ml-1 text-danger-500">*</span>}
                 </span>
               )}

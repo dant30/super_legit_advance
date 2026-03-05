@@ -35,11 +35,21 @@ const LOAN_ENDPOINTS = Object.freeze({
   collateralRelease: (id) => `${LOAN_ENDPOINTS.base}/collateral/${id}/release/`,
 });
 
-const unwrapData = (response) => response?.data ?? response;
-const unwrapListData = (response) => {
-  const data = unwrapData(response);
-  return Array.isArray(data) ? data : data?.results || [];
+const unwrapData = (response) => {
+  const raw = response?.data ?? response;
+  return raw && typeof raw === "object" && raw.data !== undefined ? raw.data : raw;
 };
+
+export const normalizeLoanCollection = (payload) => {
+  const data = unwrapData(payload);
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.results)) return data.results;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.data)) return data.data;
+  return [];
+};
+
+const unwrapListData = (response) => normalizeLoanCollection(response);
 
 export const getLoanStatusColor = (status) => {
   switch (status) {

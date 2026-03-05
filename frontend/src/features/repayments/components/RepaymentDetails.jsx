@@ -14,6 +14,10 @@ const RepaymentDetails = ({
   formatStatus,
 }) => {
   if (!repayment) return null
+  const status = String(repayment.status || '').toUpperCase()
+  const canProcess = ['PENDING', 'PARTIAL', 'OVERDUE', 'FAILED'].includes(status)
+  const canWaive = !['WAIVED', 'CANCELLED', 'COMPLETED'].includes(status)
+  const canCancel = !['WAIVED', 'CANCELLED', 'COMPLETED'].includes(status)
 
   const statusVariant = (status) => {
     switch (status) {
@@ -45,13 +49,13 @@ const RepaymentDetails = ({
           <div>
             <p className="text-sm text-gray-500">Loan</p>
             <p className="font-medium text-gray-900 dark:text-gray-100">
-              {repayment?.loan?.loan_number || 'N/A'}
+              {repayment?.loan_number || repayment?.loan?.loan_number || 'N/A'}
             </p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Customer</p>
             <p className="font-medium text-gray-900 dark:text-gray-100">
-              {repayment?.customer?.full_name || 'N/A'}
+              {repayment?.customer_name || repayment?.customer?.full_name || 'N/A'}
             </p>
           </div>
           <div>
@@ -81,17 +85,17 @@ const RepaymentDetails = ({
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          {onProcess && (
+          {onProcess && canProcess && (
             <Button onClick={() => onProcess(repayment)} size="sm">
               Process Payment
             </Button>
           )}
-          {onWaive && (
+          {onWaive && canWaive && (
             <Button onClick={() => onWaive(repayment)} size="sm" variant="warning">
               Waive Amount
             </Button>
           )}
-          {onCancel && (
+          {onCancel && canCancel && (
             <Button onClick={() => onCancel(repayment)} size="sm" variant="danger">
               Cancel Repayment
             </Button>

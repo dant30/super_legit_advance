@@ -342,6 +342,43 @@ class AuditMixin(AuditLogMixin):
     """
     Mixin for audit logging of CRUD operations.
     """
+
+    def audit_log(self, action='OTHER', model_name=None, object_id=None, user=None, changes=None, **kwargs):
+        """
+        Backward-compatible audit logger used across legacy views.
+        Prevents runtime failures where views call `self.audit_log(...)`.
+        """
+        from apps.audit.models import AuditLog
+
+        request = getattr(self, 'request', None)
+        actor = user or getattr(request, 'user', None)
+        if actor is not None and (not getattr(actor, 'is_authenticated', False)):
+            actor = None
+
+        normalized_action = str(action or 'OTHER').upper()
+        allowed_actions = {choice[0] for choice in AuditLog.ACTION_CHOICES}
+        if normalized_action not in allowed_actions:
+            normalized_action = 'OTHER'
+
+        change_payload = changes
+        if isinstance(changes, str):
+            change_payload = {'description': changes}
+
+        try:
+            AuditLog.objects.create(
+                action=normalized_action,
+                user=actor,
+                model_name=model_name or '',
+                object_id=str(object_id) if object_id is not None else None,
+                changes=change_payload,
+                request_method=getattr(request, 'method', ''),
+                request_path=getattr(request, 'path', ''),
+                response_status=kwargs.get('response_status'),
+                user_ip=self._get_client_ip() if request else None,
+                user_agent=request.META.get('HTTP_USER_AGENT', '') if request else '',
+            )
+        except Exception as exc:
+            logger.error(f"Failed to create audit log via audit_log compatibility method: {exc}")
     
     def perform_create(self, serializer):
         """

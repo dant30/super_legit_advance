@@ -32,7 +32,11 @@ export const NotificationProvider = ({ children }) => {
   const { data: notificationsData, refetch: refetchNotifications, isLoading: notificationsLoading } =
     useGetNotifications(
       { page_size: 10, ordering: '-created_at' },
-      { refetchInterval: canFetchNotifications ? 30000 : false, enabled: canFetchNotifications }
+      {
+        refetchInterval: canFetchNotifications ? 30000 : false,
+        enabled: canFetchNotifications,
+        syncToStore: false,
+      }
     )
 
   // derive unread + recent on data change

@@ -1,7 +1,7 @@
 // frontend/src/pages/customers/CustomerExport.jsx
 import React, { useState } from 'react'
 import { Card, Select, Checkbox, Button, Alert, Space } from '@components/ui'
-import { PageHeader,  DatePicker} from '@components/ui'
+import { PageHeader, DateRangePicker } from '@components/ui'
 import { ArrowLeft, Download, FileSpreadsheet, FileText, Printer } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ExportDialog } from '@components/customers'
@@ -9,7 +9,7 @@ import { ExportDialog } from '@components/customers'
 const CustomerExport = () => {
   const [filters, setFilters] = useState({
     status: '',
-    dateRange: [],
+    dateRange: { startDate: null, endDate: null },
     fields: [],
   })
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
@@ -101,11 +101,11 @@ const CustomerExport = () => {
               <label htmlFor="customer-export-date-range" className="block text-sm font-medium text-gray-700 mb-2">
                 Date Range
               </label>
-              <DatePicker.RangePicker
-                id="customer-export-date-range"
-                value={filters.dateRange}
-                onChange={(dates) => setFilters(prev => ({ ...prev, dateRange: dates }))}
-                style={{ width: '100%' }}
+              <DateRangePicker
+                startDate={filters.dateRange?.startDate}
+                endDate={filters.dateRange?.endDate}
+                onChange={(range) => setFilters(prev => ({ ...prev, dateRange: range }))}
+                className="w-full"
               />
             </div>
           </div>
@@ -132,9 +132,8 @@ const CustomerExport = () => {
                     <Checkbox
                       checked={filters.fields.includes(field.value)}
                       onChange={(e) => handleFieldChange(field.value, e.target.checked)}
-                    >
-                      <span className="text-sm">{field.label}</span>
-                    </Checkbox>
+                      label={<span className="text-sm">{field.label}</span>}
+                    />
                   </div>
                 ))}
               </div>

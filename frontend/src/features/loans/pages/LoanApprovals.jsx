@@ -12,7 +12,9 @@ const LoanApprovals = () => {
   const rejectMutation = useRejectLoanApplication()
   const [selected, setSelected] = useState(null)
 
-  const applications = Array.isArray(data) ? data : (data?.results || [])
+  const applications = Array.isArray(data)
+    ? data
+    : (data?.results || data?.data?.results || data?.data || [])
 
   const handleApprove = async (payload) => {
     if (!selected) return
@@ -57,7 +59,7 @@ const LoanApprovals = () => {
             item={selected}
             onApprove={handleApprove}
             onReject={handleReject}
-            submitting={approveMutation.isLoading || rejectMutation.isLoading}
+            submitting={approveMutation.isPending || rejectMutation.isPending}
           />
         </div>
       </div>

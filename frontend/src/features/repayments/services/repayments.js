@@ -9,20 +9,46 @@ import {
   SCHEDULE_STATUS,
 } from '../types'
 
+export const REPAYMENT_ENDPOINTS = Object.freeze({
+  list: '/repayments/',
+  detail: (id) => `/repayments/${id}/`,
+  create: '/repayments/create/',
+  process: (id) => `/repayments/${id}/process/`,
+  waive: (id) => `/repayments/${id}/waive/`,
+  cancel: (id) => `/repayments/${id}/cancel/`,
+  search: '/repayments/search/',
+  stats: '/repayments/stats/',
+  dashboard: '/repayments/dashboard/',
+  overdue: '/repayments/overdue/',
+  upcoming: '/repayments/upcoming/',
+  bulkCreate: '/repayments/bulk-create/',
+  export: '/repayments/export/',
+  customerRepayments: (customerId) => `/repayments/customer/${customerId}/`,
+  loanRepayments: (loanId) => `/repayments/loan/${loanId}/`,
+  schedules: (loanId) => `/repayments/loan/${loanId}/schedule/`,
+  scheduleGenerate: (loanId) => `/repayments/loan/${loanId}/schedule/generate/`,
+  scheduleAdjust: (scheduleId) => `/repayments/schedule/${scheduleId}/adjust/`,
+  penalties: '/repayments/penalties/',
+  penaltyDetail: (id) => `/repayments/penalties/${id}/`,
+  penaltyCreate: '/repayments/penalties/create/',
+  penaltyApply: (id) => `/repayments/penalties/${id}/apply/`,
+  penaltyWaive: (id) => `/repayments/penalties/${id}/waive/`,
+})
+
 class RepaymentsAPI {
   constructor() {
-    this.baseURL = '/repayments'
+    this.endpoints = REPAYMENT_ENDPOINTS
   }
 
   // ===== REPAYMENTS =====
 
   async getRepayments(params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/`, { params })
+    const response = await axiosInstance.get(this.endpoints.list, { params })
     return response.data
   }
 
   async getRepayment(id) {
-    const response = await axiosInstance.get(`${this.baseURL}/${id}/`)
+    const response = await axiosInstance.get(this.endpoints.detail(id))
     return response.data
   }
 
@@ -31,17 +57,18 @@ class RepaymentsAPI {
 
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
+        const normalizedKey = key === 'loan_id' ? 'loan' : key
         if (key === 'receipt_file' && value instanceof File) {
-          formData.append(key, value)
+          formData.append(normalizedKey, value)
         } else if (typeof value === 'object' && !(value instanceof File)) {
-          formData.append(key, JSON.stringify(value))
+          formData.append(normalizedKey, JSON.stringify(value))
         } else {
-          formData.append(key, String(value))
+          formData.append(normalizedKey, String(value))
         }
       }
     })
 
-    const response = await axiosInstance.post(`${this.baseURL}/create/`, formData, {
+    const response = await axiosInstance.post(this.endpoints.create, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -50,110 +77,110 @@ class RepaymentsAPI {
   }
 
   async updateRepayment(id, data) {
-    const response = await axiosInstance.patch(`${this.baseURL}/${id}/`, data)
+    const response = await axiosInstance.patch(this.endpoints.detail(id), data)
     return response.data
   }
 
   async deleteRepayment(id) {
-    await axiosInstance.delete(`${this.baseURL}/${id}/`)
+    await axiosInstance.delete(this.endpoints.detail(id))
     return { success: true }
   }
 
   async processRepayment(id, data) {
-    const response = await axiosInstance.post(`${this.baseURL}/${id}/process/`, data)
+    const response = await axiosInstance.post(this.endpoints.process(id), data)
     return response.data
   }
 
   async waiveRepayment(id, data) {
-    const response = await axiosInstance.post(`${this.baseURL}/${id}/waive/`, data)
+    const response = await axiosInstance.post(this.endpoints.waive(id), data)
     return response.data
   }
 
   async cancelRepayment(id, data) {
-    const response = await axiosInstance.post(`${this.baseURL}/${id}/cancel/`, data)
+    const response = await axiosInstance.post(this.endpoints.cancel(id), data)
     return response.data
   }
 
   // ===== SCHEDULES =====
 
   async getSchedules(loanId, params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/loan/${loanId}/schedule/`, { params })
+    const response = await axiosInstance.get(this.endpoints.schedules(loanId), { params })
     return response.data
   }
 
   async generateSchedule(loanId) {
-    const response = await axiosInstance.post(`${this.baseURL}/loan/${loanId}/schedule/generate/`, {})
+    const response = await axiosInstance.post(this.endpoints.scheduleGenerate(loanId), {})
     return response.data
   }
 
   async adjustSchedule(scheduleId, data) {
-    const response = await axiosInstance.post(`${this.baseURL}/schedule/${scheduleId}/adjust/`, data)
+    const response = await axiosInstance.post(this.endpoints.scheduleAdjust(scheduleId), data)
     return response.data
   }
 
   // ===== PENALTIES =====
 
   async getPenalties(params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/penalties/`, { params })
+    const response = await axiosInstance.get(this.endpoints.penalties, { params })
     return response.data
   }
 
   async getPenalty(id) {
-    const response = await axiosInstance.get(`${this.baseURL}/penalties/${id}/`)
+    const response = await axiosInstance.get(this.endpoints.penaltyDetail(id))
     return response.data
   }
 
   async createPenalty(data) {
-    const response = await axiosInstance.post(`${this.baseURL}/penalties/create/`, data)
+    const response = await axiosInstance.post(this.endpoints.penaltyCreate, data)
     return response.data
   }
 
   async applyPenalty(id) {
-    const response = await axiosInstance.post(`${this.baseURL}/penalties/${id}/apply/`, {})
+    const response = await axiosInstance.post(this.endpoints.penaltyApply(id), {})
     return response.data
   }
 
   async waivePenalty(id, data) {
-    const response = await axiosInstance.post(`${this.baseURL}/penalties/${id}/waive/`, data)
+    const response = await axiosInstance.post(this.endpoints.penaltyWaive(id), data)
     return response.data
   }
 
   // ===== SPECIAL VIEWS =====
 
   async searchRepayments(params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/search/`, { params })
+    const response = await axiosInstance.get(this.endpoints.search, { params })
     return response.data
   }
 
   async getStats() {
-    const response = await axiosInstance.get(`${this.baseURL}/stats/`)
+    const response = await axiosInstance.get(this.endpoints.stats)
     return response.data
   }
 
   async getDashboard() {
-    const response = await axiosInstance.get(`${this.baseURL}/dashboard/`)
+    const response = await axiosInstance.get(this.endpoints.dashboard)
     return response.data
   }
 
   async getOverdueRepayments(params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/overdue/`, { params })
+    const response = await axiosInstance.get(this.endpoints.overdue, { params })
     return response.data
   }
 
   async getUpcomingRepayments(params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/upcoming/`, { params })
+    const response = await axiosInstance.get(this.endpoints.upcoming, { params })
     return response.data
   }
 
   // ===== BULK & EXPORT =====
 
   async bulkCreateRepayments(data) {
-    const response = await axiosInstance.post(`${this.baseURL}/bulk-create/`, data)
+    const response = await axiosInstance.post(this.endpoints.bulkCreate, data)
     return response.data
   }
 
   async exportRepayments(params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/export/`, {
+    const response = await axiosInstance.get(this.endpoints.export, {
       params,
       responseType: 'blob',
     })
@@ -163,12 +190,12 @@ class RepaymentsAPI {
   // ===== CUSTOMER / LOAN SPECIFIC =====
 
   async getCustomerRepayments(customerId, params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/customer/${customerId}/`, { params })
+    const response = await axiosInstance.get(this.endpoints.customerRepayments(customerId), { params })
     return response.data
   }
 
   async getLoanRepayments(loanId, params = {}) {
-    const response = await axiosInstance.get(`${this.baseURL}/loan/${loanId}/`, { params })
+    const response = await axiosInstance.get(this.endpoints.loanRepayments(loanId), { params })
     return response.data
   }
 

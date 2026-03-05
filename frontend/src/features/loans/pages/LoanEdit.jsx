@@ -22,7 +22,7 @@ const LoanEdit = () => {
   return (
     <div className="space-y-6">
       <PageHeader title="Edit Loan" subTitle={`Loan #${loan?.loan_number || id}`} />
-      <LoanForm initialValues={loan || {}} onSubmit={handleSubmit} submitting={updateLoan.isLoading} />
+      <LoanForm initialValues={loan || {}} onSubmit={handleSubmit} submitting={updateLoan.isPending} />
     </div>
   )
 }

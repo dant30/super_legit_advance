@@ -91,14 +91,14 @@ class Repayment(BaseModel):
     amount_paid = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         verbose_name="Amount Paid (KES)"
     )
     
     amount_outstanding = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         verbose_name="Amount Outstanding (KES)"
     )
     
@@ -106,28 +106,28 @@ class Repayment(BaseModel):
     principal_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         verbose_name="Principal Amount (KES)"
     )
     
     interest_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         verbose_name="Interest Amount (KES)"
     )
     
     penalty_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         verbose_name="Penalty Amount (KES)"
     )
     
     fee_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         verbose_name="Fee Amount (KES)"
     )
     
@@ -521,14 +521,17 @@ class Repayment(BaseModel):
             return
         
         loan = self.loan
-        
-        # Recalculate loan outstanding balance
-        loan.outstanding_balance = loan.calculate_outstanding_balance()
+
+        # Recalculate loan outstanding balance from repayment ledger.
+        total_outstanding = loan.repayments.aggregate(
+            total=models.Sum('amount_outstanding')
+        )['total'] or Decimal('0.00')
+        loan.outstanding_balance = total_outstanding
         
         # Update loan status if all repayments are completed
         if loan.outstanding_balance <= 0:
-            loan.status = 'PAID'
-            loan.closed_date = timezone.now()
+            loan.status = 'COMPLETED'
+            loan.completion_date = timezone.now().date()
         
         # Update overdue status
         overdue_repayments = loan.repayments.filter(status='OVERDUE').exists()

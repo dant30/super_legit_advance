@@ -304,8 +304,8 @@ class RepaymentDetailSerializer(serializers.ModelSerializer):
     
     def get_mpesa_payment_details(self, obj):
         """Get M-Pesa payment details."""
-        from apps.mpesa.serializers.payment import PaymentSerializer
+        from apps.mpesa.serializers.payment import MpesaPaymentSerializer
         
         if obj.mpesa_payment:
-            return PaymentSerializer(obj.mpesa_payment).data
+            return MpesaPaymentSerializer(obj.mpesa_payment).data
         return None

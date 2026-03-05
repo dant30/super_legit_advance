@@ -26,14 +26,16 @@ export const PENALTY_STATUS = Object.freeze({
 export const PAYMENT_METHOD = Object.freeze({
   CASH: "CASH",
   MPESA: "MPESA",
-  BANK: "BANK",
+  BANK: "BANK_TRANSFER",
+  BANK_TRANSFER: "BANK_TRANSFER",
   CHEQUE: "CHEQUE",
 });
 
 export const REPAYMENT_TYPE = Object.freeze({
   FULL: "FULL",
   PARTIAL: "PARTIAL",
-  INTEREST_ONLY: "INTEREST_ONLY",
+  INTEREST_ONLY: "INTEREST",
+  INTEREST: "INTEREST",
 });
 
 export const PENALTY_TYPE = Object.freeze({

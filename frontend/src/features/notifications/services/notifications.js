@@ -3,110 +3,108 @@ import axiosInstance from '@api/axios'
 
 class NotificationsAPI {
   constructor() {
-    // Single base path for notifications app routes.
-    // Backend exposes extras like "stats/", "bulk-send/" relative to /api/notifications/
-    this.baseURL = '/notifications'
+    this.appBaseURL = '/notifications'
+    this.notificationsBaseURL = `${this.appBaseURL}/notifications`
   }
 
   // ----- Notifications -----
 
   async getNotifications(params = {}) {
-    // list is at /api/notifications/
-    const resp = await axiosInstance.get(`${this.baseURL}/`, { params })
+    const resp = await axiosInstance.get(`${this.notificationsBaseURL}/`, { params })
     return resp.data
   }
 
   async getNotification(id) {
-    const resp = await axiosInstance.get(`${this.baseURL}/${id}/`)
+    const resp = await axiosInstance.get(`${this.notificationsBaseURL}/${id}/`)
     return resp.data
   }
 
   async createNotification(data) {
-    const resp = await axiosInstance.post(`${this.baseURL}/`, data)
+    const resp = await axiosInstance.post(`${this.notificationsBaseURL}/`, data)
     return resp.data
   }
 
   async sendNotification(id, payload = {}) {
-    const resp = await axiosInstance.post(`${this.baseURL}/${id}/send/`, payload)
+    const resp = await axiosInstance.post(`${this.notificationsBaseURL}/${id}/send/`, payload)
     return resp.data
   }
 
   async markAsRead(id) {
-    const resp = await axiosInstance.patch(`${this.baseURL}/${id}/mark-read/`)
+    const resp = await axiosInstance.patch(`${this.notificationsBaseURL}/${id}/mark-read/`)
     return resp.data
   }
 
   async markAllAsRead() {
-    const resp = await axiosInstance.post(`${this.baseURL}/mark-all-read/`)
+    const resp = await axiosInstance.post(`${this.notificationsBaseURL}/mark-all-read/`)
     return resp.data
   }
 
   async deleteNotification(id) {
-    const resp = await axiosInstance.delete(`${this.baseURL}/${id}/`)
+    const resp = await axiosInstance.delete(`${this.notificationsBaseURL}/${id}/`)
     return resp.data
   }
 
   async getStats(params = {}) {
-    const resp = await axiosInstance.get(`${this.baseURL}/stats/`, { params })
+    const resp = await axiosInstance.get(`${this.appBaseURL}/stats/`, { params })
     return resp.data
   }
 
   async bulkSend(data = {}) {
-    const resp = await axiosInstance.post(`${this.baseURL}/bulk-send/`, data)
+    const resp = await axiosInstance.post(`${this.appBaseURL}/bulk-send/`, data)
     return resp.data
   }
 
   async sendTestNotification(data = {}) {
-    const resp = await axiosInstance.post(`${this.baseURL}/test/`, data)
+    const resp = await axiosInstance.post(`${this.appBaseURL}/test/`, data)
     return resp.data
   }
 
   // ----- Templates -----
 
   async getTemplates(params = {}) {
-    const resp = await axiosInstance.get(`${this.baseURL}/templates/`, { params })
+    const resp = await axiosInstance.get(`${this.appBaseURL}/templates/`, { params })
     return resp.data
   }
 
   async getTemplate(id) {
-    const resp = await axiosInstance.get(`${this.baseURL}/templates/${id}/`)
+    const resp = await axiosInstance.get(`${this.appBaseURL}/templates/${id}/`)
     return resp.data
   }
 
   async createTemplate(data = {}) {
-    const resp = await axiosInstance.post(`${this.baseURL}/templates/create/`, data)
+    const resp = await axiosInstance.post(`${this.appBaseURL}/templates/create/`, data)
     return resp.data
   }
 
   async updateTemplate(id, data = {}) {
-    const resp = await axiosInstance.patch(`${this.baseURL}/templates/${id}/update/`, data)
+    const resp = await axiosInstance.patch(`${this.appBaseURL}/templates/${id}/update/`, data)
     return resp.data
   }
 
   async previewTemplate(id, context = {}) {
-    const resp = await axiosInstance.post(`${this.baseURL}/templates/${id}/preview/`, { context })
+    const resp = await axiosInstance.post(`${this.appBaseURL}/templates/${id}/preview/`, { context })
     return resp.data
   }
 
   async duplicateTemplate(id, newName) {
-    const resp = await axiosInstance.post(`${this.baseURL}/templates/${id}/duplicate/`, { new_name: newName })
+    const resp = await axiosInstance.post(`${this.appBaseURL}/templates/${id}/duplicate/`, { new_name: newName })
     return resp.data
   }
 
   // ----- SMS Logs -----
 
   async getSMSLogs(params = {}) {
-    const resp = await axiosInstance.get(`${this.baseURL}/sms-logs/`, { params })
+    const resp = await axiosInstance.get(`${this.appBaseURL}/sms-logs/`, { params })
     return resp.data
   }
 
   async getSMSLog(id) {
-    const resp = await axiosInstance.get(`${this.baseURL}/sms-logs/${id}/`)
+    const resp = await axiosInstance.get(`${this.appBaseURL}/sms-logs/${id}/`)
     return resp.data
   }
 
   async getSMSStats(params = {}) {
-    const resp = await axiosInstance.get(`${this.baseURL}/sms-logs/stats/`, { params })
+    const resp = await axiosInstance.get(`${this.appBaseURL}/sms-logs/stats/`, { params })
     return resp.data
   }
 

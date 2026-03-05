@@ -50,33 +50,42 @@ const CustomerDetail = () => {
 
   const handleDelete = async () => {
     try {
-      await deleteCustomer(id)
+      const response = await deleteCustomer(id)
+      if (!response?.success) {
+        throw new Error(response?.error || 'Failed to delete customer')
+      }
       addToast('Customer deleted successfully', 'success')
       navigate('/customers')
-    } catch {
-      addToast('Failed to delete customer', 'error')
+    } catch (error) {
+      addToast(error?.message || 'Failed to delete customer', 'error')
     }
   }
 
   const handleBlacklist = async () => {
     try {
-      await blacklistCustomer(id, 'Manual blacklisting by admin')
+      const response = await blacklistCustomer(id, 'Manual blacklisting by admin')
+      if (!response?.success) {
+        throw new Error(response?.error || 'Failed to blacklist customer')
+      }
       addToast('Customer blacklisted successfully', 'success')
       setActionModal({ open: false, type: '', title: '' })
       fetchCustomer(id)
-    } catch {
-      addToast('Failed to blacklist customer', 'error')
+    } catch (error) {
+      addToast(error?.message || 'Failed to blacklist customer', 'error')
     }
   }
 
   const handleActivate = async () => {
     try {
-      await activateCustomer(id)
+      const response = await activateCustomer(id)
+      if (!response?.success) {
+        throw new Error(response?.error || 'Failed to activate customer')
+      }
       addToast('Customer activated successfully', 'success')
       setActionModal({ open: false, type: '', title: '' })
       fetchCustomer(id)
-    } catch {
-      addToast('Failed to activate customer', 'error')
+    } catch (error) {
+      addToast(error?.message || 'Failed to activate customer', 'error')
     }
   }
 

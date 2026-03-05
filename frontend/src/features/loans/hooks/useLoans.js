@@ -20,6 +20,38 @@ import {
   setLoansState,
 } from '../store'
 
+const normalizeLoanErrorMessage = (error, fallback = 'Request failed') => {
+  if (!error) return fallback
+  if (typeof error === 'string') return error
+
+  const payload = error?.response?.data ?? error
+  if (typeof payload === 'string') return payload
+  if (!payload || typeof payload !== 'object') return error?.message || fallback
+
+  if (typeof payload.detail === 'string') return payload.detail
+  if (typeof payload.message === 'string') return payload.message
+  if (typeof payload.error === 'string') return payload.error
+
+  if (payload.error && typeof payload.error === 'object') {
+    if (typeof payload.error.detail === 'string') return payload.error.detail
+    if (typeof payload.error.message === 'string') return payload.error.message
+  }
+
+  const firstEntry = Object.entries(payload).find(([, value]) => {
+    if (typeof value === 'string') return true
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') return true
+    return false
+  })
+
+  if (firstEntry) {
+    const [, value] = firstEntry
+    if (typeof value === 'string') return value
+    if (Array.isArray(value)) return value[0]
+  }
+
+  return error?.message || fallback
+}
+
 export const useLoans = () => {
   const queryClient = useQueryClient()
   const toast = useToast()
@@ -35,7 +67,7 @@ export const useLoans = () => {
       keepPreviousData: true,
       staleTime: 1000 * 60 * 5,
       onError: (err) => {
-        toast.error(err?.response?.data?.detail || 'Failed to fetch loans', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to fetch loans'), { title: 'Error' })
       }
     })
 
@@ -47,7 +79,7 @@ export const useLoans = () => {
       if (query.error) {
         dispatch(
           setLoansState({
-            loansError: query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch loans',
+            loansError: normalizeLoanErrorMessage(query.error, 'Failed to fetch loans'),
           })
         )
         return
@@ -79,7 +111,7 @@ export const useLoans = () => {
       enabled: !!id,
       staleTime: 1000 * 60 * 10,
       onError: (err) => {
-        toast.error(err?.response?.data?.detail || 'Failed to fetch loan', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to fetch loan'), { title: 'Error' })
       }
     })
 
@@ -95,7 +127,7 @@ export const useLoans = () => {
       if (query.error) {
         dispatch(
           setLoansState({
-            selectedLoanError: query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch loan',
+            selectedLoanError: normalizeLoanErrorMessage(query.error, 'Failed to fetch loan'),
           })
         )
         return
@@ -119,7 +151,7 @@ export const useLoans = () => {
       queryKey: ['loanStats'],
       queryFn: () => loanAPI.getLoanStats(),
       staleTime: 1000 * 60 * 2,
-      onError: () => toast.error('Failed to fetch loan stats', { title: 'Error' })
+      onError: (err) => toast.error(normalizeLoanErrorMessage(err, 'Failed to fetch loan stats'), { title: 'Error' })
     })
 
     useEffect(() => {
@@ -134,7 +166,7 @@ export const useLoans = () => {
       if (query.error) {
         dispatch(
           setLoansState({
-            statsError: query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch loan stats',
+            statsError: normalizeLoanErrorMessage(query.error, 'Failed to fetch loan stats'),
           })
         )
         return
@@ -159,7 +191,8 @@ export const useLoans = () => {
       queryFn: () => loanAPI.getLoanApplications({ ...applicationFilters, ...overrides }),
       keepPreviousData: true,
       staleTime: 1000 * 60 * 5,
-      onError: (err) => toast.error(err?.response?.data?.detail || 'Failed to fetch applications', { title: 'Error' })
+      onError: (err) =>
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to fetch applications'), { title: 'Error' })
     })
 
     useEffect(() => {
@@ -174,8 +207,7 @@ export const useLoans = () => {
       if (query.error) {
         dispatch(
           setLoansState({
-            loanApplicationsError:
-              query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch applications',
+            loanApplicationsError: normalizeLoanErrorMessage(query.error, 'Failed to fetch applications'),
           })
         )
         return
@@ -200,7 +232,8 @@ export const useLoans = () => {
       queryFn: () => loanAPI.getLoanApplication(id),
       enabled: !!id,
       staleTime: 1000 * 60 * 10,
-      onError: (err) => toast.error(err?.response?.data?.detail || 'Failed to fetch application', { title: 'Error' })
+      onError: (err) =>
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to fetch application'), { title: 'Error' })
     })
 
     useEffect(() => {
@@ -222,7 +255,7 @@ export const useLoans = () => {
         return res
       },
       onError: (err) => {
-        toast.error(err?.response?.data || 'Failed to create loan', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to create loan'), { title: 'Error' })
         throw err
       }
     })
@@ -236,7 +269,7 @@ export const useLoans = () => {
         toast.success('Loan updated', { title: 'Success' })
       },
       onError: (err) => {
-        toast.error(err?.response?.data || 'Failed to update loan', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to update loan'), { title: 'Error' })
         throw err
       }
     })
@@ -249,7 +282,7 @@ export const useLoans = () => {
         toast.success('Loan deleted', { title: 'Success' })
       },
       onError: (err) => {
-        toast.error(err?.response?.data || 'Failed to delete loan', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to delete loan'), { title: 'Error' })
         throw err
       }
     })
@@ -264,7 +297,7 @@ export const useLoans = () => {
         return res
       },
       onError: (err) => {
-        toast.error(err?.response?.data || 'Failed to approve loan', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to approve loan'), { title: 'Error' })
         throw err
       }
     })
@@ -279,7 +312,7 @@ export const useLoans = () => {
         return res
       },
       onError: (err) => {
-        toast.error(err?.response?.data || 'Failed to reject loan', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to reject loan'), { title: 'Error' })
         throw err
       }
     })
@@ -294,7 +327,7 @@ export const useLoans = () => {
         return res
       },
       onError: (err) => {
-        toast.error(err?.response?.data || 'Failed to disburse loan', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to disburse loan'), { title: 'Error' })
         throw err
       }
     })
@@ -323,11 +356,10 @@ export const useLoans = () => {
         dispatch(
           setLoansState({
             calculatorLoading: false,
-            calculatorError:
-              err?.response?.data?.detail || err?.message || 'Failed to calculate loan',
+            calculatorError: normalizeLoanErrorMessage(err, 'Failed to calculate loan'),
           })
         )
-        toast.error(err?.response?.data || 'Failed to calculate loan', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to calculate loan'), { title: 'Error' })
         throw err
       }
     })
@@ -341,7 +373,7 @@ export const useLoans = () => {
         toast.success('Application created', { title: 'Success' })
       },
       onError: (err) => {
-        toast.error(err?.response?.data || 'Failed to create application', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to create application'), { title: 'Error' })
         throw err
       }
     })
@@ -355,7 +387,7 @@ export const useLoans = () => {
         toast.success('Application submitted', { title: 'Success' })
       },
       onError: (err) => {
-        toast.error(err?.response?.data || 'Failed to submit application', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to submit application'), { title: 'Error' })
         throw err
       }
     })
@@ -370,7 +402,7 @@ export const useLoans = () => {
         return res
       },
       onError: (err) => {
-        toast.error(err?.response?.data || 'Failed to approve application', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to approve application'), { title: 'Error' })
         throw err
       }
     })
@@ -384,7 +416,7 @@ export const useLoans = () => {
         return res
       },
       onError: (err) => {
-        toast.error(err?.response?.data || 'Failed to reject application', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to reject application'), { title: 'Error' })
         throw err
       }
     })
@@ -395,7 +427,8 @@ export const useLoans = () => {
       queryKey: ['collaterals', loanId, filters],
       queryFn: () => loanAPI.getCollaterals(loanId, filters),
       enabled: !!loanId,
-      onError: (err) => toast.error(err?.response?.data?.detail || 'Failed to fetch collateral', { title: 'Error' })
+      onError: (err) =>
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to fetch collateral'), { title: 'Error' })
     })
 
     useEffect(() => {
@@ -410,8 +443,7 @@ export const useLoans = () => {
       if (query.error) {
         dispatch(
           setLoansState({
-            collateralsError:
-              query.error?.response?.data?.detail || query.error?.message || 'Failed to fetch collateral',
+            collateralsError: normalizeLoanErrorMessage(query.error, 'Failed to fetch collateral'),
           })
         )
         return
@@ -438,7 +470,7 @@ export const useLoans = () => {
         queryClient.invalidateQueries({ queryKey: ['collaterals'] })
       },
       onError: (err) => {
-        toast.error(err?.response?.data || 'Failed to create collateral', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to create collateral'), { title: 'Error' })
         throw err
       }
     })
@@ -452,7 +484,7 @@ export const useLoans = () => {
         loanAPI.downloadExport(blob, `loans_export.${ext}`)
         toast.success('Export started', { title: 'Export' })
       } catch (err) {
-        toast.error(err?.response?.data || 'Failed to export loans', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to export loans'), { title: 'Error' })
         throw err
       }
     },
@@ -482,10 +514,10 @@ export const useLoans = () => {
         dispatch(
           setLoansState({
             searchLoading: false,
-            searchError: err?.response?.data?.detail || err?.message || 'Failed to search loans',
+            searchError: normalizeLoanErrorMessage(err, 'Failed to search loans'),
           })
         )
-        toast.error(err?.response?.data || 'Failed to search loans', { title: 'Error' })
+        toast.error(normalizeLoanErrorMessage(err, 'Failed to search loans'), { title: 'Error' })
         throw err
       }
     },

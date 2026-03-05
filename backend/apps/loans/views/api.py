@@ -211,13 +211,17 @@ class LoanDetailView(AuditMixin, generics.RetrieveUpdateDestroyAPIView):
                 schedule = RepaymentSchedule.objects.filter(loan=instance).order_by('due_date')
                 
                 response_data = serializer.data
+                next_payment = schedule.filter(status='PENDING').order_by('due_date').first()
                 response_data.update({
                     'repayment_history': [
                         {
                             'id': r.id,
-                            'amount': r.amount,
+                            'amount_paid': r.amount_paid,
+                            'amount_due': r.amount_due,
+                            'amount_outstanding': r.amount_outstanding,
                             'payment_date': r.payment_date,
                             'payment_method': r.payment_method,
+                            'payment_reference': r.payment_reference,
                             'status': r.status,
                         }
                         for r in repayments[:10]  # Last 10 payments
@@ -227,14 +231,25 @@ class LoanDetailView(AuditMixin, generics.RetrieveUpdateDestroyAPIView):
                             'id': s.id,
                             'installment_number': s.installment_number,
                             'due_date': s.due_date,
-                            'amount_due': s.amount_due,
+                            'amount_due': s.total_amount,
                             'status': s.status,
-                            'paid_amount': s.paid_amount,
-                            'balance': s.balance,
+                            'paid_amount': s.amount_paid,
+                            'balance': s.amount_outstanding,
                         }
                         for s in schedule
                     ],
-                    'next_payment': schedule.filter(status='PENDING').order_by('due_date').first(),
+                    'next_payment': (
+                        {
+                            'id': next_payment.id,
+                            'installment_number': next_payment.installment_number,
+                            'due_date': next_payment.due_date,
+                            'amount_due': next_payment.total_amount,
+                            'amount_outstanding': next_payment.amount_outstanding,
+                            'status': next_payment.status,
+                        }
+                        if next_payment
+                        else None
+                    ),
                 })
                 
                 return Response(response_data)
@@ -265,6 +280,19 @@ class LoanDetailView(AuditMixin, generics.RetrieveUpdateDestroyAPIView):
                 user=self.request.user,
                 changes=changes
             )
+
+    def get_changes(self, old_instance, new_instance, validated_data):
+        """Build a simple field diff payload for audit logging."""
+        changes = {}
+        for field in validated_data.keys():
+            old_value = getattr(old_instance, field, None)
+            new_value = getattr(new_instance, field, None)
+            if old_value != new_value:
+                changes[field] = {
+                    'old': str(old_value) if old_value is not None else None,
+                    'new': str(new_value) if new_value is not None else None,
+                }
+        return changes
     
     def perform_destroy(self, instance):
         """Soft delete loan."""

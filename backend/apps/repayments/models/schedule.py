@@ -84,14 +84,14 @@ class RepaymentSchedule(BaseModel):
     amount_paid = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         verbose_name="Amount Paid (KES)"
     )
     
     amount_outstanding = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         verbose_name="Amount Outstanding (KES)"
     )
     
@@ -110,7 +110,7 @@ class RepaymentSchedule(BaseModel):
     late_fee = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         verbose_name="Late Fee (KES)"
     )
     

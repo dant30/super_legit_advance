@@ -24,9 +24,7 @@ class BaseCustomerSerializer(serializers.ModelSerializer):
     def validate_id_number(self, value):
         """Validate ID number format."""
         try:
-            id_type = self.initial_data.get('id_type')
-            if id_type:
-                validate_id_number(value, id_type)
+            validate_id_number(value)
         except DjangoValidationError as e:
             raise serializers.ValidationError(e.messages)
         return value

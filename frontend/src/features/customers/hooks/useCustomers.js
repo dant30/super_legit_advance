@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import { useToast } from '@contexts/ToastContext'
-import customerAPI from '../services/customers'
+import customerAPI, { normalizeCustomerEntity } from '../services/customers'
 import {
   CUSTOMER_DEFAULT_PAGINATION,
   CUSTOMER_EXPORT_FORMAT,
@@ -35,7 +35,8 @@ export const useCustomers = () => {
         if (loadingKey) setStatePartial({ [loadingKey]: false })
 
         if (!result || result.success === false) {
-          const errorMessage = result?.error || 'Request failed'
+          const rawError = result?.error
+          const errorMessage = typeof rawError === 'string' ? rawError : 'Request failed'
           if (errorKey) setStatePartial({ [errorKey]: errorMessage })
           return { success: false, error: errorMessage }
         }
@@ -131,7 +132,7 @@ export const useCustomers = () => {
       )
 
       if (response.success) {
-        setStatePartial({ selectedCustomer: response.data })
+        setStatePartial({ selectedCustomer: normalizeCustomerEntity(response.data) })
       }
 
       inFlightRef.current.fetchCustomer = false
@@ -148,7 +149,8 @@ export const useCustomers = () => {
         'customersError'
       )
       if (response.success) {
-        setState((prev) => ({ ...prev, customers: [response.data, ...prev.customers] }))
+        const nextCustomer = normalizeCustomerEntity(response.data)
+        setState((prev) => ({ ...prev, customers: [nextCustomer, ...prev.customers] }))
         addToast('Customer created', 'success')
       }
       return response
@@ -164,14 +166,15 @@ export const useCustomers = () => {
         'customersError'
       )
       if (response.success) {
+        const nextCustomer = normalizeCustomerEntity(response.data)
         setState((prev) => ({
           ...prev,
           customers: prev.customers.map((customer) =>
-            customer.id === id ? { ...customer, ...response.data } : customer
+            customer.id === id ? { ...customer, ...nextCustomer } : customer
           ),
           selectedCustomer:
             prev.selectedCustomer?.id === id
-              ? { ...prev.selectedCustomer, ...response.data }
+              ? { ...prev.selectedCustomer, ...nextCustomer }
               : prev.selectedCustomer,
         }))
         addToast('Customer updated', 'success')
@@ -236,13 +239,14 @@ export const useCustomers = () => {
         'customersError'
       )
       if (response.success) {
+        const nextCustomer = normalizeCustomerEntity(response.data)
         setState((prev) => ({
           ...prev,
           customers: prev.customers.map((customer) =>
-            customer.id === id ? response.data : customer
+            customer.id === id ? nextCustomer : customer
           ),
           selectedCustomer:
-            prev.selectedCustomer?.id === id ? response.data : prev.selectedCustomer,
+            prev.selectedCustomer?.id === id ? nextCustomer : prev.selectedCustomer,
         }))
         addToast('Customer blacklisted', 'success')
       }
@@ -259,13 +263,14 @@ export const useCustomers = () => {
         'customersError'
       )
       if (response.success) {
+        const nextCustomer = normalizeCustomerEntity(response.data)
         setState((prev) => ({
           ...prev,
           customers: prev.customers.map((customer) =>
-            customer.id === id ? response.data : customer
+            customer.id === id ? nextCustomer : customer
           ),
           selectedCustomer:
-            prev.selectedCustomer?.id === id ? response.data : prev.selectedCustomer,
+            prev.selectedCustomer?.id === id ? nextCustomer : prev.selectedCustomer,
         }))
         addToast('Customer activated', 'success')
       }

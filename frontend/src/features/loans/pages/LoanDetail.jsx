@@ -14,6 +14,11 @@ const LoanDetail = () => {
   const approveLoan = useApproveLoan()
   const rejectLoan = useRejectLoan()
   const disburseLoan = useDisburseLoan()
+  const status = String(loan?.status || '').toUpperCase()
+
+  const canEdit = !['ACTIVE', 'OVERDUE', 'COMPLETED'].includes(status)
+  const canApproveOrReject = ['PENDING', 'UNDER_REVIEW'].includes(status)
+  const canDisburse = status === 'APPROVED'
 
   const handleApprove = async () => {
     await approveLoan.mutateAsync({ id, data: {} })
@@ -22,6 +27,7 @@ const LoanDetail = () => {
   const handleReject = async () => {
     const reason = window.prompt('Enter rejection reason (min 10 chars)')
     if (!reason) return
+    if (reason.trim().length < 10) return
     await rejectLoan.mutateAsync({ id, reason })
   }
 
@@ -37,10 +43,24 @@ const LoanDetail = () => {
         title={`Loan ${loan?.loan_number || ''}`}
         subTitle="Loan details"
         extra={[
-          <Button key="edit" onClick={() => navigate(`/loans/${id}/edit`)}>Edit</Button>,
-          <Button key="approve" type="primary" onClick={handleApprove} loading={approveLoan.isLoading}>Approve</Button>,
-          <Button key="reject" danger onClick={handleReject} loading={rejectLoan.isLoading}>Reject</Button>,
-          <Button key="disburse" onClick={handleDisburse} loading={disburseLoan.isLoading}>Disburse</Button>,
+          canEdit ? (
+            <Button key="edit" onClick={() => navigate(`/loans/${id}/edit`)}>Edit</Button>
+          ) : null,
+          canApproveOrReject ? (
+            <Button key="approve" type="primary" onClick={handleApprove} loading={approveLoan.isPending}>
+              Approve
+            </Button>
+          ) : null,
+          canApproveOrReject ? (
+            <Button key="reject" danger onClick={handleReject} loading={rejectLoan.isPending}>
+              Reject
+            </Button>
+          ) : null,
+          canDisburse ? (
+            <Button key="disburse" onClick={handleDisburse} loading={disburseLoan.isPending}>
+              Disburse
+            </Button>
+          ) : null,
         ]}
       />
       <LoanDetails loan={loan} />

@@ -13,15 +13,14 @@ const CustomerCreate = () => {
   const { addToast } = useToast()
 
   const handleSubmit = async (formData) => {
-    try {
-      await createCustomer(formData)
+    const response = await createCustomer(formData)
+    if (response?.success) {
       addToast('Customer created successfully', 'success')
-      // Redirect to customer list or detail page
       window.location.href = '/customers'
-    } catch (error) {
-      addToast('Failed to create customer', 'error')
-      throw error
+      return response
     }
+    addToast(response?.error || 'Failed to create customer', 'error')
+    throw new Error(response?.error || 'Failed to create customer')
   }
 
   return (

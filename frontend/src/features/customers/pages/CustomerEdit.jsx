@@ -29,12 +29,14 @@ const CustomerEdit = () => {
   const handleSubmit = async (formData) => {
     setLoading(true)
     try {
-      await updateCustomer(id, formData)
+      const response = await updateCustomer(id, formData)
+      if (!response?.success) {
+        throw new Error(response?.error || 'Failed to update customer')
+      }
       addToast('Customer updated successfully', 'success')
-      // Redirect to customer detail page
       navigate(`/customers/${id}`)
     } catch (error) {
-      addToast('Failed to update customer', 'error')
+      addToast(error?.message || 'Failed to update customer', 'error')
       throw error
     } finally {
       setLoading(false)

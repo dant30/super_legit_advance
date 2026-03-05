@@ -18,7 +18,7 @@ const LoanCreate = () => {
   return (
     <div className="space-y-6">
       <PageHeader title="Create Loan" subTitle="Register a new loan" />
-      <LoanForm onSubmit={handleSubmit} submitting={createLoan.isLoading} />
+      <LoanForm onSubmit={handleSubmit} submitting={createLoan.isPending} />
     </div>
   )
 }

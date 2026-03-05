@@ -39,8 +39,16 @@ const RepaymentTable = ({
 
   const columns = [
     { key: 'repayment_number', header: 'Repayment #' },
-    { key: 'loan_number', header: 'Loan', render: (row) => row?.loan?.loan_number || 'N/A' },
-    { key: 'customer', header: 'Customer', render: (row) => row?.customer?.full_name || row?.customer?.name || 'N/A' },
+    {
+      key: 'loan_number',
+      header: 'Loan',
+      render: (row) => row?.loan_number || row?.loan?.loan_number || 'N/A',
+    },
+    {
+      key: 'customer',
+      header: 'Customer',
+      render: (row) => row?.customer_name || row?.customer?.full_name || row?.customer?.name || 'N/A',
+    },
     {
       key: 'amount_due',
       header: 'Amount Due',

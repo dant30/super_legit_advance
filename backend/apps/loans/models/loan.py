@@ -1,5 +1,4 @@
 # backend/apps/loans/models/loan.py
-# backend/apps/loans/models/loan.py
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -610,6 +609,9 @@ class Loan(BaseModel):
         
         schedule = []
         due_date = self.start_date
+        total_payments_decimal = Decimal(str(total_payments)) if total_payments else Decimal('1')
+        principal_per_installment = (self.amount_approved or Decimal('0.00')) / total_payments_decimal
+        interest_per_installment = (self.total_interest or Decimal('0.00')) / total_payments_decimal
         
         for i in range(total_payments):
             # Adjust due date based on frequency
@@ -633,9 +635,12 @@ class Loan(BaseModel):
             schedule.append(
                 RepaymentSchedule(
                     loan=self,
+                    customer=self.customer,
                     installment_number=i+1,
                     due_date=due_date,
-                    amount_due=self.installment_amount,
+                    principal_amount=principal_per_installment,
+                    interest_amount=interest_per_installment,
+                    total_amount=self.installment_amount,
                     status='PENDING'
                 )
             )

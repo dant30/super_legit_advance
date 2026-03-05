@@ -15,6 +15,7 @@ import pandas as pd
 import io
 import json
 from django.db.models.functions import TruncMonth
+from decimal import Decimal, InvalidOperation
 
 from apps.repayments.models import Repayment, RepaymentSchedule, Penalty
 from apps.repayments.serializers import (
@@ -34,6 +35,11 @@ from apps.loans.models import Loan
 from apps.customers.models import Customer
 from apps.core.utils.permissions import IsStaff, IsAdmin, IsManager, IsCollector
 from apps.core.mixins.api_mixins import AuditMixin, PaginationMixin
+
+
+def summarize_changes(validated_data):
+    changed_fields = [str(field) for field in (validated_data or {}).keys()]
+    return ", ".join(changed_fields) if changed_fields else "No tracked changes"
 
 
 class RepaymentListView(AuditMixin, PaginationMixin, generics.ListAPIView):
@@ -169,7 +175,7 @@ class RepaymentDetailView(AuditMixin, generics.RetrieveUpdateDestroyAPIView):
         new_instance = serializer.save()
         
         # Log changes
-        changes = self.get_changes(old_instance, new_instance, serializer.validated_data)
+        changes = summarize_changes(serializer.validated_data)
         if changes:
             self.audit_log(
                 action='UPDATE',
@@ -217,7 +223,7 @@ class RepaymentUpdateView(AuditMixin, generics.UpdateAPIView):
         new_instance = serializer.save()
         
         # Log changes
-        changes = self.get_changes(old_instance, new_instance, serializer.validated_data)
+        changes = summarize_changes(serializer.validated_data)
         if changes:
             self.audit_log(
                 action='UPDATE',
@@ -430,7 +436,7 @@ class ScheduleDetailView(AuditMixin, generics.RetrieveUpdateDestroyAPIView):
         new_instance = serializer.save()
         
         # Log changes
-        changes = self.get_changes(old_instance, new_instance, serializer.validated_data)
+        changes = summarize_changes(serializer.validated_data)
         if changes:
             self.audit_log(
                 action='UPDATE',
@@ -475,7 +481,7 @@ class PenaltyDetailView(AuditMixin, generics.RetrieveUpdateDestroyAPIView):
         new_instance = serializer.save()
         
         # Log changes
-        changes = self.get_changes(old_instance, new_instance, serializer.validated_data)
+        changes = summarize_changes(serializer.validated_data)
         if changes:
             self.audit_log(
                 action='UPDATE',
@@ -513,8 +519,8 @@ class RepaymentProcessView(AuditMixin, APIView):
         reference = request.data.get('reference', '')
         
         try:
-            amount = float(amount)
-        except (ValueError, TypeError):
+            amount = Decimal(str(amount))
+        except (InvalidOperation, ValueError, TypeError):
             return Response(
                 {'error': 'Invalid amount provided.'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -577,8 +583,8 @@ class RepaymentWaiverView(AuditMixin, APIView):
             )
         
         try:
-            amount = float(amount)
-        except (ValueError, TypeError):
+            amount = Decimal(str(amount))
+        except (InvalidOperation, ValueError, TypeError):
             return Response(
                 {'error': 'Invalid amount provided.'},
                 status=status.HTTP_400_BAD_REQUEST

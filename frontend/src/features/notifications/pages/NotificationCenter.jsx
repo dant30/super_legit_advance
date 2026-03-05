@@ -11,11 +11,13 @@ import {
   selectNotificationTemplates,
   selectNotifications,
   selectNotificationsLoading,
+  selectTotalNotifications,
   selectUnreadNotificationsCount,
 } from '../store'
 
 const NotificationCenter = () => {
   const notifications = useSelector(selectNotifications)
+  const totalNotifications = useSelector(selectTotalNotifications)
   const unreadCount = useSelector(selectUnreadNotificationsCount)
   const statsData = useSelector(selectNotificationStats)
   const templates = useSelector(selectNotificationTemplates)
@@ -30,12 +32,15 @@ const NotificationCenter = () => {
 
   const [activeTab, setActiveTab] = useState('all')
   const [page, setPage] = useState(1)
-  const { useGetTemplates, useGetStats, bulkSend } = useNotifications()
+  const { useGetNotifications, useGetTemplates, useGetStats, bulkSend, bulkSendLoading } = useNotifications()
 
+  useGetNotifications({ page, page_size: 10, ordering: '-created_at' })
   useGetTemplates({ active: true })
   useGetStats({ days: 7 }, {
     refetchInterval: 60000, // Refetch every minute
   })
+
+  const totalPages = Math.max(1, Math.ceil((totalNotifications || 0) / 10))
 
   const filteredNotifications = notifications.filter((n) => {
     if (activeTab === 'unread') {
@@ -140,7 +145,7 @@ const NotificationCenter = () => {
               isLoading={isLoading}
               onMarkAsRead={markAsRead}
               onDelete={deleteNotification}
-              pagination={{ page, total_pages: 5 }}
+              pagination={{ page, total_pages: totalPages }}
               onPageChange={setPage}
             />
           )}
@@ -152,7 +157,7 @@ const NotificationCenter = () => {
               onMarkAsRead={markAsRead}
               onDelete={deleteNotification}
               onMarkAllRead={markAllAsRead}
-              pagination={{ page, total_pages: 5 }}
+              pagination={{ page, total_pages: totalPages }}
               onPageChange={setPage}
             />
           )}
@@ -162,6 +167,7 @@ const NotificationCenter = () => {
           {activeTab === 'bulk' && (
             <BulkMessenger
               templates={templates}
+              isSending={bulkSendLoading}
               onSend={async (data) => {
                 await bulkSend(data)
                 await refetchNotifications()

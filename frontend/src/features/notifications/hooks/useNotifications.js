@@ -61,31 +61,70 @@ export const useNotifications = () => {
     }, 3000)
   }, [dispatch])
 
+  const normalizeCollection = useCallback((payload) => {
+    if (!payload) {
+      return { items: [], count: 0, pagination: null }
+    }
+
+    if (Array.isArray(payload)) {
+      return { items: payload, count: payload.length, pagination: null }
+    }
+
+    if (Array.isArray(payload.results)) {
+      return {
+        items: payload.results,
+        count: Number(payload.count ?? payload.results.length ?? 0),
+        pagination: payload.pagination || null,
+      }
+    }
+
+    if (Array.isArray(payload.data)) {
+      return {
+        items: payload.data,
+        count: Number(payload?.pagination?.total ?? payload.data.length ?? 0),
+        pagination: payload.pagination || null,
+      }
+    }
+
+    if (payload.data && Array.isArray(payload.data.results)) {
+      return {
+        items: payload.data.results,
+        count: Number(payload.data.count ?? payload.data.results.length ?? 0),
+        pagination: payload.data.pagination || null,
+      }
+    }
+
+    return { items: [], count: 0, pagination: payload.pagination || null }
+  }, [])
+
   const useGetNotifications = (filters = {}, options = {}) => {
+    const { syncToStore = true, ...queryOptions } = options
     const query = useQuery({
       queryKey: notificationKeys.list(filters),
       queryFn: () => notificationsAPI.getNotifications(filters),
       keepPreviousData: true,
       onError: handleError,
-      ...options,
+      ...queryOptions,
     })
 
     useEffect(() => {
+      if (!syncToStore) return
       dispatch(setNotificationsLoading(query.isLoading))
-    }, [dispatch, query.isLoading])
+    }, [dispatch, query.isLoading, syncToStore])
 
     useEffect(() => {
+      if (!syncToStore) return
       const data = query.data
       if (!data) return
 
-      const results = data?.results || []
+      const { items: results, count } = normalizeCollection(data)
       const unread = results.filter((n) => ['SENT', 'DELIVERED'].includes(n.status)).length
       dispatch(setNotifications(results))
-      dispatch(setTotalNotifications(data?.count || results.length))
+      dispatch(setTotalNotifications(count))
       dispatch(setUnreadCount(unread))
       dispatch(setRecentNotifications(results.slice(0, 5)))
       dispatch(setNotificationsError(null))
-    }, [dispatch, query.data])
+    }, [dispatch, normalizeCollection, query.data, syncToStore])
 
     return query
   }
@@ -187,7 +226,7 @@ export const useNotifications = () => {
     useEffect(() => {
       const data = query.data
       if (data) {
-        dispatch(setNotificationTemplates(data?.results || data || []))
+        dispatch(setNotificationTemplates(normalizeCollection(data).items))
       }
       if (query.error) {
         dispatch(
@@ -203,7 +242,7 @@ export const useNotifications = () => {
           })
         )
       }
-    }, [dispatch, query.data, query.error])
+    }, [dispatch, normalizeCollection, query.data, query.error])
 
     return query
   }
@@ -236,7 +275,7 @@ export const useNotifications = () => {
     useEffect(() => {
       const data = query.data
       if (data) {
-        dispatch(setNotificationSmsLogs(data?.results || data || []))
+        dispatch(setNotificationSmsLogs(normalizeCollection(data).items))
       }
       if (query.error) {
         dispatch(
@@ -252,7 +291,7 @@ export const useNotifications = () => {
           })
         )
       }
-    }, [dispatch, query.data, query.error])
+    }, [dispatch, normalizeCollection, query.data, query.error])
 
     return query
   }

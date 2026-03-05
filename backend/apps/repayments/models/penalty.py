@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from decimal import Decimal
 
 from apps.core.models.base import BaseModel
 from apps.loans.models import Loan
@@ -118,7 +119,7 @@ class Penalty(BaseModel):
     calculation_rate = models.DecimalField(
         max_digits=5,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         verbose_name="Calculation Rate (%)"
     )
     
@@ -155,14 +156,14 @@ class Penalty(BaseModel):
     amount_paid = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         verbose_name="Amount Paid (KES)"
     )
     
     amount_outstanding = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         verbose_name="Amount Outstanding (KES)"
     )
     

@@ -1,6 +1,57 @@
 import axios from "@api/axios";
 
-const toArray = (data) => (Array.isArray(data) ? data : data?.results || []);
+const unwrapEnvelope = (payload) =>
+  payload && typeof payload === "object" && payload.data !== undefined
+    ? payload.data
+    : payload;
+
+const toBody = (response) => unwrapEnvelope(response?.data ?? response);
+
+const toArray = (data) => {
+  const payload = unwrapEnvelope(data);
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.results)) return payload.results;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+};
+
+export const normalizeDashboardOverview = (customersPayload, loansPayload, repaymentsPayload) => {
+  const customers = unwrapEnvelope(customersPayload) || {};
+  const loans = unwrapEnvelope(loansPayload) || {};
+  const repayments = unwrapEnvelope(repaymentsPayload) || {};
+
+  const loansSummary = loans?.summary || {};
+  const repaymentsAmounts = repayments?.amounts || {};
+  const repaymentsToday = repayments?.today || {};
+
+  return {
+    customers:
+      customers.total_customers ||
+      customers?.summary?.total_customers ||
+      customers?.counts?.total ||
+      customers.total ||
+      0,
+    activeLoans:
+      loans.active_loans ||
+      loans.total_active_loans ||
+      loansSummary.total_active_loans ||
+      loansSummary.active_loans ||
+      0,
+    dueToday:
+      repayments.due_today ||
+      repayments.due_repayments_today ||
+      repaymentsToday.count ||
+      repayments?.counts?.due_today ||
+      0,
+    collectionRate:
+      repayments.collection_rate ||
+      repayments.repayment_rate ||
+      repayments.on_time_rate ||
+      repaymentsAmounts.collection_rate ||
+      0,
+  };
+};
 
 export class DashboardAPI {
   async getOverview() {
@@ -10,20 +61,7 @@ export class DashboardAPI {
       axios.get("/repayments/stats/"),
     ]);
 
-    const customers = customersResp?.data || {};
-    const loans = loansResp?.data || {};
-    const repayments = repaymentsResp?.data || {};
-
-    return {
-      customers: customers.total_customers || 0,
-      activeLoans: loans.active_loans || loans.total_active_loans || 0,
-      dueToday: repayments.due_today || repayments.due_repayments_today || 0,
-      collectionRate:
-        repayments.collection_rate ||
-        repayments.repayment_rate ||
-        repayments.on_time_rate ||
-        0,
-    };
+    return normalizeDashboardOverview(customersResp?.data, loansResp?.data, repaymentsResp?.data);
   }
 
   async getMyCustomers(params = {}) {
@@ -45,16 +83,23 @@ export class DashboardAPI {
 
   async getCollectionsSummary() {
     const resp = await axios.get("/repayments/stats/");
-    const data = resp?.data || {};
-    const totalPaid = Number(data.total_collected || data.total_paid || 0);
-    const totalDue = Number(data.total_due || data.total_expected || 0);
+    const data = toBody(resp) || {};
+    const amounts = data?.amounts || {};
+    const today = data?.today || {};
+
+    const totalPaid = Number(
+      data.total_collected || data.total_paid || amounts.total_paid || 0
+    );
+    const totalDue = Number(
+      data.total_due || data.total_expected || amounts.total_due || 0
+    );
     const rate = totalDue > 0 ? Math.round((totalPaid / totalDue) * 100) : 0;
 
     return {
       collected: `KES ${totalPaid.toLocaleString()}`,
       target: `KES ${totalDue.toLocaleString()}`,
       rate,
-      dueToday: data.due_today || data.due_repayments_today || 0,
+      dueToday: data.due_today || data.due_repayments_today || today.count || 0,
     };
   }
 
@@ -63,23 +108,25 @@ export class DashboardAPI {
       axios.get("/loans/stats/"),
       axios.get("/repayments/stats/"),
     ]);
-    const loans = loansStats?.data || {};
-    const repayments = repaymentsStats?.data || {};
+    const loans = toBody(loansStats) || {};
+    const repayments = toBody(repaymentsStats) || {};
+    const loansSummary = loans?.summary || {};
+    const repaymentsAmounts = repayments?.amounts || {};
 
     return [
       {
         label: "Collections Target",
-        value: Math.round(Number(repayments.collection_rate || 0)),
+        value: Math.round(Number(repayments.collection_rate || repaymentsAmounts.collection_rate || 0)),
         variant: "success",
       },
       {
         label: "Loan Portfolio Health",
-        value: Math.round(Number(loans.portfolio_health_score || 70)),
+        value: Math.round(Number(loans.portfolio_health_score || loansSummary.portfolio_health_score || 70)),
         variant: "info",
       },
       {
         label: "Approval Throughput",
-        value: Math.round(Number(loans.approval_rate || 55)),
+        value: Math.round(Number(loans.approval_rate || loansSummary.approval_rate || 55)),
         variant: "warning",
       },
     ];

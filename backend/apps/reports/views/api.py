@@ -1162,7 +1162,11 @@ class ReportGenerateView(AuditMixin, APIView):
         repeat_customers = Customer.objects.annotate(
             loan_count=Count('loans')
         ).filter(loan_count__gt=1).count()
-        timely_payments = Repayment.objects.filter(status='COMPLETED', is_on_time=True).count()
+        timely_payments = Repayment.objects.filter(
+            status='COMPLETED',
+            payment_date__isnull=False,
+            payment_date__date__lte=F('due_date')
+        ).count()
         total_payments = Repayment.objects.filter(status='COMPLETED').count()
         
         satisfaction_score = (

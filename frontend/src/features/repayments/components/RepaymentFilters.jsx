@@ -23,14 +23,14 @@ const statusOptions = [
 const methodOptions = [
   { value: PAYMENT_METHOD.CASH, label: 'Cash' },
   { value: PAYMENT_METHOD.MPESA, label: 'M-Pesa' },
-  { value: PAYMENT_METHOD.BANK, label: 'Bank' },
+  { value: PAYMENT_METHOD.BANK_TRANSFER, label: 'Bank Transfer' },
   { value: PAYMENT_METHOD.CHEQUE, label: 'Cheque' },
 ]
 
 const typeOptions = [
   { value: REPAYMENT_TYPE.FULL, label: 'Full' },
   { value: REPAYMENT_TYPE.PARTIAL, label: 'Partial' },
-  { value: REPAYMENT_TYPE.INTEREST_ONLY, label: 'Interest Only' },
+  { value: REPAYMENT_TYPE.INTEREST, label: 'Interest' },
 ]
 
 const RepaymentFilters = ({ value, onChange, onApply, onReset, className }) => {

@@ -147,8 +147,11 @@ const Layout = () => {
           </div>
         </div>
 
-        <main id="main-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="mx-auto w-full max-w-[1480px] p-4 sm:p-6 lg:p-8">
+        <main
+          id="main-content"
+          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-gray-50/70 dark:bg-slate-900"
+        >
+          <div className="mx-auto w-full max-w-[1480px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
             <Outlet />
           </div>
           <Footer />

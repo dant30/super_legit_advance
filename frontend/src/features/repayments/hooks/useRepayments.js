@@ -6,6 +6,45 @@ import { repaymentsAPI } from '../services/repayments'
 import { REPAYMENTS_INITIAL_STATE } from '../types'
 import { setRepaymentsState } from '../store'
 
+const normalizeRepaymentCollection = (payload) => {
+  if (Array.isArray(payload)) return payload
+  if (Array.isArray(payload?.results)) return payload.results
+  if (Array.isArray(payload?.items)) return payload.items
+  if (Array.isArray(payload?.data)) return payload.data
+  if (Array.isArray(payload?.data?.results)) return payload.data.results
+  return []
+}
+
+const normalizeRepaymentEntity = (payload) => {
+  if (!payload || typeof payload !== 'object') return payload
+  if (payload.repayment && typeof payload.repayment === 'object') return payload.repayment
+  if (payload.data && typeof payload.data === 'object' && !Array.isArray(payload.data)) {
+    return payload.data
+  }
+  return payload
+}
+
+const normalizeRepaymentsPagination = (payload, previousPagination) => {
+  const pagination = payload?.pagination || payload?.data?.pagination || null
+  if (!pagination) {
+    return {
+      ...previousPagination,
+      count: payload?.count ?? previousPagination.count,
+      next: payload?.next ?? previousPagination.next,
+      previous: payload?.previous ?? previousPagination.previous,
+    }
+  }
+
+  return {
+    ...previousPagination,
+    count: pagination.total ?? pagination.count ?? previousPagination.count,
+    next: pagination.next ?? null,
+    previous: pagination.previous ?? null,
+    page: pagination.current_page ?? previousPagination.page,
+    pageSize: pagination.per_page ?? previousPagination.pageSize,
+  }
+}
+
 export const useRepayments = () => {
   const [state, setState] = useState(REPAYMENTS_INITIAL_STATE)
   const dispatch = useDispatch()
@@ -52,13 +91,8 @@ export const useRepayments = () => {
       })
       setState(prev => ({
         ...prev,
-        repayments: response.results || [],
-        pagination: {
-          ...prev.pagination,
-          count: response.count || 0,
-          next: response.next || null,
-          previous: response.previous || null,
-        }
+        repayments: normalizeRepaymentCollection(response),
+        pagination: normalizeRepaymentsPagination(response, prev.pagination),
       }))
       return response
     } catch (err) {
@@ -74,7 +108,7 @@ export const useRepayments = () => {
   const getRepaymentById = useCallback(async (id) => {
     try {
       setLoading(true)
-      const repayment = await repaymentsAPI.getRepayment(id)
+      const repayment = normalizeRepaymentEntity(await repaymentsAPI.getRepayment(id))
       setState(prev => ({ ...prev, selectedRepayment: repayment }))
       return repayment
     } catch (err) {
@@ -90,7 +124,7 @@ export const useRepayments = () => {
   const createRepayment = useCallback(async (data) => {
     try {
       setLoading(true)
-      const repayment = await repaymentsAPI.createRepayment(data)
+      const repayment = normalizeRepaymentEntity(await repaymentsAPI.createRepayment(data))
       setState(prev => ({ ...prev, repayments: [repayment, ...prev.repayments] }))
       addToast({ title: 'Success', message: 'Repayment created', type: 'success' })
       return repayment
@@ -107,7 +141,7 @@ export const useRepayments = () => {
   const updateRepayment = useCallback(async (id, data) => {
     try {
       setLoading(true)
-      const repayment = await repaymentsAPI.updateRepayment(id, data)
+      const repayment = normalizeRepaymentEntity(await repaymentsAPI.updateRepayment(id, data))
       setState(prev => ({
         ...prev,
         repayments: prev.repayments.map(r => r.id === repayment.id ? repayment : r),
@@ -149,8 +183,7 @@ export const useRepayments = () => {
     try {
       setLoading(true)
       const res = await repaymentsAPI.processRepayment(id, data)
-      // update local state using returned repayment if provided
-      const repayment = res.repayment || res
+      const repayment = normalizeRepaymentEntity(res)
       setState(prev => ({
         ...prev,
         repayments: prev.repayments.map(r => r.id === repayment.id ? repayment : r),
@@ -172,7 +205,7 @@ export const useRepayments = () => {
     try {
       setLoading(true)
       const res = await repaymentsAPI.waiveRepayment(id, data)
-      const repayment = res.repayment || res
+      const repayment = normalizeRepaymentEntity(res)
       setState(prev => ({
         ...prev,
         repayments: prev.repayments.map(r => r.id === repayment.id ? repayment : r),
@@ -194,7 +227,7 @@ export const useRepayments = () => {
     try {
       setLoading(true)
       const res = await repaymentsAPI.cancelRepayment(id, data)
-      const repayment = res.repayment || res
+      const repayment = normalizeRepaymentEntity(res)
       setState(prev => ({
         ...prev,
         repayments: prev.repayments.map(r => r.id === repayment.id ? repayment : r),

@@ -3,6 +3,20 @@ import React, { useState } from 'react'
 import { LOAN_TYPE, REPAYMENT_FREQUENCY } from '@api/loans'
 import { Button, Card } from '@components/ui'
 
+const LOAN_PURPOSE_OPTIONS = [
+  { value: 'MEDICAL', label: 'Medical Expenses' },
+  { value: 'EDUCATION', label: 'Education Fees' },
+  { value: 'BUSINESS_CAPITAL', label: 'Business Capital' },
+  { value: 'HOME_IMPROVEMENT', label: 'Home Improvement' },
+  { value: 'DEBT_CONSOLIDATION', label: 'Debt Consolidation' },
+  { value: 'VEHICLE_PURCHASE', label: 'Vehicle Purchase' },
+  { value: 'RENT', label: 'Rent Payment' },
+  { value: 'UTILITIES', label: 'Utilities' },
+  { value: 'TRAVEL', label: 'Travel' },
+  { value: 'WEDDING', label: 'Wedding' },
+  { value: 'OTHER', label: 'Other' },
+]
+
 const LoanForm = ({ initialValues = {}, onSubmit, submitting = false }) => {
   const [values, setValues] = useState({
     customer: initialValues.customer || '',
@@ -28,8 +42,9 @@ const LoanForm = ({ initialValues = {}, onSubmit, submitting = false }) => {
     <Card>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-gray-600">Customer ID</label>
+          <label htmlFor="loan-customer" className="block text-xs font-medium text-gray-600">Customer ID</label>
           <input
+            id="loan-customer"
             type="text"
             value={values.customer}
             onChange={handleChange('customer')}
@@ -39,8 +54,9 @@ const LoanForm = ({ initialValues = {}, onSubmit, submitting = false }) => {
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-gray-600">Amount Requested</label>
+            <label htmlFor="loan-amount-requested" className="block text-xs font-medium text-gray-600">Amount Requested</label>
             <input
+              id="loan-amount-requested"
               type="number"
               value={values.amount_requested}
               onChange={handleChange('amount_requested')}
@@ -49,8 +65,9 @@ const LoanForm = ({ initialValues = {}, onSubmit, submitting = false }) => {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600">Term (Months)</label>
+            <label htmlFor="loan-term-months" className="block text-xs font-medium text-gray-600">Term (Months)</label>
             <input
+              id="loan-term-months"
               type="number"
               value={values.term_months}
               onChange={handleChange('term_months')}
@@ -59,8 +76,9 @@ const LoanForm = ({ initialValues = {}, onSubmit, submitting = false }) => {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600">Interest Rate (%)</label>
+            <label htmlFor="loan-interest-rate" className="block text-xs font-medium text-gray-600">Interest Rate (%)</label>
             <input
+              id="loan-interest-rate"
               type="number"
               value={values.interest_rate}
               onChange={handleChange('interest_rate')}
@@ -69,8 +87,8 @@ const LoanForm = ({ initialValues = {}, onSubmit, submitting = false }) => {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600">Loan Type</label>
-            <select className="mt-1 w-full rounded-md border border-gray-300 text-sm" value={values.loan_type} onChange={handleChange('loan_type')}>
+            <label htmlFor="loan-type" className="block text-xs font-medium text-gray-600">Loan Type</label>
+            <select id="loan-type" className="mt-1 w-full rounded-md border border-gray-300 text-sm" value={values.loan_type} onChange={handleChange('loan_type')}>
               <option value="">Select</option>
               {Object.values(LOAN_TYPE).map((t) => (
                 <option key={t} value={t}>{t}</option>
@@ -78,8 +96,8 @@ const LoanForm = ({ initialValues = {}, onSubmit, submitting = false }) => {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600">Repayment Frequency</label>
-            <select className="mt-1 w-full rounded-md border border-gray-300 text-sm" value={values.repayment_frequency} onChange={handleChange('repayment_frequency')}>
+            <label htmlFor="loan-repayment-frequency" className="block text-xs font-medium text-gray-600">Repayment Frequency</label>
+            <select id="loan-repayment-frequency" className="mt-1 w-full rounded-md border border-gray-300 text-sm" value={values.repayment_frequency} onChange={handleChange('repayment_frequency')}>
               {Object.values(REPAYMENT_FREQUENCY).map((r) => (
                 <option key={r} value={r}>{r}</option>
               ))}
@@ -87,18 +105,25 @@ const LoanForm = ({ initialValues = {}, onSubmit, submitting = false }) => {
           </div>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-600">Purpose</label>
-          <input
-            type="text"
+          <label htmlFor="loan-purpose" className="block text-xs font-medium text-gray-600">Purpose</label>
+          <select
+            id="loan-purpose"
             value={values.purpose}
             onChange={handleChange('purpose')}
             className="mt-1 w-full rounded-md border border-gray-300 text-sm"
-            placeholder="Purpose"
-          />
+          >
+            <option value="">Select purpose</option>
+            {LOAN_PURPOSE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-600">Notes</label>
+          <label htmlFor="loan-notes" className="block text-xs font-medium text-gray-600">Notes</label>
           <textarea
+            id="loan-notes"
             rows={3}
             value={values.notes}
             onChange={handleChange('notes')}

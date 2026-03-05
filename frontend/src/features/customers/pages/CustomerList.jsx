@@ -102,28 +102,37 @@ const CustomerList = () => {
 
   const handleDelete = async (id) => {
     try {
-      await deleteCustomer(id)
+      const response = await deleteCustomer(id)
+      if (!response?.success) {
+        throw new Error(response?.error || 'Failed to delete customer')
+      }
       addToast('Customer deleted successfully', 'success')
-    } catch {
-      addToast('Failed to delete customer', 'error')
+    } catch (error) {
+      addToast(error?.message || 'Failed to delete customer', 'error')
     }
   }
 
   const handleBlacklist = async (id) => {
     try {
-      await blacklistCustomer(id, 'Manual blacklisting by admin')
+      const response = await blacklistCustomer(id, 'Manual blacklisting by admin')
+      if (!response?.success) {
+        throw new Error(response?.error || 'Failed to blacklist customer')
+      }
       addToast('Customer blacklisted successfully', 'success')
-    } catch {
-      addToast('Failed to blacklist customer', 'error')
+    } catch (error) {
+      addToast(error?.message || 'Failed to blacklist customer', 'error')
     }
   }
 
   const handleActivate = async (id) => {
     try {
-      await activateCustomer(id)
+      const response = await activateCustomer(id)
+      if (!response?.success) {
+        throw new Error(response?.error || 'Failed to activate customer')
+      }
       addToast('Customer activated successfully', 'success')
-    } catch {
-      addToast('Failed to activate customer', 'error')
+    } catch (error) {
+      addToast(error?.message || 'Failed to activate customer', 'error')
     }
   }
 
@@ -133,9 +142,12 @@ const CustomerList = () => {
         ...filters,
         customer_ids: customerIds,
       }
-      await exportCustomers('excel', exportFilters)
-    } catch {
-      addToast('Export failed', 'error')
+      const response = await exportCustomers('excel', exportFilters)
+      if (!response?.success) {
+        throw new Error(response?.error || 'Export failed')
+      }
+    } catch (error) {
+      addToast(error?.message || 'Export failed', 'error')
     }
   }
 

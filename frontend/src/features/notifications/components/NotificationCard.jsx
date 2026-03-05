@@ -204,7 +204,7 @@ const NotificationCard = ({
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700">
             <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
               <span>{channel}</span>
-              <span>•</span>
+              <span>|</span>
               <span>{format(new Date(created_at), 'MMM d, yyyy HH:mm')}</span>
             </div>
 

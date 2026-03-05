@@ -5,6 +5,7 @@ import { Button, Card } from '@components/ui'
 import { PageHeader } from '@components/ui'
 import { LoanFilters, LoanSearch, LoanStats, LoanTable } from '@components/loans'
 import { useLoanContext } from '@contexts/LoanContext'
+import { normalizeLoanCollection } from '../services/loans'
 
 const LoanList = () => {
   const navigate = useNavigate()
@@ -22,7 +23,8 @@ const LoanList = () => {
   const { data, isLoading } = useLoansQuery(filters)
   const { data: stats } = useLoanStatsQuery()
 
-  const loans = searchResults || data?.results || data || []
+  const loans =
+    searchResults !== null ? normalizeLoanCollection(searchResults) : normalizeLoanCollection(data)
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }))

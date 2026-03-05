@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
-from django.db.models import Count, Sum, Q, Avg
+from django.db.models import Count, Sum, Q, Avg, F
 from django.utils import timezone
 from datetime import timedelta
 
@@ -141,7 +141,7 @@ class NotificationViewSet(AuditMixin, viewsets.ModelViewSet):
         )
         
         return Response({
-            'status': 'success',
+            'result': 'success',
             'message': 'Notification marked as read.',
             'notification_id': notification.id,
             'status': notification.status,
@@ -278,6 +278,8 @@ class NotificationStatsView(AuditMixin, APIView):
         # Cost statistics
         total_cost = Notification.objects.aggregate(total=Sum('cost'))['total'] or 0
         avg_cost = Notification.objects.filter(cost__gt=0).aggregate(avg=Avg('cost'))['avg'] or 0
+        delivered_or_read = Notification.objects.filter(status__in=['DELIVERED', 'READ']).count()
+        delivery_rate = (delivered_or_read / total_notifications * 100) if total_notifications > 0 else 0
         
         return Response({
             'overall': {
@@ -285,6 +287,7 @@ class NotificationStatsView(AuditMixin, APIView):
                 'notifications_last_period': notifications_last_period,
                 'total_cost': float(total_cost),
                 'average_cost': float(avg_cost),
+                'delivery_rate': delivery_rate,
             },
             'status_distribution': list(status_stats),
             'channel_distribution': list(channel_stats),
@@ -450,7 +453,13 @@ class TemplateUpdateView(AuditMixin, generics.UpdateAPIView):
         new_instance = serializer.save()
         
         # Log changes
-        changes = self.get_changes(old_instance, new_instance, serializer.validated_data)
+        change_parts = []
+        for field in serializer.validated_data.keys():
+            old_value = getattr(old_instance, field, None)
+            new_value = getattr(new_instance, field, None)
+            if old_value != new_value:
+                change_parts.append(f"{field}: {old_value} -> {new_value}")
+        changes = "; ".join(change_parts)
         if changes:
             self.audit_log(
                 action='UPDATE',
@@ -622,7 +631,7 @@ class SMSStatsView(AuditMixin, APIView):
         # Cost statistics
         total_cost = SMSLog.objects.aggregate(total=Sum('cost'))['total'] or 0
         avg_cost_per_sms = SMSLog.objects.filter(cost__gt=0).aggregate(avg=Avg('cost'))['avg'] or 0
-        total_units = SMSLog.objects.aggregate(total=Sum('units'))['total__sum'] or 0
+        total_units = SMSLog.objects.aggregate(total=Sum('units'))['total'] or 0
         
         # Delivery performance
         delivered_sms = SMSLog.objects.filter(status='DELIVERED').count()
@@ -635,7 +644,7 @@ class SMSStatsView(AuditMixin, APIView):
             sent_at__isnull=False,
             delivered_at__isnull=False
         ).aggregate(
-            avg=Avg(models.F('delivered_at') - models.F('sent_at'))
+            avg=Avg(F('delivered_at') - F('sent_at'))
         )['avg']
         
         avg_delivery_seconds = avg_delivery_time.total_seconds() if avg_delivery_time else None
