@@ -1,0 +1,30 @@
+name: Build And Pin Django Digest
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+
+jobs:
+  django-version-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements/prod.txt
+
+      - name: Report Django version
+        run: |
+          DJANGO_VERSION=$(python -c "import django; print(django.get_version())")
+          echo "Django version: ${DJANGO_VERSION}"
+          echo "## Django digest" >> $GITHUB_STEP_SUMMARY
+          echo "- Installed Django version: ${DJANGO_VERSION}" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,34 @@
+name: Rollback Drill
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: "Service to drill"
+        required: true
+        type: choice
+        options:
+          - backend
+          - frontend
+
+jobs:
+  drill:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger backend deploy hook (drill)
+        if: ${{ inputs.service == 'backend' }}
+        run: |
+          if [ -z "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK_URL }}" ]; then
+            echo "Missing secret: RENDER_BACKEND_DEPLOY_HOOK_URL"
+            exit 1
+          fi
+          curl -fsS -X POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK_URL }}"
+
+      - name: Trigger frontend deploy hook (drill)
+        if: ${{ inputs.service == 'frontend' }}
+        run: |
+          if [ -z "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}" ]; then
+            echo "Missing secret: RENDER_FRONTEND_DEPLOY_HOOK_URL"
+            exit 1
+          fi
+          curl -fsS -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}"

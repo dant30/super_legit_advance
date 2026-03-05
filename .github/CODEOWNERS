@@ -1,0 +1,11 @@
+* @dant30
+
+# Frontend ownership
+/frontend/ @dant30
+
+# Backend ownership
+/backend/ @dant30
+
+# CI/CD and project governance
+/.github/ @dant30
+/render.yaml @dant30

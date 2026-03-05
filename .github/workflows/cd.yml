@@ -1,0 +1,35 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend (Render)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate backend deploy hook
+        run: |
+          if [ -z "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK_URL }}" ]; then
+            echo "Missing secret: RENDER_BACKEND_DEPLOY_HOOK_URL"
+            exit 1
+          fi
+
+      - name: Trigger backend deploy
+        run: curl -fsS -X POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK_URL }}"
+
+  deploy-frontend:
+    name: Deploy Frontend (Render)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate frontend deploy hook
+        run: |
+          if [ -z "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}" ]; then
+            echo "Missing secret: RENDER_FRONTEND_DEPLOY_HOOK_URL"
+            exit 1
+          fi
+
+      - name: Trigger frontend deploy
+        run: curl -fsS -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}"

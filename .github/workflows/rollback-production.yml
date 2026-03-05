@@ -1,0 +1,47 @@
+name: Rollback Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: "Service to rollback"
+        required: true
+        type: choice
+        options:
+          - backend
+          - frontend
+      deploy_id:
+        description: "Render deploy ID to rollback to"
+        required: true
+        type: string
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve service ID
+        id: resolve
+        run: |
+          if [ "${{ inputs.service }}" = "backend" ]; then
+            echo "service_id=${{ secrets.RENDER_BACKEND_SERVICE_ID }}" >> $GITHUB_OUTPUT
+          else
+            echo "service_id=${{ secrets.RENDER_FRONTEND_SERVICE_ID }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate required secrets
+        run: |
+          if [ -z "${{ secrets.RENDER_API_KEY }}" ]; then
+            echo "Missing secret: RENDER_API_KEY"
+            exit 1
+          fi
+          if [ -z "${{ steps.resolve.outputs.service_id }}" ]; then
+            echo "Missing service id secret for selected service"
+            exit 1
+          fi
+
+      - name: Rollback deploy on Render
+        run: |
+          curl -fsS -X POST \
+            "https://api.render.com/v1/services/${{ steps.resolve.outputs.service_id }}/deploys/${{ inputs.deploy_id }}/rollback" \
+            -H "accept: application/json" \
+            -H "authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
