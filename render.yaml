@@ -85,8 +85,9 @@ services:
           name: super-legit-redis
           property: connectionString
 
-  - type: static
+  - type: web
     name: super-legit-frontend
+    env: static
     plan: free
     region: ohio
     rootDir: frontend
