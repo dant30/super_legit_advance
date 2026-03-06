@@ -22,7 +22,7 @@ const LoanList = () => {
   const [searchResults, setSearchResults] = useState(null)
 
   const { data, isLoading } = useLoansQuery(filters)
-  const { data: stats } = useLoanStatsQuery()
+  const { data: stats, isLoading: statsLoading } = useLoanStatsQuery()
 
   const loans =
     searchResults !== null ? normalizeLoanCollection(searchResults) : normalizeLoanCollection(data)
@@ -66,7 +66,7 @@ const LoanList = () => {
         ]}
       />
 
-      <LoanStats stats={stats} />
+      <LoanStats stats={stats} loading={statsLoading} />
 
       <LoanSearch onSearch={handleSearch} />
 

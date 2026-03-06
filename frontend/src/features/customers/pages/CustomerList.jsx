@@ -2,14 +2,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import Button from '@components/ui/Button'
 import Card from '@components/ui/Card'
-import Row from '@components/ui/Row'
-import Col from '@components/ui/Col'
-import Statistic from '@components/ui/Statistic'
 import Tabs from '@components/ui/Tabs'
 import Badge from '@components/ui/Badge'
 import Modal from '@components/ui/Modal'
 import PageHeader from '@components/ui/PageHeader'
-import { Plus, Download, Upload, Filter, RefreshCw, Users } from 'lucide-react'
+import { Plus, Download, Upload, Filter, RefreshCw, Users, UserCheck, UserX, Activity } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCustomerContext } from '@contexts/CustomerContext'
 import { CustomerTable, CustomerFilters, CustomerSearch } from '@components/customers'
@@ -191,49 +188,73 @@ const CustomerList = () => {
 
   const renderStats = () => {
     if (typeof getCustomerStats !== 'function') return null
+    const averageScore = stats?.average_credit_score || 0
+    const scoreTone =
+      averageScore >= 700
+        ? 'text-feedback-success'
+        : averageScore >= 500
+          ? 'text-feedback-warning'
+          : 'text-feedback-danger'
+    const cards = [
+      {
+        key: 'total',
+        title: 'Total Customers',
+        value: stats?.total_customers || 0,
+        helper: 'All registered customer profiles',
+        icon: Users,
+        valueClass: 'text-brand-700',
+      },
+      {
+        key: 'active',
+        title: 'Active',
+        value: stats?.active_customers || 0,
+        helper: 'Eligible and active borrowers',
+        icon: UserCheck,
+        valueClass: 'text-feedback-success',
+      },
+      {
+        key: 'blacklisted',
+        title: 'Blacklisted',
+        value: stats?.blacklisted_customers || 0,
+        helper: 'Accounts under risk restriction',
+        icon: UserX,
+        valueClass: 'text-feedback-danger',
+      },
+      {
+        key: 'creditScore',
+        title: 'Avg. Credit Score',
+        value: averageScore,
+        helper: 'Portfolio credit quality indicator',
+        icon: Activity,
+        valueClass: scoreTone,
+      },
+    ]
+
     return (
-      <Row gutter={16} className="mb-6">
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Total Customers"
-              value={stats?.total_customers || 0}
-              prefix={<Users size={20} />}
-              valueStyle={{ color: '#3f51b5' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Active"
-              value={stats?.active_customers || 0}
-              valueStyle={{ color: '#10b981' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Blacklisted"
-              value={stats?.blacklisted_customers || 0}
-              valueStyle={{ color: '#ef4444' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Avg. Credit Score"
-              value={stats?.average_credit_score || 0}
-              valueStyle={{ 
-                color: (stats?.average_credit_score || 0) >= 700 ? '#10b981' : 
-                       (stats?.average_credit_score || 0) >= 500 ? '#f59e0b' : '#ef4444'
-              }}
-            />
-          </Card>
-        </Col>
-      </Row>
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {cards.map((item, index) => (
+          <article
+            key={item.key}
+            className="rounded-xl border bg-surface-panel p-5 shadow-soft transition-all duration-200 hover:shadow-medium animate-fade-in"
+            style={{
+              borderColor: 'var(--surface-border)',
+              animationDelay: `${index * 40}ms`,
+              animationFillMode: 'both',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">{item.title}</p>
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-subtle text-text-secondary">
+                <item.icon className="h-4 w-4" />
+              </span>
+            </div>
+            <p className={`mt-3 text-2xl font-semibold leading-none ${item.valueClass}`}>
+              {Number(item.value || 0).toLocaleString()}
+            </p>
+            <p className="mt-2 text-xs text-text-muted">{item.helper}</p>
+          </article>
+        ))}
+      </div>
     )
   }
 

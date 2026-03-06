@@ -179,13 +179,13 @@ const Login = () => {
           className="grid w-full overflow-hidden rounded-2xl border bg-surface-panel shadow-medium lg:grid-cols-2"
           style={{ borderColor: 'var(--surface-border)' }}
         >
-          <section className="hidden border-r border-surface-border bg-gradient-to-b from-brand-50 to-surface-panel p-10 lg:block">
+          <section className="hidden border-r border-surface-border bg-surface-subtle p-10 lg:block">
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-brand-600 p-3 text-white shadow-soft">
+              <div className="rounded-xl border border-brand-200 bg-brand-50 p-3 text-brand-700 shadow-soft dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-200">
                 <Building2 className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold tracking-wide text-text-secondary">
+                <p className="text-sm font-semibold tracking-wide text-text-primary">
                   Super Legit Advance
                 </p>
                 <p className="text-xs text-text-muted">Loan Operations Portal</p>
@@ -221,7 +221,7 @@ const Login = () => {
           <section className="p-6 sm:p-8 lg:p-10">
             <div className="mb-6 lg:hidden">
               <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-brand-600 p-2.5 text-white shadow-soft">
+                <div className="rounded-xl border border-brand-200 bg-brand-50 p-2.5 text-brand-700 shadow-soft dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-200">
                   <Building2 className="h-4 w-4" />
                 </div>
                 <div>
@@ -277,7 +277,7 @@ const Login = () => {
                   <Lock className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-text-muted" />
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
+                    placeholder="********"
                     value={formData.password}
                     onChange={handlePasswordChange}
                     disabled={isLoading}

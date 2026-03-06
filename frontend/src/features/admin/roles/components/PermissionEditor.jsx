@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Card,
-  Checkbox,
-  Button,
-  Space,
-  Spin,
-  Alert,
-  Tag,
-  //Tree,
-} from '@components/ui'
-import { EmptyState } from '@components/ui'
+import Card from '@components/ui/Card'
+import Checkbox from '@components/ui/Checkbox'
+import Button from '@components/ui/Button'
+import Space from '@components/ui/Space'
+import Spin from '@components/ui/Loading'
+import Alert from '@components/ui/Alert'
+import Tag from '@components/ui/Tag'
+import EmptyState from '@components/ui/EmptyState'
 import { useToast } from '@contexts/ToastContext'
 import staffAPI from '@api/admin'
 import { Lock, Save, RefreshCw } from 'lucide-react'

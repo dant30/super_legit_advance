@@ -1,128 +1,97 @@
-// frontend/src/components/ui/Statistic.jsx
 import React from 'react'
 import clsx from 'clsx'
 
-/**
- * Statistic UI Component
- *
- * A reusable metric display for dashboards, reports, and analytics.
- */
+const isRenderableElement = (value) => React.isValidElement(value)
+
 export default function Statistic({
   label,
+  title,
   value,
+  valueStyle,
   prefix,
   suffix,
   icon,
-  trend, // 'up' | 'down' | 'neutral'
+  trend,
   trendValue,
-  variant = 'neutral', // primary | success | warning | danger | neutral
-  size = 'md', // sm | md | lg
+  variant = 'neutral',
+  size = 'md',
   loading = false,
   footer,
   className,
 }) {
-  const variantStyles = {
-    primary: 'text-primary-600 bg-primary-50',
-    success: 'text-success-600 bg-success-50',
-    warning: 'text-warning-600 bg-warning-50',
-    danger: 'text-danger-600 bg-danger-50',
-    neutral: 'text-neutral-700 bg-neutral-100',
+  const resolvedLabel = title || label
+  const iconNode = icon || (isRenderableElement(prefix) ? prefix : null)
+  const inlinePrefix = iconNode ? null : prefix
+
+  const variantValueStyles = {
+    primary: 'text-brand-700',
+    success: 'text-feedback-success',
+    warning: 'text-feedback-warning',
+    danger: 'text-feedback-danger',
+    neutral: 'text-text-primary',
   }
 
   const trendStyles = {
-    up: 'text-success-600',
-    down: 'text-danger-600',
-    neutral: 'text-neutral-500',
+    up: 'text-feedback-success',
+    down: 'text-feedback-danger',
+    neutral: 'text-text-muted',
   }
 
   const sizeStyles = {
-    sm: {
-      container: 'p-4',
-      value: 'text-xl',
-      label: 'text-xs',
-    },
-    md: {
-      container: 'p-5',
-      value: 'text-2xl',
-      label: 'text-sm',
-    },
-    lg: {
-      container: 'p-6',
-      value: 'text-3xl',
-      label: 'text-sm',
-    },
+    sm: { value: 'text-xl', label: 'text-[11px]' },
+    md: { value: 'text-2xl', label: 'text-xs' },
+    lg: { value: 'text-3xl', label: 'text-sm' },
   }
 
   return (
-    <div
+    <article
       className={clsx(
-        'rounded-2xl shadow-soft transition-all duration-200',
+        'rounded-xl border bg-surface-panel p-5 shadow-soft transition-all duration-200',
         'hover:shadow-medium',
-        variantStyles[variant],
-        sizeStyles[size].container,
         className
       )}
+      style={{ borderColor: 'var(--surface-border)' }}
     >
-      {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          {label && (
-            <p
-              className={clsx(
-                'uppercase tracking-wide font-medium',
-                sizeStyles[size].label
-              )}
-            >
-              {label}
+          {resolvedLabel && (
+            <p className={clsx('font-semibold uppercase tracking-[0.08em] text-text-muted', sizeStyles[size].label)}>
+              {resolvedLabel}
             </p>
           )}
         </div>
-
-        {icon && (
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/60 shadow-inner">
-            {icon}
+        {iconNode && (
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-subtle text-text-secondary">
+            {iconNode}
           </div>
         )}
       </div>
 
-      {/* Value */}
       <div className="mt-3 flex items-end gap-2">
         {loading ? (
-          <div className="h-8 w-24 animate-pulse rounded bg-neutral-300" />
+          <div className="h-8 w-24 animate-pulse rounded bg-slate-200" />
         ) : (
           <span
-            className={clsx(
-              'font-semibold leading-none',
-              sizeStyles[size].value
-            )}
+            className={clsx('font-semibold leading-none', sizeStyles[size].value, variantValueStyles[variant])}
+            style={valueStyle}
           >
-            {prefix}
-            {value ?? '—'}
+            {inlinePrefix}
+            {value ?? '--'}
             {suffix}
           </span>
         )}
 
-        {/* Trend */}
         {trend && trendValue && !loading && (
-          <span
-            className={clsx(
-              'text-sm font-medium',
-              trendStyles[trend]
-            )}
-          >
-            {trend === 'up' && '▲'}
-            {trend === 'down' && '▼'}
-            {trend === 'neutral' && '•'} {trendValue}
+          <span className={clsx('text-sm font-medium', trendStyles[trend])}>
+            {trend === 'up' && '^ '}
+            {trend === 'down' && 'v '}
+            {trend === 'neutral' && '* '}
+            {trendValue}
           </span>
         )}
       </div>
 
-      {/* Footer */}
-      {footer && (
-        <div className="mt-3 border-t border-black/5 pt-2 text-xs text-neutral-600">
-          {footer}
-        </div>
-      )}
-    </div>
+      {footer && <div className="mt-3 border-t border-slate-200 pt-2 text-xs text-text-muted">{footer}</div>}
+    </article>
   )
 }
