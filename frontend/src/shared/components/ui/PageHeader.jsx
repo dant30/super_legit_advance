@@ -22,19 +22,27 @@ const PageHeader = ({
   subTitleClassName,
 }) => {
   return (
-    <div className={cn('flex flex-col md:flex-row md:items-center md:justify-between mb-6', className)}>
+    <div
+      className={cn(
+        'mb-6 rounded-xl border px-5 py-4 md:px-6 md:py-5',
+        'flex flex-col gap-4 md:flex-row md:items-center md:justify-between',
+        'bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm',
+        className
+      )}
+      style={{ borderColor: 'var(--surface-border)' }}
+    >
       <div className="flex-1">
-        <h1 className={cn('text-2xl md:text-3xl font-semibold text-gray-800 dark:text-white', titleClassName)}>
+        <h1 className={cn('text-2xl md:text-3xl font-semibold tracking-tight text-app-primary', titleClassName)}>
           {title}
         </h1>
         {subTitle && (
-          <p className={cn('mt-1 text-sm text-gray-500 dark:text-gray-300', subTitleClassName)}>
+          <p className={cn('mt-1.5 text-sm text-app-secondary', subTitleClassName)}>
             {subTitle}
           </p>
         )}
       </div>
       {extra.length > 0 && (
-        <div className="mt-4 md:mt-0 flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           {extra.map((el, idx) => (
             <div key={idx}>{el}</div>
           ))}

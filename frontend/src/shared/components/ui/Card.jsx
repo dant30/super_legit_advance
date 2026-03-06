@@ -14,8 +14,7 @@ export const Card = ({ children, className, hoverable = false, glass = false }) 
   <div
     className={cn(
       glass ? 'glass' : 'card',
-      'animate-fade-in',
-      hoverable && 'hover-lift',
+      hoverable && 'hover-lift transition-shadow hover:shadow-md',
       className
     )}
   >
@@ -41,10 +40,10 @@ export const CardHeader = ({ title, description, icon: Icon, action, className }
         {title && (
           <div className="flex items-center gap-2">
             {Icon && <Icon className="h-5 w-5 text-primary-600" />}
-            <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">{title}</h4>
+            <h4 className="text-base font-semibold text-app-primary">{title}</h4>
           </div>
         )}
-        {description && <p className="text-sm text-neutral-500 dark:text-neutral-400">{description}</p>}
+        {description && <p className="text-sm text-app-muted">{description}</p>}
       </div>
       {action && <div>{action}</div>}
     </div>

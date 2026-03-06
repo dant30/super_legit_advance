@@ -259,7 +259,10 @@ const Header = ({ onToggleSidebar }) => {
       )}
 
       {/* Main Header */}
-      <header className="sticky top-0 z-40 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-soft h-16">
+      <header
+        className="sticky top-0 z-40 h-16 border-b bg-white/92 backdrop-blur-md dark:bg-slate-800/92"
+        style={{ borderColor: 'var(--surface-border)' }}
+      >
         <div className="flex h-full items-center gap-3 px-4 sm:gap-4 sm:px-6">
           {/* Left side */}
           <div className="flex shrink-0 items-center gap-3">
@@ -283,12 +286,12 @@ const Header = ({ onToggleSidebar }) => {
                 className="flex items-center gap-2 text-left"
                 aria-label={t('layout.sidebar.goToDashboard', 'Go to dashboard')}
               >
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
                   SL
                 </div>
                 <div className="leading-tight">
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">Super Legit</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Advance</p>
+                  <p className="text-sm font-bold text-app-primary">Super Legit</p>
+                  <p className="text-xs text-app-muted">Advance</p>
                 </div>
               </button>
             )}
@@ -486,7 +489,7 @@ const Header = ({ onToggleSidebar }) => {
                 aria-haspopup="menu"
                 aria-controls="header-profile-menu"
               >
-                <div className="h-9 w-9 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold shadow-md group-hover:shadow-lg transition-shadow">
+                <div className="h-9 w-9 rounded-lg bg-primary-600 flex items-center justify-center text-white text-sm font-semibold shadow-md group-hover:shadow-lg transition-shadow">
                   {user?.first_name?.charAt(0) || 'U'}
                 </div>
                 <ChevronDown className={cn(
@@ -511,7 +514,7 @@ const Header = ({ onToggleSidebar }) => {
                   {/* Profile Header */}
                   <div className="px-4 py-4 border-b border-gray-200 dark:border-slate-700">
                     <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-base shadow-md">
+                      <div className="h-12 w-12 rounded-lg bg-primary-600 flex items-center justify-center text-white font-semibold text-base shadow-md">
                         {user?.first_name?.charAt(0) || 'U'}
                       </div>
                       <div className="flex-1 min-w-0">

@@ -91,7 +91,7 @@ const Layout = () => {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen flex-col overflow-hidden bg-app-surface">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-700 focus:shadow-lg"
@@ -104,7 +104,7 @@ const Layout = () => {
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {isDesktop && (
           <div className="min-h-0 w-72 shrink-0">
-          <aside className="h-full w-72 border-r border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+          <aside className="h-full w-72 border-r bg-app-panel" style={{ borderColor: 'var(--surface-border)' }}>
             <Sidebar />
           </aside>
           </div>
@@ -138,7 +138,7 @@ const Layout = () => {
             aria-modal="true"
             aria-label={t('layout.sidebar.navigation', 'Navigation')}
           >
-            <aside className="h-full border-r border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+            <aside className="h-full border-r bg-app-panel" style={{ borderColor: 'var(--surface-border)' }}>
               <Sidebar
                 onNavigate={() => setMobileSidebarOpen(false)}
                 onClose={() => setMobileSidebarOpen(false)}
@@ -149,9 +149,9 @@ const Layout = () => {
 
         <main
           id="main-content"
-          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-gray-50/70 dark:bg-slate-900"
+          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent"
         >
-          <div className="mx-auto w-full max-w-[1480px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+          <div className="mx-auto w-full max-w-[1520px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
             <Outlet />
           </div>
           <Footer />

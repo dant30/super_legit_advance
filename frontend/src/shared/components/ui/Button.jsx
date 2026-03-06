@@ -38,15 +38,15 @@ export const Button = React.forwardRef(
     ref
   ) => {
     const base =
-      'inline-flex items-center justify-center rounded-lg font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+      'inline-flex items-center justify-center rounded-lg font-semibold tracking-tight transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
 
     const variants = {
-      primary: 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800',
-      secondary: 'bg-gray-100 text-gray-800 hover:bg-gray-200 active:bg-gray-300 dark:bg-slate-700 dark:text-gray-100 dark:hover:bg-slate-600',
-      outline: 'border border-gray-300 text-gray-800 hover:bg-gray-50 active:bg-gray-100 dark:border-slate-600 dark:text-gray-100 dark:hover:bg-slate-700',
+      primary: 'bg-primary-600 text-white shadow-sm hover:bg-primary-700 hover:shadow-md active:bg-primary-800',
+      secondary: 'bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-slate-700 dark:text-gray-100 dark:hover:bg-slate-600',
+      outline: 'border border-gray-300 text-gray-800 hover:bg-gray-50 dark:border-slate-600 dark:text-gray-100 dark:hover:bg-slate-700',
       ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200 dark:text-gray-200 dark:hover:bg-slate-700',
-      danger: 'bg-danger-600 text-white hover:bg-danger-700 active:bg-danger-800',
-      success: 'bg-success-600 text-white hover:bg-success-700 active:bg-success-800',
+      danger: 'bg-danger-600 text-white shadow-sm hover:bg-danger-700 active:bg-danger-800',
+      success: 'bg-success-600 text-white shadow-sm hover:bg-success-700 active:bg-success-800',
       warning: 'bg-warning-500 text-white hover:bg-warning-600 active:bg-warning-700',
       info: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
     }

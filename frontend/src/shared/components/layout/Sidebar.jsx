@@ -294,7 +294,7 @@ const Sidebar = ({ onNavigate, onClose }) => {
             onClick={() => navigate(APP_ROUTES.dashboard)}
             aria-label={t('layout.sidebar.goToDashboard', 'Go to dashboard')}
           >
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
+            <div className="h-10 w-10 rounded-xl bg-primary-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
               SL
             </div>
             <div>
@@ -313,7 +313,10 @@ const Sidebar = ({ onNavigate, onClose }) => {
         </div>
       )}
       {/* Quick Stats */}
-      <div className="shrink-0 px-4 py-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-800 dark:to-blue-900/10">
+      <div
+        className="shrink-0 px-4 py-4 border-b bg-white/80 dark:bg-slate-800/70"
+        style={{ borderColor: 'var(--surface-border)' }}
+      >
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
@@ -322,7 +325,7 @@ const Sidebar = ({ onNavigate, onClose }) => {
                 {stats.activeLoans.toLocaleString()}
               </p>
             </div>
-            <TrendingUp className="h-5 w-5 text-blue-500" />
+            <TrendingUp className="h-5 w-5 text-primary-600" />
           </div>
           <div className="text-sm">
             <span className="font-medium text-gray-700 dark:text-gray-300">
