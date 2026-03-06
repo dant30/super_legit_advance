@@ -17,11 +17,12 @@ const PendingApprovals = ({ approvals = [] }) => {
     submittedAt: item?.submitted_at || item?.created_at,
     publicId: item?.loan_number || `APP-${item?.id || '--'}`,
   }))
+  const totalPendingAmount = data.reduce((sum, item) => sum + Number(item.amount || 0), 0)
 
   return (
-    <Card className="border border-slate-200 bg-white shadow-sm">
+    <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
           {t('dashboard.approvals.title', 'Pending Approvals')}
         </h3>
         <Link to={APP_ROUTES.loanApprovals}>
@@ -30,20 +31,44 @@ const PendingApprovals = ({ approvals = [] }) => {
           </Button>
         </Link>
       </div>
+      <div
+        className="mt-3 grid grid-cols-2 gap-2 rounded-lg border bg-slate-50/70 p-3"
+        style={{ borderColor: 'var(--surface-border)' }}
+      >
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.06em] text-slate-500">
+            {t('dashboard.approvals.kpiCount', 'Pending Cases')}
+          </p>
+          <p className="text-sm font-semibold text-slate-900">{data.length}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[11px] uppercase tracking-[0.06em] text-slate-500">
+            {t('dashboard.approvals.kpiValue', 'Pending Value')}
+          </p>
+          <p className="text-sm font-semibold text-slate-900">{formatCurrency(totalPendingAmount)}</p>
+        </div>
+      </div>
 
       {data.length === 0 ? (
-        <p className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-sm text-slate-600">
+        <p
+          className="mt-3 rounded-lg border border-dashed bg-slate-50 px-3 py-4 text-sm text-slate-600"
+          style={{ borderColor: 'var(--surface-border)' }}
+        >
           {t('dashboard.approvals.empty', 'No loan applications awaiting approval.')}
         </p>
       ) : (
-        <ul className="mt-3 space-y-3">
+        <ul className="mt-3 space-y-2">
           {data.map((item) => (
-            <li key={item.id} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+            <li
+              key={item.id}
+              className="rounded-lg border bg-white px-3 py-2.5"
+              style={{ borderColor: 'var(--surface-border)' }}
+            >
               <div className="flex items-center justify-between">
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-medium text-slate-900">{item.borrowerName}</p>
-                  <p className="text-xs text-slate-500">
-                    {item.publicId} | {t('dashboard.approvals.submitted', 'Submitted')}{' '}
+                  <p className="truncate text-xs text-slate-500">
+                    {item.publicId} - {t('dashboard.approvals.submitted', 'Submitted')}{' '}
                     {formatDateTime(item.submittedAt)}
                   </p>
                 </div>

@@ -96,7 +96,7 @@ const StaffDashboard = () => {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title={`${getGreeting()}, ${staffName}`}
         subTitle={t('dashboard.page.subtitle', 'Portfolio and operations summary')}
@@ -104,24 +104,27 @@ const StaffDashboard = () => {
 
       <OverviewCards stats={overview} />
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="space-y-6 xl:col-span-2">
-          <MyCustomers customers={customers} />
-          <MyLoans loans={loans} />
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <div className="space-y-4 xl:col-span-2">
+          <div className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
+            <MyCustomers customers={customers} />
+            <MyLoans loans={loans} />
+          </div>
           <PendingApprovals approvals={pendingApprovals} />
         </div>
 
-        <div className="space-y-6">
-          <Card className="border border-slate-200 bg-white shadow-sm">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
+        <div className="space-y-4">
+          <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
               {t('dashboard.page.quickActionsTitle', 'Quick Actions')}
             </h3>
-            <div className="mt-3 space-y-2">
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
               {quickActions.map((action) => (
                 <Link
                   key={action.key}
                   to={action.to}
-                  className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  className="flex items-center gap-3 rounded-md border px-3 py-2 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  style={{ borderColor: 'var(--surface-border)' }}
                 >
                   <action.icon className="h-4 w-4 text-slate-700" />
                   <div>

@@ -14,25 +14,23 @@ const Performance = ({ metrics = [] }) => {
         ]
 
   return (
-    <Card className="border border-slate-200 bg-white shadow-sm">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
+    <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
         {t('dashboard.performance.title', 'Performance')}
       </h3>
-      <ul className="mt-4 space-y-4">
+      <ul className="mt-4 space-y-3">
         {data.map((metric) => (
-          <li key={metric.label}>
-            <div className="flex items-center justify-between text-xs text-slate-600">
-              <span>{metric.label}</span>
-              <span className="font-medium text-slate-900">{Number(metric.value || 0)}%</span>
+          <li key={metric.label} className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2.5">
+            <div className="mb-2 flex items-center justify-between text-xs text-slate-600">
+              <span className="font-medium text-slate-700">{metric.label}</span>
+              <span className="font-semibold text-slate-900">{Number(metric.value || 0)}%</span>
             </div>
-            <div className="mt-2">
-              <ProgressBar
-                value={Number(metric.value || 0)}
-                size="sm"
-                variant={metric.variant || 'default'}
-                aria-label={`${metric.label} progress`}
-              />
-            </div>
+            <ProgressBar
+              value={Number(metric.value || 0)}
+              size="sm"
+              variant={metric.variant || 'default'}
+              aria-label={`${metric.label} progress`}
+            />
           </li>
         ))}
       </ul>

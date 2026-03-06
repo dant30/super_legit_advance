@@ -30,11 +30,12 @@ const MyCustomers = ({ customers = [] }) => {
       lastEvent,
     }
   })
+  const highRiskCount = data.filter((customer) => customer.risk === 'high').length
 
   return (
-    <Card className="border border-slate-200 bg-white shadow-sm">
+    <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
           {t('dashboard.customers.title', 'My Borrowers')}
         </h3>
         <Link to={APP_ROUTES.customers}>
@@ -43,19 +44,43 @@ const MyCustomers = ({ customers = [] }) => {
           </Button>
         </Link>
       </div>
+      <div
+        className="mt-3 grid grid-cols-2 gap-2 rounded-lg border bg-slate-50/70 p-3"
+        style={{ borderColor: 'var(--surface-border)' }}
+      >
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.06em] text-slate-500">
+            {t('dashboard.customers.kpiTotal', 'Assigned')}
+          </p>
+          <p className="text-sm font-semibold text-slate-900">{data.length}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[11px] uppercase tracking-[0.06em] text-slate-500">
+            {t('dashboard.customers.kpiHighRisk', 'High Risk')}
+          </p>
+          <p className="text-sm font-semibold text-rose-700">{highRiskCount}</p>
+        </div>
+      </div>
 
       {data.length === 0 ? (
-        <p className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-sm text-slate-600">
+        <p
+          className="mt-3 rounded-lg border border-dashed bg-slate-50 px-3 py-4 text-sm text-slate-600"
+          style={{ borderColor: 'var(--surface-border)' }}
+        >
           {t('dashboard.customers.empty', 'No borrower records assigned yet.')}
         </p>
       ) : (
-        <ul className="mt-3 divide-y divide-slate-200">
+        <ul className="mt-3 space-y-2">
           {data.map((customer) => (
-            <li key={customer.id} className="flex items-center justify-between py-3">
-              <div>
+            <li
+              key={customer.id}
+              className="flex items-center justify-between rounded-lg border bg-white px-3 py-2.5"
+              style={{ borderColor: 'var(--surface-border)' }}
+            >
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-slate-900">{customer.fullName}</p>
-                <p className="text-xs text-slate-500">
-                  {customer.publicId} | {t('dashboard.customers.lastActivity', 'Last activity')}{' '}
+                <p className="truncate text-xs text-slate-500">
+                  {customer.publicId} - {t('dashboard.customers.lastActivity', 'Last activity')}{' '}
                   {formatDateTime(customer.lastEvent)}
                 </p>
               </div>

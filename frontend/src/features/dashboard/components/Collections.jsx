@@ -14,9 +14,9 @@ const Collections = ({ summary }) => {
   }
 
   return (
-    <Card className="border border-slate-200 bg-white shadow-sm">
+    <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
           {t('dashboard.collections.title', 'Collections')}
         </h3>
         <Link to={APP_ROUTES.collectionReport}>
@@ -26,8 +26,8 @@ const Collections = ({ summary }) => {
         </Link>
       </div>
 
-      <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <div className="flex items-center justify-between">
+      <div className="mt-4 rounded-lg border bg-slate-50/70 p-4" style={{ borderColor: 'var(--surface-border)' }}>
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="text-xs font-medium text-slate-500">
               {t('dashboard.collections.collected', 'Collected')}
@@ -42,7 +42,7 @@ const Collections = ({ summary }) => {
           </div>
         </div>
 
-        <div className="mt-3">
+        <div className="col-span-2 mt-1">
           <ProgressBar
             value={data.rate}
             size="md"
@@ -50,12 +50,13 @@ const Collections = ({ summary }) => {
             aria-label="Collection performance"
           />
         </div>
-        <p className="mt-2 text-xs text-slate-600">
-          {data.rate}% {t('dashboard.collections.achieved', 'of target achieved')}
+        <p className="col-span-2 mt-1 text-xs text-slate-600">
+          <span className="font-semibold text-slate-800">{data.rate}%</span>{' '}
+          {t('dashboard.collections.achieved', 'of target achieved')}
         </p>
       </div>
 
-      <div className="mt-4 flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3">
+      <div className="mt-3 flex items-center justify-between rounded-lg border bg-white p-3" style={{ borderColor: 'var(--surface-border)' }}>
         <div>
           <p className="text-xs font-medium text-slate-500">
             {t('dashboard.collections.dueToday', 'Due Today')}
