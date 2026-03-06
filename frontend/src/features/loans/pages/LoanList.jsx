@@ -54,14 +54,14 @@ const LoanList = () => {
         title="Loans"
         subTitle="Manage and track all loans"
         extra={[
-          <Button key="filters" onClick={() => setShowFilters(!showFilters)}>
+          <Button key="filters" className="w-full sm:w-auto" onClick={() => setShowFilters(!showFilters)}>
             Filters
           </Button>,
-          <Button key="export" onClick={handleExport}>
+          <Button key="export" className="w-full sm:w-auto" onClick={handleExport}>
             Export
           </Button>,
-          <Link to="/loans/create" key="create">
-            <Button type="primary">New Loan</Button>
+          <Link to="/loans/create" key="create" className="w-full sm:w-auto">
+            <Button variant="primary" className="w-full sm:w-auto">New Loan</Button>
           </Link>,
         ]}
       />

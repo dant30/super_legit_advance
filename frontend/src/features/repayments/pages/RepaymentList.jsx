@@ -58,7 +58,7 @@ const RepaymentList = () => {
         title="Repayments"
         subTitle="Track and manage repayments"
         extra={[
-          <Button key="create" onClick={() => navigate('/repayments/create')}>
+          <Button key="create" className="w-full sm:w-auto" onClick={() => navigate('/repayments/create')}>
             New Repayment
           </Button>
         ]}

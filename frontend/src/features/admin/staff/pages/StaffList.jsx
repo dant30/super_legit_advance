@@ -125,8 +125,9 @@ const StaffList = () => {
         title="Staff Management"
         subTitle="Manage team members and their assignments"
         extra={
-          <Space>
+          <Space wrap>
             <Button
+              className="w-full sm:w-auto"
               icon={<RefreshCw className="h-4 w-4" />}
               onClick={() => fetchStaff(pagination.page, filters)}
               loading={loading}
@@ -134,6 +135,7 @@ const StaffList = () => {
               Refresh
             </Button>
             <Button
+              className="w-full sm:w-auto"
               icon={<Download className="h-4 w-4" />}
               onClick={handleExport}
             >
@@ -141,7 +143,8 @@ const StaffList = () => {
             </Button>
             {hasPermission('can_manage_staff') && (
               <Button
-                type="primary"
+                className="w-full sm:w-auto"
+                variant="primary"
                 icon={<Plus className="h-4 w-4" />}
                 onClick={() => navigate('/admin/staff/create')}
               >

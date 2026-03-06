@@ -43,12 +43,12 @@ const LoanApprovals = () => {
           ) : (
             <div className="mt-4 space-y-3">
               {applications.map((app) => (
-                <div key={app.id} className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+                <div key={app.id} className="flex flex-col gap-2 rounded-lg border border-gray-200 p-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-900">{app.customer?.full_name || 'Customer'}</p>
                     <p className="text-xs text-gray-500">KES {app.amount_requested} - {app.loan_type}</p>
                   </div>
-                  <Button size="sm" onClick={() => setSelected(app)}>Review</Button>
+                  <Button size="sm" className="w-full sm:w-auto" onClick={() => setSelected(app)}>Review</Button>
                 </div>
               ))}
             </div>

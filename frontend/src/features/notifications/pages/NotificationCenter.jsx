@@ -60,13 +60,12 @@ const NotificationCenter = () => {
     <div className="space-y-6">
       <PageHeader
         title="Loan Notification Center"
-        description="Manage loan lifecycle alerts, repayment reminders, and delivery preferences"
-        breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Notifications' }]}
+        subTitle="Manage loan lifecycle alerts, repayment reminders, and delivery preferences"
       />
 
       {/* Stats Cards */}
       {statsData && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
             {
               label: 'Total Notifications',
@@ -91,15 +90,21 @@ const NotificationCenter = () => {
           ].map((stat, idx) => {
             const StatIcon = stat.icon
             return (
-              <Card key={idx} className="p-4">
+              <Card
+                key={idx}
+                className="rounded-xl border bg-surface-panel p-4 shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium"
+                style={{ borderColor: 'var(--surface-border)' }}
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400">{stat.label}</p>
-                    <p className="text-2xl font-bold text-neutral-900 dark:text-white mt-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">{stat.label}</p>
+                    <p className="mt-2 text-xl font-semibold text-text-primary">
                       {stat.value}
                     </p>
                   </div>
-                  <StatIcon className="h-8 w-8 text-primary-600 dark:text-primary-400 opacity-20" />
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-subtle text-text-secondary">
+                    <StatIcon className="h-4 w-4" />
+                  </span>
                 </div>
               </Card>
             )
@@ -109,7 +114,7 @@ const NotificationCenter = () => {
 
       {/* Tabs */}
       <div className="space-y-4">
-        <div className="flex gap-2 border-b border-neutral-200 dark:border-neutral-700 overflow-x-auto">
+        <div className="flex gap-2 overflow-x-auto border-b border-neutral-200 dark:border-neutral-700">
           {tabs.map((tab) => {
             const TabIcon = tab.icon
             const isActive = activeTab === tab.id
@@ -121,7 +126,7 @@ const NotificationCenter = () => {
                   setPage(1)
                 }}
                 className={`
-                  flex items-center gap-2 px-4 py-3 font-medium text-sm
+                  flex items-center gap-2 px-3 py-2.5 font-medium text-sm
                   border-b-2 transition-colors whitespace-nowrap
                   ${
                     isActive
@@ -138,7 +143,7 @@ const NotificationCenter = () => {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-lg p-6">
+        <div className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-800/50 sm:p-6">
           {activeTab === 'all' && (
             <NotificationList
               notifications={filteredNotifications}
