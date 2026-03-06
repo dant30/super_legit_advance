@@ -98,12 +98,68 @@ export default defineConfig(({ mode }) => {
       },
       rollupOptions: {
         output: {
-          manualChunks: {
-            react: ['react', 'react-dom', 'react-router-dom'],
-            ui: ['lucide-react', 'clsx', 'tailwind-merge'],
-            forms: ['react-hook-form'],
-            charts: ['recharts'],
-            utils: ['axios', 'date-fns'],
+          manualChunks(id) {
+            const normalizedId = id.replace(/\\/g, '/')
+
+            if (normalizedId.includes('/node_modules/')) {
+              if (
+                normalizedId.includes('/react/') ||
+                normalizedId.includes('/react-dom/') ||
+                normalizedId.includes('/react-router-dom/')
+              ) {
+                return 'react'
+              }
+              if (normalizedId.includes('/recharts/') || normalizedId.includes('/d3-')) {
+                return 'charts'
+              }
+              if (normalizedId.includes('/react-hook-form/')) {
+                return 'forms'
+              }
+              if (
+                normalizedId.includes('/axios/') ||
+                normalizedId.includes('/date-fns/') ||
+                normalizedId.includes('/lucide-react/') ||
+                normalizedId.includes('/clsx/') ||
+                normalizedId.includes('/tailwind-merge/')
+              ) {
+                return 'vendor'
+              }
+            }
+
+            if (normalizedId.includes('/src/features/auth/')) {
+              return 'feature-auth'
+            }
+            if (
+              normalizedId.includes('/src/shared/components/charts/') ||
+              normalizedId.includes('/src/features/reports/components/ReportChart')
+            ) {
+              return 'charts-widgets'
+            }
+            if (
+              normalizedId.includes('/src/features/dashboard/components/Collections') ||
+              normalizedId.includes('/src/features/dashboard/components/Performance') ||
+              normalizedId.includes('/src/features/dashboard/components/RecentActivity')
+            ) {
+              return 'dashboard-widgets-secondary'
+            }
+            if (
+              normalizedId.includes('/src/features/dashboard/components/OverviewCards') ||
+              normalizedId.includes('/src/features/dashboard/components/MyCustomers') ||
+              normalizedId.includes('/src/features/dashboard/components/MyLoans') ||
+              normalizedId.includes('/src/features/dashboard/components/PendingApprovals')
+            ) {
+              return 'dashboard-widgets-core'
+            }
+            if (normalizedId.includes('/src/features/dashboard/components/')) {
+              return 'dashboard-widgets'
+            }
+            if (
+              normalizedId.includes('/src/features/dashboard/pages/') ||
+              normalizedId.includes('/src/features/dashboard/hooks/') ||
+              normalizedId.includes('/src/features/dashboard/store/')
+            ) {
+              return 'feature-dashboard'
+            }
           },
           chunkFileNames: 'assets/js/[name]-[hash].js',
           entryFileNames: 'assets/js/[name]-[hash].js',

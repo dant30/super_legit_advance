@@ -3,13 +3,23 @@ import { Card } from '@components/ui'
 import { formatRelativeTime } from '@utils/formatters'
 import { t } from '../../../core/i18n/i18n'
 
-const RecentActivity = ({ items = [] }) => (
-  <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
+const RecentActivity = ({ items = [], loading = false }) => (
+  <Card className="animate-fade-in border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
     <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
       {t('dashboard.activity.title', 'Recent Activity')}
     </h3>
 
-    {items.length === 0 ? (
+    {loading ? (
+      <div className="mt-3 space-y-2" aria-hidden="true">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={`activity-skeleton-${i}`}
+            className="h-14 animate-pulse rounded-lg border bg-slate-100"
+            style={{ borderColor: 'var(--surface-border)' }}
+          />
+        ))}
+      </div>
+    ) : items.length === 0 ? (
       <p
         className="mt-3 rounded-lg border border-dashed bg-slate-50 px-3 py-4 text-sm text-slate-600"
         style={{ borderColor: 'var(--surface-border)' }}

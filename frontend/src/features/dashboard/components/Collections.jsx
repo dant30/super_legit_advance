@@ -5,7 +5,23 @@ import { Link } from 'react-router-dom'
 import { APP_ROUTES } from '../../../shared/constants/routes'
 import { t } from '../../../core/i18n/i18n'
 
-const Collections = ({ summary }) => {
+const Collections = ({ summary, loading = false }) => {
+  if (loading) {
+    return (
+      <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }} aria-hidden="true">
+        <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
+        <div className="mt-4 rounded-lg border bg-slate-50/70 p-4" style={{ borderColor: 'var(--surface-border)' }}>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-8 w-20 animate-pulse rounded bg-slate-200" />
+            <div className="ml-auto h-8 w-20 animate-pulse rounded bg-slate-200" />
+          </div>
+          <div className="mt-3 h-2 w-full animate-pulse rounded bg-slate-200" />
+          <div className="mt-2 h-3 w-28 animate-pulse rounded bg-slate-200" />
+        </div>
+      </Card>
+    )
+  }
+
   const data = {
     collected: summary?.collected || 'KES 0',
     target: summary?.target || 'KES 0',
@@ -14,7 +30,7 @@ const Collections = ({ summary }) => {
   }
 
   return (
-    <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
+    <Card className="animate-fade-in border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
       <div className="flex items-center justify-between">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
           {t('dashboard.collections.title', 'Collections')}

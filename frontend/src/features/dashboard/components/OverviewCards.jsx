@@ -48,7 +48,7 @@ const StatCard = ({ title, value, icon: Icon, helper, type, rawValue }) => (
   </article>
 )
 
-const OverviewCards = ({ stats }) => {
+const OverviewCards = ({ stats, loading = false }) => {
   const collectionRate = Number(stats?.collectionRate || 0)
   const items = useMemo(() => ([
     {
@@ -85,10 +85,37 @@ const OverviewCards = ({ stats }) => {
     },
   ]), [stats, collectionRate])
 
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-hidden="true">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <article
+            key={`overview-skeleton-${index}`}
+            className="rounded-xl border bg-white px-4 py-4 shadow-sm"
+            style={{ borderColor: 'var(--surface-border)' }}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
+              <div className="h-8 w-8 animate-pulse rounded-md bg-slate-200" />
+            </div>
+            <div className="h-8 w-20 animate-pulse rounded bg-slate-200" />
+            <div className="mt-2 h-3 w-28 animate-pulse rounded bg-slate-200" />
+          </article>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {items.map((item) => (
-        <StatCard key={item.title} {...item} />
+      {items.map((item, index) => (
+        <div
+          key={item.title}
+          className="animate-fade-in"
+          style={{ animationDelay: `${index * 40}ms`, animationFillMode: 'both' }}
+        >
+          <StatCard {...item} />
+        </div>
       ))}
     </div>
   )

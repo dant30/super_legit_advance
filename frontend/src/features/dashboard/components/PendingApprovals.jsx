@@ -5,7 +5,24 @@ import { formatCurrency, formatDateTime } from '@utils/formatters'
 import { APP_ROUTES } from '../../../shared/constants/routes'
 import { t } from '../../../core/i18n/i18n'
 
-const PendingApprovals = ({ approvals = [] }) => {
+const PendingApprovals = ({ approvals = [], loading = false }) => {
+  if (loading) {
+    return (
+      <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }} aria-hidden="true">
+        <div className="h-3 w-28 animate-pulse rounded bg-slate-200" />
+        <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg border bg-slate-50/70 p-3" style={{ borderColor: 'var(--surface-border)' }}>
+          <div className="h-8 w-20 animate-pulse rounded bg-slate-200" />
+          <div className="ml-auto h-8 w-24 animate-pulse rounded bg-slate-200" />
+        </div>
+        <div className="mt-3 space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={`approvals-skeleton-${i}`} className="h-14 animate-pulse rounded-lg border bg-slate-100" style={{ borderColor: 'var(--surface-border)' }} />
+          ))}
+        </div>
+      </Card>
+    )
+  }
+
   const data = approvals.map((item, index) => ({
     id: item?.id || item?.loan_number || `pending-${index}`,
     borrowerName:
@@ -20,7 +37,7 @@ const PendingApprovals = ({ approvals = [] }) => {
   const totalPendingAmount = data.reduce((sum, item) => sum + Number(item.amount || 0), 0)
 
   return (
-    <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
+    <Card className="animate-fade-in border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
       <div className="flex items-center justify-between">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
           {t('dashboard.approvals.title', 'Pending Approvals')}

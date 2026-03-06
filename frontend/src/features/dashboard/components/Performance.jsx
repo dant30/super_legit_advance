@@ -3,7 +3,23 @@ import { Card } from '@components/ui'
 import ProgressBar from '@components/ui/ProgressBar'
 import { t } from '../../../core/i18n/i18n'
 
-const Performance = ({ metrics = [] }) => {
+const Performance = ({ metrics = [], loading = false }) => {
+  if (loading) {
+    return (
+      <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }} aria-hidden="true">
+        <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
+        <div className="mt-4 space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={`performance-skeleton-${i}`} className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2.5">
+              <div className="mb-2 h-3 w-2/3 animate-pulse rounded bg-slate-200" />
+              <div className="h-2 w-full animate-pulse rounded bg-slate-200" />
+            </div>
+          ))}
+        </div>
+      </Card>
+    )
+  }
+
   const data =
     metrics.length > 0
       ? metrics
@@ -14,7 +30,7 @@ const Performance = ({ metrics = [] }) => {
         ]
 
   return (
-    <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
+    <Card className="animate-fade-in border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
       <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
         {t('dashboard.performance.title', 'Performance')}
       </h3>
