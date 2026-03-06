@@ -239,7 +239,7 @@ const Header = ({ onToggleSidebar }) => {
                     type="search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search customers, loans, payments..."
+                    placeholder="Search customers, loans..."
                     autoFocus
                     className="form-input pl-10 w-full"
                   />
@@ -263,7 +263,7 @@ const Header = ({ onToggleSidebar }) => {
         className="sticky top-0 z-40 h-16 border-b bg-white/92 backdrop-blur-md dark:bg-slate-800/92"
         style={{ borderColor: 'var(--surface-border)' }}
       >
-        <div className="flex h-full items-center gap-3 px-4 sm:gap-4 sm:px-6">
+        <div className="flex h-full items-center gap-2 px-3 sm:gap-4 sm:px-6">
           {/* Left side */}
           <div className="flex shrink-0 items-center gap-3">
             {!isDesktop && onToggleSidebar && (
@@ -314,13 +314,13 @@ const Header = ({ onToggleSidebar }) => {
           )}
 
           {/* Right Actions */}
-          <div className="ml-auto flex shrink-0 items-center gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
             {/* Mobile Search */}
               {!isDesktop && (
                 <button
                 onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
                 type="button"
-                className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
+                className="rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-slate-700/50 md:hidden"
                 aria-label="Search"
                 aria-expanded={isMobileSearchOpen}
                 >
@@ -365,7 +365,7 @@ const Header = ({ onToggleSidebar }) => {
               {isNotificationsOpen && (
                 <div className={cn(
                   "fixed md:absolute right-4 md:right-0 top-16 md:top-full mt-2",
-                  "w-[calc(100vw-2rem)] md:w-96",
+              "w-[calc(100vw-1.5rem)] md:w-96",
                   "bg-white dark:bg-slate-800 rounded-lg shadow-hard border",
                   "border-gray-200 dark:border-slate-700 z-50",
                   "max-h-[calc(100vh-6rem)] md:max-h-96",
@@ -396,7 +396,7 @@ const Header = ({ onToggleSidebar }) => {
                     </div>
                   </div>
 
-                  <div className="overflow-y-auto max-h-[calc(100vh-12rem)] md:max-h-80">
+                  <div className="max-h-[calc(100vh-12rem)] overflow-y-auto md:max-h-80">
                     {notificationsLoading ? (
                       <div className="p-8 text-center">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
@@ -501,7 +501,7 @@ const Header = ({ onToggleSidebar }) => {
               {isProfileOpen && (
                 <div className={cn(
                   "fixed md:absolute right-4 md:right-0 top-16 md:top-full mt-2",
-                  "w-[calc(100vw-2rem)] md:w-64",
+              "w-[calc(100vw-1.5rem)] md:w-64",
                   "bg-white dark:bg-slate-800 rounded-lg shadow-hard border",
                   "border-gray-200 dark:border-slate-700 z-50",
                   "animate-scale-in"

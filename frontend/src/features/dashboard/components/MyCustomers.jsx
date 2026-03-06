@@ -17,7 +17,7 @@ const MyCustomers = ({ customers = [], loading = false }) => {
     return (
       <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }} aria-hidden="true">
         <div className="h-3 w-28 animate-pulse rounded bg-slate-200" />
-        <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg border bg-slate-50/70 p-3" style={{ borderColor: 'var(--surface-border)' }}>
+        <div className="mt-3 grid grid-cols-1 gap-2 rounded-lg border bg-slate-50/70 p-3 sm:grid-cols-2" style={{ borderColor: 'var(--surface-border)' }}>
           <div className="h-8 w-20 animate-pulse rounded bg-slate-200" />
           <div className="ml-auto h-8 w-20 animate-pulse rounded bg-slate-200" />
         </div>
@@ -52,12 +52,12 @@ const MyCustomers = ({ customers = [], loading = false }) => {
 
   return (
     <Card className="animate-fade-in border bg-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium" style={{ borderColor: 'var(--surface-border)' }}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-2">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
           {t('dashboard.customers.title', 'My Borrowers')}
         </h3>
         <Link to={APP_ROUTES.customers}>
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" className="px-2.5 py-1.5 text-xs">
             {t('dashboard.customers.viewAll', 'View all borrowers')}
           </Button>
         </Link>
@@ -92,17 +92,17 @@ const MyCustomers = ({ customers = [], loading = false }) => {
           {data.map((customer) => (
             <li
               key={customer.id}
-              className="flex items-center justify-between rounded-lg border bg-white px-3 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft"
+              className="flex items-start justify-between gap-2 rounded-lg border bg-white px-3 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft"
               style={{ borderColor: 'var(--surface-border)' }}
             >
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-slate-900">{customer.fullName}</p>
                 <p className="truncate text-xs text-slate-500">
                   {customer.publicId} - {t('dashboard.customers.lastActivity', 'Last activity')}{' '}
                   {formatDateTime(customer.lastEvent)}
                 </p>
               </div>
-              <span className={`rounded-full px-2 py-1 text-xs font-medium ${riskStyles[customer.risk]}`}>
+              <span className={`inline-flex w-fit shrink-0 whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium ${riskStyles[customer.risk]}`}>
                 {t(`dashboard.customers.risks.${customer.risk}`, customer.risk)}{' '}
                 {t('dashboard.customers.riskSuffix', 'risk')}
               </span>

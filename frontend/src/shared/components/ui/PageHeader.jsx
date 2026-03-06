@@ -24,7 +24,7 @@ const PageHeader = ({
   return (
     <div
       className={cn(
-        'mb-6 rounded-xl border px-5 py-4 md:px-6 md:py-5',
+        'mb-4 rounded-xl border px-4 py-3 sm:px-5 sm:py-4 md:mb-6 md:px-6 md:py-5',
         'flex flex-col gap-4 md:flex-row md:items-center md:justify-between',
         'bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm',
         className
@@ -32,11 +32,11 @@ const PageHeader = ({
       style={{ borderColor: 'var(--surface-border)' }}
     >
       <div className="flex-1">
-        <h1 className={cn('text-2xl md:text-3xl font-semibold tracking-tight text-app-primary', titleClassName)}>
+        <h1 className={cn('text-xl font-semibold tracking-tight text-app-primary sm:text-2xl md:text-3xl', titleClassName)}>
           {title}
         </h1>
         {subTitle && (
-          <p className={cn('mt-1.5 text-sm text-app-secondary', subTitleClassName)}>
+          <p className={cn('mt-1 text-sm text-app-secondary', subTitleClassName)}>
             {subTitle}
           </p>
         )}

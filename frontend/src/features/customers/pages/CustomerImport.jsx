@@ -86,16 +86,17 @@ const CustomerImport = () => {
               and includes all mandatory fields. Download the template for guidance.
             </p>
             
-            <div className="space-x-4">
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
               <Button 
                 type="primary" 
                 size="large"
                 icon={<Upload size={20} />}
                 onClick={() => setImportDialogOpen(true)}
+                className="w-full sm:w-auto"
               >
                 Start Import
               </Button>
-              <Button size="large">
+              <Button size="large" className="w-full sm:w-auto">
                 Download Template
               </Button>
             </div>
@@ -103,7 +104,7 @@ const CustomerImport = () => {
 
           <div className="mt-8 border-t pt-6">
             <h4 className="font-medium mb-3">Import Guidelines</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+            <div className="grid grid-cols-1 gap-4 text-sm text-gray-600 md:grid-cols-2">
               <div>
                 <p className="font-medium mb-1">Required Fields:</p>
                 <ul className="list-disc pl-4 space-y-1">

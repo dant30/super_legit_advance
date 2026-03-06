@@ -199,17 +199,17 @@ const CustomerForm = ({ customerId, onSuccess }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
       {/* Personal Information Card */}
       <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-5 border-b border-gray-200">
+        <div className="border-b border-gray-200 px-4 py-4 sm:px-6 sm:py-5">
           <h3 className="text-lg font-medium text-gray-900 flex items-center">
             <UserCircleIcon className="h-5 w-5 mr-2 text-gray-400" />
             Personal Information
           </h3>
         </div>
-        <div className="px-6 py-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="px-4 py-4 sm:px-6 sm:py-5">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
             <div>
               <label htmlFor="customer-first-name" className="block text-sm font-medium text-gray-700 mb-1">
                 First Name *
@@ -314,7 +314,7 @@ const CustomerForm = ({ customerId, onSuccess }) => {
               <label htmlFor="customer-gender-m" className="block text-sm font-medium text-gray-700 mb-1">
                 Gender *
               </label>
-              <div className="flex space-x-4">
+              <div className="flex flex-wrap gap-3">
                 <label htmlFor="customer-gender-m" className="inline-flex items-center">
                   <input
                     id="customer-gender-m"
@@ -369,11 +369,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
 
       {/* Contact Information Card */}
       <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-5 border-b border-gray-200">
+        <div className="border-b border-gray-200 px-4 py-4 sm:px-6 sm:py-5">
           <h3 className="text-lg font-medium text-gray-900">Contact Information</h3>
         </div>
-        <div className="px-6 py-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="px-4 py-4 sm:px-6 sm:py-5">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
             <div>
               <label htmlFor="customer-phone-number" className="block text-sm font-medium text-gray-700 mb-1">
                 Phone Number *
@@ -491,11 +491,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
 
       {/* Additional Information Card */}
       <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-5 border-b border-gray-200">
+        <div className="border-b border-gray-200 px-4 py-4 sm:px-6 sm:py-5">
           <h3 className="text-lg font-medium text-gray-900">Additional Information</h3>
         </div>
-        <div className="px-6 py-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="px-4 py-4 sm:px-6 sm:py-5">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
             <div>
               <label htmlFor="customer-status" className="block text-sm font-medium text-gray-700 mb-1">
                 Status
@@ -565,7 +565,7 @@ const CustomerForm = ({ customerId, onSuccess }) => {
               <label htmlFor="customer-profile-picture" className="block text-sm font-medium text-gray-700 mb-1">
                 Profile Picture
               </label>
-              <div className="mt-1 flex items-center">
+              <div className="mt-1 flex flex-col items-start gap-2 sm:flex-row sm:items-center">
                 <label className="flex flex-col items-center px-4 py-2 bg-white text-primary-700 rounded-lg border border-primary-300 cursor-pointer hover:bg-primary-50">
                   <CameraIcon className="h-5 w-5 mr-2" />
                   <span className="text-sm">Choose File</span>
@@ -579,7 +579,7 @@ const CustomerForm = ({ customerId, onSuccess }) => {
                   />
                 </label>
                 {formData.profile_picture && (
-                  <span className="ml-3 text-sm text-gray-600">
+                  <span className="text-sm text-gray-600 sm:ml-3">
                     {formData.profile_picture instanceof File 
                       ? formData.profile_picture.name 
                       : 'File selected'}
@@ -592,7 +592,7 @@ const CustomerForm = ({ customerId, onSuccess }) => {
               <label htmlFor="customer-document-files" className="block text-sm font-medium text-gray-700 mb-1">
                 Documents
               </label>
-              <div className="mt-1 flex items-center">
+              <div className="mt-1 flex flex-col items-start gap-2 sm:flex-row sm:items-center">
                 <label className="flex flex-col items-center px-4 py-2 bg-white text-primary-700 rounded-lg border border-primary-300 cursor-pointer hover:bg-primary-50">
                   <DocumentTextIcon className="h-5 w-5 mr-2" />
                   <span className="text-sm">Choose Files</span>
@@ -606,7 +606,7 @@ const CustomerForm = ({ customerId, onSuccess }) => {
                   />
                 </label>
                 {formData.document_files && formData.document_files.length > 0 && (
-                  <span className="ml-3 text-sm text-gray-600">
+                  <span className="text-sm text-gray-600 sm:ml-3">
                     {formData.document_files.length} file(s) selected
                   </span>
                 )}
@@ -632,11 +632,11 @@ const CustomerForm = ({ customerId, onSuccess }) => {
       </div>
 
       {/* Form Actions */}
-      <div className="flex justify-end space-x-3 pt-6">
+      <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end sm:gap-3 sm:pt-6">
         <button
           type="button"
           onClick={handleCancel}
-          className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:w-auto"
           disabled={isSubmitting}
         >
           Cancel
@@ -644,7 +644,7 @@ const CustomerForm = ({ customerId, onSuccess }) => {
         <button
           type="submit"
           disabled={isSubmitting}
-          className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${isSubmitting ? 'bg-primary-400' : 'bg-primary-600 hover:bg-primary-700'}`}
+          className={`inline-flex w-full items-center justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:w-auto ${isSubmitting ? 'bg-primary-400' : 'bg-primary-600 hover:bg-primary-700'}`}
         >
           {isSubmitting && (
             <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">

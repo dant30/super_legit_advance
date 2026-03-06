@@ -269,36 +269,40 @@ const CustomerList = () => {
             icon={<RefreshCw size={16} />} 
             onClick={loadCustomers}
             loading={customersLoading}
+            className="text-xs sm:text-sm"
           >
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </Button>,
           <Button 
             key="filter" 
             icon={<Filter size={16} />} 
             onClick={() => setShowFilters(!showFilters)}
+            className="text-xs sm:text-sm"
           >
-            Filters
+            <span className="hidden sm:inline">Filters</span>
           </Button>,
           hasPermission('can_manage_customers') && (
             <Button 
               key="import" 
               icon={<Upload size={16} />}
               onClick={() => setImportDialogOpen(true)}
+              className="text-xs sm:text-sm"
             >
-              Import
+              <span className="hidden sm:inline">Import</span>
             </Button>
           ),
           <Button 
             key="export" 
             icon={<Download size={16} />}
             onClick={() => setExportDialogOpen(true)}
+            className="text-xs sm:text-sm"
           >
-            Export
+            <span className="hidden sm:inline">Export</span>
           </Button>,
           hasPermission('can_manage_customers') && (
             <Link to="/customers/create" key="create">
-              <Button type="primary" icon={<Plus size={16} />}>
-                New Customer
+              <Button type="primary" icon={<Plus size={16} />} className="text-xs sm:text-sm">
+                <span className="hidden sm:inline">New Customer</span>
               </Button>
             </Link>
           ),
@@ -324,28 +328,32 @@ const CustomerList = () => {
       )}
 
       <Card>
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          items={tabs.map(tab => ({
-            key: tab.key,
-            label: (
-              <span>
-                {tab.label}
-                {tab.count > 0 && (
-                  <Badge
-                    count={tab.count}
-                    style={{ 
-                      marginLeft: 8,
-                      backgroundColor: tab.key === 'blacklisted' ? '#ef4444' : 
-                                     tab.key === 'active' ? '#10b981' : '#6b7280'
-                    }}
-                  />
-                )}
-              </span>
-            ),
-          }))}
-        />
+        <div className="overflow-x-auto">
+          <div className="min-w-[620px]">
+            <Tabs
+              activeKey={activeTab}
+              onChange={setActiveTab}
+              items={tabs.map(tab => ({
+                key: tab.key,
+                label: (
+                  <span>
+                    {tab.label}
+                    {tab.count > 0 && (
+                      <Badge
+                        count={tab.count}
+                        style={{ 
+                          marginLeft: 8,
+                          backgroundColor: tab.key === 'blacklisted' ? '#ef4444' : 
+                                        tab.key === 'active' ? '#10b981' : '#6b7280'
+                        }}
+                      />
+                    )}
+                  </span>
+                ),
+              }))}
+            />
+          </div>
+        </div>
 
         <div className="mt-4">
           <CustomerTable

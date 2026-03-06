@@ -98,7 +98,104 @@ const CustomerTable = ({
   }
 
   return (
-    <div className="overflow-x-auto" role="region" aria-label="Customer table">
+    <div role="region" aria-label="Customer table">
+      <div className="space-y-3 md:hidden">
+        {customers.map((customer) => (
+          <article key={`customer-mobile-${customer.id}`} className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-gray-900">
+                  {customer.full_name || `${customer.first_name} ${customer.last_name}`}
+                </p>
+                <p className="truncate text-xs text-gray-500">{customer.customer_number}</p>
+              </div>
+              <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${getStatusColor(customer.status)}`}>
+                {customer.status}
+              </span>
+            </div>
+
+            <div className="mt-2 space-y-1 text-xs text-gray-600">
+              <p className="truncate">ID: {customer.id_number}</p>
+              <p className="truncate">Phone: {customer.phone_number}</p>
+              <p className="truncate">Email: {customer.email || '-'}</p>
+              <p>
+                Risk:{' '}
+                <span className={`inline-flex rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${getRiskColor(customer.risk_level)}`}>
+                  {customer.risk_level}
+                </span>
+              </p>
+              <p>
+                Registered:{' '}
+                {customer.registration_date ? 
+                  format(new Date(customer.registration_date), 'MMM dd, yyyy') : 
+                  format(new Date(customer.created_at), 'MMM dd, yyyy')}
+              </p>
+            </div>
+
+            {showActions && (
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                {onView && (
+                  <button
+                    type="button"
+                    onClick={() => onView(customer.id)}
+                    className="text-primary-600 hover:text-primary-900"
+                    title="View"
+                    aria-label={`View ${customer.full_name || `${customer.first_name} ${customer.last_name}`}`}
+                  >
+                    <EyeIcon className="h-5 w-5" />
+                  </button>
+                )}
+                {onEdit && (
+                  <button
+                    type="button"
+                    onClick={() => onEdit(customer.id)}
+                    className="text-blue-600 hover:text-blue-900"
+                    title="Edit"
+                    aria-label={`Edit ${customer.full_name || `${customer.first_name} ${customer.last_name}`}`}
+                  >
+                    <PencilIcon className="h-5 w-5" />
+                  </button>
+                )}
+                {onBlacklist && customer.status !== 'BLACKLISTED' && (
+                  <button
+                    type="button"
+                    onClick={() => onBlacklist(customer.id)}
+                    className="text-yellow-600 hover:text-yellow-900"
+                    title="Blacklist"
+                    aria-label={`Blacklist ${customer.full_name || `${customer.first_name} ${customer.last_name}`}`}
+                  >
+                    <XCircleIcon className="h-5 w-5" />
+                  </button>
+                )}
+                {onActivate && (customer.status === 'BLACKLISTED' || customer.status === 'INACTIVE') && (
+                  <button
+                    type="button"
+                    onClick={() => onActivate(customer.id)}
+                    className="text-green-600 hover:text-green-900"
+                    title="Activate"
+                    aria-label={`Activate ${customer.full_name || `${customer.first_name} ${customer.last_name}`}`}
+                  >
+                    <CheckCircleIcon className="h-5 w-5" />
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    type="button"
+                    onClick={() => onDelete(customer.id)}
+                    className="text-red-600 hover:text-red-900"
+                    title="Delete"
+                    aria-label={`Delete ${customer.full_name || `${customer.first_name} ${customer.last_name}`}`}
+                  >
+                    <TrashIcon className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+            )}
+          </article>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto md:block">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -310,6 +407,7 @@ const CustomerTable = ({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 };

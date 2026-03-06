@@ -11,7 +11,7 @@ const PendingApprovals = ({ approvals = [], loading = false }) => {
     return (
       <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }} aria-hidden="true">
         <div className="h-3 w-28 animate-pulse rounded bg-slate-200" />
-        <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg border bg-slate-50/70 p-3" style={{ borderColor: 'var(--surface-border)' }}>
+        <div className="mt-3 grid grid-cols-1 gap-2 rounded-lg border bg-slate-50/70 p-3 sm:grid-cols-2" style={{ borderColor: 'var(--surface-border)' }}>
           <div className="h-8 w-20 animate-pulse rounded bg-slate-200" />
           <div className="ml-auto h-8 w-24 animate-pulse rounded bg-slate-200" />
         </div>
@@ -39,12 +39,12 @@ const PendingApprovals = ({ approvals = [], loading = false }) => {
 
   return (
     <Card className="animate-fade-in border bg-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium" style={{ borderColor: 'var(--surface-border)' }}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-2">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
           {t('dashboard.approvals.title', 'Pending Approvals')}
         </h3>
         <Link to={APP_ROUTES.loanApprovals}>
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" className="px-2.5 py-1.5 text-xs">
             {t('dashboard.approvals.review', 'Review approvals')}
           </Button>
         </Link>
@@ -82,7 +82,7 @@ const PendingApprovals = ({ approvals = [], loading = false }) => {
               className="rounded-lg border bg-white px-3 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft"
               style={{ borderColor: 'var(--surface-border)' }}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-slate-900">{item.borrowerName}</p>
                   <p className="truncate text-xs text-slate-500">

@@ -20,7 +20,7 @@ const MyLoans = ({ loans = [], loading = false }) => {
     return (
       <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }} aria-hidden="true">
         <div className="h-3 w-20 animate-pulse rounded bg-slate-200" />
-        <div className="mt-3 grid grid-cols-3 gap-2 rounded-lg border bg-slate-50/70 p-3" style={{ borderColor: 'var(--surface-border)' }}>
+        <div className="mt-3 grid grid-cols-1 gap-2 rounded-lg border bg-slate-50/70 p-3 sm:grid-cols-3" style={{ borderColor: 'var(--surface-border)' }}>
           <div className="h-8 w-14 animate-pulse rounded bg-slate-200" />
           <div className="mx-auto h-8 w-14 animate-pulse rounded bg-slate-200" />
           <div className="ml-auto h-8 w-20 animate-pulse rounded bg-slate-200" />
@@ -61,12 +61,12 @@ const MyLoans = ({ loans = [], loading = false }) => {
 
   return (
     <Card className="animate-fade-in border bg-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium" style={{ borderColor: 'var(--surface-border)' }}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-2">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
           {t('dashboard.loans.title', 'My Loans')}
         </h3>
         <Link to={APP_ROUTES.loans}>
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" className="px-2.5 py-1.5 text-xs">
             {t('dashboard.loans.viewAll', 'View all loans')}
           </Button>
         </Link>
@@ -107,18 +107,18 @@ const MyLoans = ({ loans = [], loading = false }) => {
           {data.map((loan) => (
             <li
               key={loan.id}
-              className="flex items-center justify-between rounded-lg border bg-white px-3 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft"
+              className="flex items-start justify-between gap-2 rounded-lg border bg-white px-3 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft"
               style={{ borderColor: 'var(--surface-border)' }}
             >
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-slate-900">{loan.borrowerName}</p>
                 <p className="truncate text-xs text-slate-500">
                   {loan.publicId} - {t('dashboard.loans.due', 'Due')} {loan.dueLabel}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-end gap-1">
                 <span className="text-sm font-semibold text-slate-900">{loan.amountLabel}</span>
-                <span className={`rounded-full px-2 py-1 text-xs font-medium capitalize ${statusStyles[loan.status]}`}>
+                <span className={`inline-flex w-fit whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium capitalize ${statusStyles[loan.status]}`}>
                   {t(`dashboard.loans.statuses.${loan.status}`, loan.status)}
                 </span>
               </div>

@@ -32,7 +32,89 @@ const LoanTable = ({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div>
+      <div className="space-y-3 md:hidden">
+        {safeLoans.map((loan) => (
+          <div key={`loan-mobile-${loan.id}`} className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-900">{loan.loan_number || `#${loan.id}`}</p>
+                <p className="truncate text-xs text-gray-500">{loan.loan_type}</p>
+              </div>
+              <LoanStatusBadge status={loan.status} />
+            </div>
+            <div className="mt-2 space-y-1 text-xs text-gray-600">
+              <p className="truncate">
+                Customer:{' '}
+                <span className="font-medium text-gray-800">
+                  {loan.customer?.full_name || `${loan.customer?.first_name || ''} ${loan.customer?.last_name || ''}`.trim() || 'Customer'}
+                </span>
+              </p>
+              <p>
+                Amount:{' '}
+                <span className="font-semibold text-gray-900">
+                  {formatCurrency(loan.amount_approved || loan.amount_requested)}
+                </span>
+              </p>
+              <p>
+                Created:{' '}
+                <span className="text-gray-700">
+                  {loan.created_at ? new Date(loan.created_at).toLocaleDateString() : '--'}
+                </span>
+              </p>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              {onView && (
+                <button
+                  onClick={() => onView(loan.id)}
+                  className="text-primary-600 hover:text-primary-800"
+                  title="View"
+                >
+                  <Eye className="h-4 w-4" />
+                </button>
+              )}
+              {onEdit && (
+                <button
+                  onClick={() => onEdit(loan.id)}
+                  className="text-blue-600 hover:text-blue-800"
+                  title="Edit"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              )}
+              {onApprove && (
+                <button
+                  onClick={() => onApprove(loan.id)}
+                  className="text-green-600 hover:text-green-800"
+                  title="Approve"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                </button>
+              )}
+              {onReject && (
+                <button
+                  onClick={() => onReject(loan.id)}
+                  className="text-red-600 hover:text-red-800"
+                  title="Reject"
+                >
+                  <XCircle className="h-4 w-4" />
+                </button>
+              )}
+              {onDisburse && (
+                <button
+                  onClick={() => onDisburse(loan.id)}
+                  className="text-amber-600 hover:text-amber-800"
+                  title="Disburse"
+                >
+                  <Wallet className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto md:block">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -124,6 +206,7 @@ const LoanTable = ({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }

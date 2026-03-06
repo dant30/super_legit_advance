@@ -32,12 +32,12 @@ const Collections = ({ summary, loading = false }) => {
 
   return (
     <Card className="animate-fade-in border bg-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium" style={{ borderColor: 'var(--surface-border)' }}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-2">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
           {t('dashboard.collections.title', 'Collections')}
         </h3>
         <Link to={APP_ROUTES.collectionReport}>
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" className="px-2.5 py-1.5 text-xs">
             {t('dashboard.collections.openReport', 'Open report')}
           </Button>
         </Link>
@@ -73,7 +73,7 @@ const Collections = ({ summary, loading = false }) => {
         </p>
       </div>
 
-      <div className="mt-3 flex items-center justify-between rounded-lg border bg-white p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft" style={{ borderColor: 'var(--surface-border)' }}>
+      <div className="mt-3 flex items-start justify-between gap-2 rounded-lg border bg-white p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft" style={{ borderColor: 'var(--surface-border)' }}>
         <div>
           <p className="text-xs font-medium text-slate-500">
             {t('dashboard.collections.dueToday', 'Due Today')}
@@ -83,7 +83,7 @@ const Collections = ({ summary, loading = false }) => {
           </p>
         </div>
         <Link to={APP_ROUTES.overdueRepayments}>
-          <Button size="sm" variant="primary">
+          <Button size="sm" variant="primary" className="px-2.5 py-1.5 text-xs">
             {t('dashboard.collections.openQueue', 'Open queue')}
           </Button>
         </Link>

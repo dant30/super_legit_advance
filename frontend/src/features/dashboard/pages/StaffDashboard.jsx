@@ -150,7 +150,7 @@ const StaffDashboard = () => {
                     <Link
                       key={action.key}
                       to={action.to}
-                      className="flex items-center gap-3 rounded-md border px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                      className="flex items-center gap-3 rounded-md border px-3 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                       style={{
                         borderColor: 'var(--surface-border)',
                         animationDelay: `${index * 35}ms`,

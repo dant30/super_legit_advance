@@ -89,7 +89,7 @@ const CustomerExport = () => {
 
       <Card>
         <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label htmlFor="customer-export-status-filter" className="block text-sm font-medium text-gray-700 mb-2">
                 Status Filter
@@ -117,11 +117,11 @@ const CustomerExport = () => {
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <label className="block text-sm font-medium text-gray-700">
                 Fields to Export
               </label>
-              <div className="space-x-2">
+              <div className="flex items-center gap-2">
                 <Button type="link" size="small" onClick={handleSelectAllFields}>
                   Select All
                 </Button>
@@ -132,7 +132,7 @@ const CustomerExport = () => {
             </div>
             
             <div className="border rounded p-4">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {fieldOptions.map(field => (
                   <div key={field.value} className="flex items-center">
                     <Checkbox
@@ -147,14 +147,14 @@ const CustomerExport = () => {
           </div>
 
           <div className="bg-gray-50 p-4 rounded">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="font-medium">Export Summary</p>
                 <p className="text-sm text-gray-600">
                   {filters.fields.length} fields selected • {filters.status || 'All'} customers
                 </p>
               </div>
-              <div className="text-right">
+              <div className="sm:text-right">
                 <p className="text-sm">Estimated file size: ~2-5MB</p>
                 <p className="text-sm">Rows: 100-500 customers</p>
               </div>
@@ -162,21 +162,22 @@ const CustomerExport = () => {
           </div>
 
           <div className="border-t pt-6">
-            <div className="flex items-center justify-between">
-              <Space>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <Space className="w-full sm:w-auto">
                 <Button 
                   type="primary" 
                   icon={<Download size={16} />}
                   onClick={() => setExportDialogOpen(true)}
+                  className="w-full sm:w-auto"
                 >
                   Generate Export
                 </Button>
-                <Button icon={<Printer size={16} />}>
+                <Button icon={<Printer size={16} />} className="w-full sm:w-auto">
                   Print Preview
                 </Button>
               </Space>
               
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-500 sm:text-right">
                 <p>Last export: Today, 10:30 AM</p>
                 <p>Total exports this month: 12</p>
               </div>
@@ -185,7 +186,7 @@ const CustomerExport = () => {
         </div>
       </Card>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <div className="text-center">
             <FileSpreadsheet size={32} className="mx-auto text-green-500 mb-2" />

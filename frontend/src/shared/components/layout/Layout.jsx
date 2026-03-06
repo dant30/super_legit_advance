@@ -151,7 +151,7 @@ const Layout = () => {
           id="main-content"
           className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent"
         >
-          <div className="mx-auto w-full max-w-[1520px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+          <div className="mx-auto w-full max-w-[1520px] px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
             <Outlet />
           </div>
           <Footer />
@@ -165,7 +165,7 @@ const Layout = () => {
             onClick={scrollToTop}
             type="button"
             aria-label={t('layout.main.backToTop', 'Back to top')}
-            className="fixed bottom-6 right-6 z-50 rounded-full shadow-lg"
+            className="fixed bottom-4 right-4 z-50 rounded-full px-3 shadow-lg sm:bottom-6 sm:right-6 sm:px-4"
           >
             {t('layout.main.backToTopShort', 'Top')}
           </Button>

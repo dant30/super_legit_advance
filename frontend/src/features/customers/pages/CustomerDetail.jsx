@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import Card from '@components/ui/Card'
 import Button from '@components/ui/Button'
-import Space from '@components/ui/Space'
 import Tabs from '@components/ui/Tabs'
 import Alert from '@components/ui/Alert'
 import Spin from '@components/ui/Loading'
@@ -131,7 +130,7 @@ const CustomerDetail = () => {
     const isBlacklisted = selectedCustomer?.status === 'BLACKLISTED'
 
     return (
-      <Space>
+      <div className="flex flex-wrap items-center gap-2">
         <Button icon={<Edit size={16} />}>
           <Link to={`/customers/${id}/edit`}>Edit</Link>
         </Button>
@@ -179,7 +178,7 @@ const CustomerDetail = () => {
             Delete
           </Button>
         )}
-      </Space>
+      </div>
     )
   }
 
@@ -214,10 +213,10 @@ const CustomerDetail = () => {
         subTitle={`Customer ID: ${selectedCustomer.customer_number}`}
         extra={renderActionButtons()}
         footer={
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold">{selectedCustomer.full_name}</h1>
-              <div className="flex items-center space-x-2 mt-1">
+              <div className="mt-1 flex flex-wrap items-center gap-2">
                 <Badge color={
                   selectedCustomer.status === 'ACTIVE' ? 'green' :
                   selectedCustomer.status === 'BLACKLISTED' ? 'red' : 'gray'
@@ -239,11 +238,15 @@ const CustomerDetail = () => {
       />
 
       <Card>
-        <Tabs 
-          activeKey={activeTab} 
-          onChange={setActiveTab} 
-          items={tabs} 
-        />
+        <div className="overflow-x-auto">
+          <div className="min-w-[680px]">
+            <Tabs 
+              activeKey={activeTab} 
+              onChange={setActiveTab} 
+              items={tabs} 
+            />
+          </div>
+        </div>
 
         <div className="mt-6">
           {activeTab === 'overview' && (
