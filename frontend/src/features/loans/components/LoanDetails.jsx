@@ -1,4 +1,3 @@
-// frontend/src/components/loans/LoanDetails.jsx
 import React from 'react'
 import Card from '@components/ui/Card'
 import { formatCurrency, LOAN_STATUS_LABELS } from '@api/loans'
@@ -7,6 +6,11 @@ import AmortizationSchedule from './AmortizationSchedule'
 
 const LoanDetails = ({ loan }) => {
   if (!loan) return null
+
+  const customer = loan.customer_details || {}
+  const customerName = customer.full_name || loan.customer_name || 'Customer'
+  const customerNumber = customer.customer_number || loan.customer_number || '--'
+  const customerPhone = customer.phone_number || loan.customer_phone || '--'
 
   return (
     <div className="space-y-6">
@@ -21,9 +25,8 @@ const LoanDetails = ({ loan }) => {
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
           <div>
             <p className="text-xs text-gray-500">Customer</p>
-            <p className="text-sm text-gray-900">
-              {loan.customer?.full_name || `${loan.customer?.first_name || ''} ${loan.customer?.last_name || ''}`.trim() || 'Customer'}
-            </p>
+            <p className="text-sm text-gray-900">{customerName}</p>
+            <p className="text-xs text-gray-500">{customerNumber} • {customerPhone}</p>
           </div>
           <div>
             <p className="text-xs text-gray-500">Amount Approved</p>

@@ -63,7 +63,7 @@ const CustomerEdit = () => {
         description="The customer record you are trying to edit does not exist or has been deleted."
         action={
           <Link to="/customers">
-            <Button type="primary">Back to Customers</Button>
+            <Button variant="primary">Back to Customers</Button>
           </Link>
         }
       />
@@ -93,6 +93,7 @@ const CustomerEdit = () => {
 
       <Card>
         <CustomerForm
+          customerId={id}
           initialData={selectedCustomer}
           onSubmit={handleSubmit}
           loading={loading || selectedCustomerLoading}

@@ -4,7 +4,6 @@ import Button from '@components/ui/Button'
 import Card from '@components/ui/Card'
 import Tabs from '@components/ui/Tabs'
 import Badge from '@components/ui/Badge'
-import Modal from '@components/ui/Modal'
 import PageHeader from '@components/ui/PageHeader'
 import { Plus, Download, Upload, Filter, RefreshCw, Users, UserCheck, UserX, Activity } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -38,20 +37,29 @@ const CustomerList = () => {
   const [showFilters, setShowFilters] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
-  const [actionModal, setActionModal] = useState({ open: false, type: '', title: '' })
   const page = customersPagination?.page ?? 1
   const pageSize = customersPagination?.page_size ?? 20
 
+  const buildQueryParams = useCallback((nextPage = page, nextPageSize = pageSize) => {
+    const base = {
+      ...filters,
+      page: nextPage,
+      page_size: nextPageSize,
+    }
+
+    if (activeTab === 'all') return base
+    if (activeTab === 'high_risk') {
+      return { ...base, risk_level: 'HIGH' }
+    }
+
+    return { ...base, status: activeTab.toUpperCase() }
+  }, [activeTab, filters, page, pageSize])
+
   const loadCustomers = useCallback(async () => {
     if (typeof fetchCustomers !== 'function') return
-    const params = {
-      ...filters,
-      status: activeTab === 'all' ? '' : activeTab.toUpperCase(),
-      page,
-      page_size: pageSize,
-    }
+    const params = buildQueryParams(page, pageSize)
     await fetchCustomers(params)
-  }, [fetchCustomers, filters, activeTab, page, pageSize])
+  }, [fetchCustomers, buildQueryParams, page, pageSize])
 
   const loadStats = useCallback(async () => {
     if (typeof getCustomerStats !== 'function') return
@@ -72,20 +80,7 @@ const CustomerList = () => {
       },
     })
     if (typeof fetchCustomers === 'function') {
-      fetchCustomers({
-        ...filters,
-        status: activeTab === 'all' ? '' : activeTab.toUpperCase(),
-        page,
-        page_size: pageSize,
-      })
-    }
-  }
-
-  const handleSearch = async (query) => {
-    if (query) {
-      // Implement search logic
-    } else {
-      loadCustomers()
+      fetchCustomers(buildQueryParams(page, pageSize))
     }
   }
 
@@ -301,7 +296,7 @@ const CustomerList = () => {
           </Button>,
           hasPermission('can_manage_customers') && (
             <Link to="/customers/create" key="create">
-              <Button type="primary" icon={<Plus size={16} />} className="text-xs sm:text-sm">
+              <Button variant="primary" icon={<Plus size={16} />} className="text-xs sm:text-sm">
                 <span className="hidden sm:inline">New Customer</span>
               </Button>
             </Link>
@@ -312,10 +307,8 @@ const CustomerList = () => {
       {renderStats()}
 
       <CustomerSearch
-        onSearch={handleSearch}
         onSelect={(customer) => {
-          // Handle customer selection
-          console.log('Selected customer:', customer)
+          navigate(`/customers/${customer.id}`)
         }}
       />
 
@@ -328,40 +321,39 @@ const CustomerList = () => {
       )}
 
       <Card>
-        <div className="overflow-x-auto">
-          <div className="min-w-[620px]">
-            <Tabs
-              activeKey={activeTab}
-              onChange={setActiveTab}
-              items={tabs.map(tab => ({
-                key: tab.key,
-                label: (
-                  <span>
-                    {tab.label}
-                    {tab.count > 0 && (
-                      <Badge
-                        count={tab.count}
-                        style={{ 
-                          marginLeft: 8,
-                          backgroundColor: tab.key === 'blacklisted' ? '#ef4444' : 
-                                        tab.key === 'active' ? '#10b981' : '#6b7280'
-                        }}
-                      />
-                    )}
-                  </span>
-                ),
-              }))}
-            />
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <div className="overflow-x-auto">
+            <Tabs.List className="min-w-max">
+              {tabs.map((tab) => (
+                <Tabs.Trigger key={tab.key} value={tab.key} className="whitespace-nowrap">
+                  <span>{tab.label}</span>
+                  {tab.count > 0 && (
+                    <Badge
+                      variant={
+                        tab.key === 'blacklisted'
+                          ? 'danger'
+                          : tab.key === 'active'
+                            ? 'success'
+                            : 'secondary'
+                      }
+                      size="sm"
+                      className="ml-1"
+                    >
+                      {tab.count}
+                    </Badge>
+                  )}
+                </Tabs.Trigger>
+              ))}
+            </Tabs.List>
           </div>
-        </div>
+        </Tabs>
 
         <div className="mt-4">
           <CustomerTable
             customers={customers}
             loading={customersLoading}
-            pagination={customersPagination}
             onPageChange={handlePageChange}
-            onSearch={handleSearch}
+            onRetry={loadCustomers}
             onDelete={handleDelete}
             onBlacklist={handleBlacklist}
             onActivate={handleActivate}
@@ -383,36 +375,6 @@ const CustomerList = () => {
         onClose={() => setExportDialogOpen(false)}
         filters={filters}
       />
-
-      {/* Action Modal */}
-      <Modal
-        title={actionModal.title}
-        open={actionModal.open}
-        onCancel={() => setActionModal({ open: false, type: '', title: '' })}
-        footer={[
-          <Button key="cancel" onClick={() => setActionModal({ open: false, type: '', title: '' })}>
-            Cancel
-          </Button>,
-          <Button 
-            key="confirm" 
-            type="primary" 
-            danger={actionModal.type === 'delete'}
-            onClick={() => {
-              // Handle action confirmation
-              setActionModal({ open: false, type: '', title: '' })
-            }}
-          >
-            Confirm
-          </Button>,
-        ]}
-      >
-        {actionModal.type === 'delete' && (
-          <p>Are you sure you want to delete this customer? This action cannot be undone.</p>
-        )}
-        {actionModal.type === 'blacklist' && (
-          <p>Are you sure you want to blacklist this customer?</p>
-        )}
-      </Modal>
     </div>
   )
 }

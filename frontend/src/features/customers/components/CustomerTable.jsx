@@ -13,6 +13,10 @@ import {
 } from '@heroicons/react/24/outline';
 
 const CustomerTable = ({ 
+  customers: customersProp,
+  loading: loadingProp,
+  error: errorProp,
+  onRetry,
   onView, 
   onEdit, 
   onDelete, 
@@ -28,6 +32,10 @@ const CustomerTable = ({
     customersError,
     fetchCustomers 
   } = useCustomerContext();
+
+  const resolvedCustomers = Array.isArray(customersProp) ? customersProp : customers;
+  const resolvedLoading = typeof loadingProp === 'boolean' ? loadingProp : customersLoading;
+  const resolvedError = errorProp ?? customersError;
 
   const [sortField, setSortField] = useState('created_at');
   const [sortDirection, setSortDirection] = useState('desc');
@@ -60,7 +68,7 @@ const CustomerTable = ({
     }
   };
 
-  if (customersLoading) {
+  if (resolvedLoading) {
     return (
       <div className="flex justify-center items-center h-64" role="status" aria-live="polite" aria-busy="true">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
@@ -69,16 +77,16 @@ const CustomerTable = ({
     );
   }
 
-  if (customersError) {
+  if (resolvedError) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
         <div className="flex items-center">
           <XCircleIcon className="h-5 w-5 text-red-400 mr-2" />
-          <p className="text-red-700">{customersError}</p>
+          <p className="text-red-700">{resolvedError}</p>
         </div>
         <button
           type="button"
-          onClick={() => fetchCustomers()}
+          onClick={() => (typeof onRetry === 'function' ? onRetry() : fetchCustomers())}
           className="mt-3 px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
         >
           Retry
@@ -87,7 +95,7 @@ const CustomerTable = ({
     );
   }
 
-  if (customers.length === 0) {
+  if (resolvedCustomers.length === 0) {
     return (
       <div className="text-center py-12">
         <UserCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -100,7 +108,7 @@ const CustomerTable = ({
   return (
     <div role="region" aria-label="Customer table">
       <div className="space-y-3 md:hidden">
-        {customers.map((customer) => (
+        {resolvedCustomers.map((customer) => (
           <article key={`customer-mobile-${customer.id}`} className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -266,7 +274,7 @@ const CustomerTable = ({
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {customers.map((customer) => (
+          {resolvedCustomers.map((customer) => (
             <tr 
               key={customer.id} 
               className={`hover:bg-gray-50 ${selectedIds.includes(customer.id) ? 'bg-primary-50' : ''}`}

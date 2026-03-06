@@ -1,287 +1,213 @@
-// frontend /src/components/customers/EmploymentForm.jsx
-import React, { useState, useEffect } from 'react';
-import { useCustomerContext } from '@contexts/CustomerContext';
-import { useToast } from '@contexts/ToastContext';
-import {
-  BuildingOfficeIcon,
-  BriefcaseIcon,
-  CurrencyDollarIcon,
-  CalendarIcon,
-  DocumentTextIcon,
-  CheckCircleIcon
-} from '@heroicons/react/24/outline';
+import React, { useEffect, useMemo, useState } from 'react'
+import { useCustomerContext } from '@contexts/CustomerContext'
+import { useToast } from '@contexts/ToastContext'
+import { BriefcaseIcon, CheckCircleIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
+
+const DEFAULT_FORM = {
+  employment_type: 'EMPLOYED',
+  sector: '',
+  occupation: '',
+  employer_name: '',
+  employer_address: '',
+  employer_phone: '',
+  employer_email: '',
+  job_title: '',
+  department: '',
+  employee_number: '',
+  date_employed: '',
+  monthly_income: '',
+  other_income: '',
+  payment_frequency: 'MONTHLY',
+  next_pay_date: '',
+  business_name: '',
+  business_type: '',
+  business_registration: '',
+  business_start_date: '',
+  number_of_employees: '',
+  employment_letter: null,
+  pay_slips: null,
+  business_permit: null,
+  notes: '',
+}
+
+const dateValue = (value) => (value ? new Date(value).toISOString().split('T')[0] : '')
+
+const buildFormData = (employment) => ({
+  ...DEFAULT_FORM,
+  employment_type: employment?.employment_type || DEFAULT_FORM.employment_type,
+  sector: employment?.sector || '',
+  occupation: employment?.occupation || '',
+  employer_name: employment?.employer_name || '',
+  employer_address: employment?.employer_address || '',
+  employer_phone: employment?.employer_phone || '',
+  employer_email: employment?.employer_email || '',
+  job_title: employment?.job_title || '',
+  department: employment?.department || '',
+  employee_number: employment?.employee_number || '',
+  date_employed: dateValue(employment?.date_employed),
+  monthly_income: employment?.monthly_income || '',
+  other_income: employment?.other_income || '',
+  payment_frequency: employment?.payment_frequency || DEFAULT_FORM.payment_frequency,
+  next_pay_date: dateValue(employment?.next_pay_date),
+  business_name: employment?.business_name || '',
+  business_type: employment?.business_type || '',
+  business_registration: employment?.business_registration || '',
+  business_start_date: dateValue(employment?.business_start_date),
+  number_of_employees: employment?.number_of_employees || '',
+  employment_letter: null,
+  pay_slips: null,
+  business_permit: null,
+  notes: employment?.notes || '',
+})
 
 const EmploymentForm = ({ customerId }) => {
-  const { 
+  const {
     employment,
     employmentLoading,
     employmentError,
     getEmployment,
-    updateEmployment 
-  } = useCustomerContext();
-  
-  const { addToast } = useToast();
-  
-  const [formData, setFormData] = useState({
-    employer_name: '',
-    job_title: '',
-    employment_type: '',
-    department: '',
-    employee_number: '',
-    start_date: '',
-    end_date: '',
-    is_current: true,
-    monthly_income: '',
-    pay_frequency: 'MONTHLY',
-    employer_address: '',
-    employer_phone: '',
-    employer_email: '',
-    supervisor_name: '',
-    supervisor_contact: '',
-    work_duration: '',
-    contract_type: '',
-    profession: '',
-    industry: '',
-    company_size: '',
-    payment_method: '',
-    bank_name: '',
-    bank_account_number: '',
-    payslip_attachment: null,
-    contract_attachment: null,
-    reference_letter_attachment: null,
-    notes: ''
-  });
+    updateEmployment,
+  } = useCustomerContext()
+  const { addToast } = useToast()
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState(DEFAULT_FORM)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     if (customerId) {
-      getEmployment(customerId);
+      getEmployment(customerId)
     }
-  }, [customerId, getEmployment]);
+  }, [customerId, getEmployment])
 
   useEffect(() => {
-    if (employment) {
-      setFormData({
-        employer_name: employment.employer_name || '',
-        job_title: employment.job_title || '',
-        employment_type: employment.employment_type || '',
-        department: employment.department || '',
-        employee_number: employment.employee_number || '',
-        start_date: employment.start_date ? 
-          new Date(employment.start_date).toISOString().split('T')[0] : '',
-        end_date: employment.end_date ? 
-          new Date(employment.end_date).toISOString().split('T')[0] : '',
-        is_current: employment.is_current || true,
-        monthly_income: employment.monthly_income || '',
-        pay_frequency: employment.pay_frequency || 'MONTHLY',
-        employer_address: employment.employer_address || '',
-        employer_phone: employment.employer_phone || '',
-        employer_email: employment.employer_email || '',
-        supervisor_name: employment.supervisor_name || '',
-        supervisor_contact: employment.supervisor_contact || '',
-        work_duration: employment.work_duration || '',
-        contract_type: employment.contract_type || '',
-        profession: employment.profession || '',
-        industry: employment.industry || '',
-        company_size: employment.company_size || '',
-        payment_method: employment.payment_method || '',
-        bank_name: employment.bank_name || '',
-        bank_account_number: employment.bank_account_number || '',
-        payslip_attachment: employment.payslip_attachment || null,
-        contract_attachment: employment.contract_attachment || null,
-        reference_letter_attachment: employment.reference_letter_attachment || null,
-        notes: employment.notes || ''
-      });
-    }
-  }, [employment]);
+    setFormData(buildFormData(employment))
+  }, [employment])
 
-  const handleChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
-    
-    if (type === 'file') {
-      setFormData(prev => ({ ...prev, [name]: files[0] }));
-    } else if (type === 'checkbox') {
-      setFormData(prev => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
-  };
+  const isSelfEmployed = formData.employment_type === 'SELF_EMPLOYED'
+  const hasEmploymentRecord = Boolean(employment?.id)
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  const summaryRows = useMemo(
+    () => [
+      ['Employment Type', employment?.employment_type || 'Not specified'],
+      ['Occupation', employment?.occupation || 'Not specified'],
+      ['Sector', employment?.sector || 'Not specified'],
+      ['Employer / Business', employment?.employer_name || employment?.business_name || 'Not specified'],
+      ['Monthly Income', employment?.monthly_income ? `KES ${Number(employment.monthly_income).toLocaleString()}` : 'Not specified'],
+      ['Other Income', employment?.other_income ? `KES ${Number(employment.other_income).toLocaleString()}` : 'Not specified'],
+      ['Date Employed', employment?.date_employed ? new Date(employment.date_employed).toLocaleDateString() : 'Not specified'],
+      ['Next Pay Date', employment?.next_pay_date ? new Date(employment.next_pay_date).toLocaleDateString() : 'Not specified'],
+      ['Verified', employment?.is_verified ? 'Yes' : 'No'],
+    ],
+    [employment]
+  )
 
-    try {
-      const data = new FormData();
-      
-      // Append all form data
-      Object.keys(formData).forEach(key => {
-        if (formData[key] !== null && formData[key] !== undefined) {
-          if (formData[key] instanceof File) {
-            data.append(key, formData[key]);
-          } else {
-            data.append(key, formData[key]);
-          }
-        }
-      });
-
-      const result = await updateEmployment(customerId, data);
-      
-      if (result.success) {
-        addToast('Employment information updated successfully', 'success');
-        setIsEditing(false);
-      } else {
-        addToast(result.error || 'Failed to update employment information', 'error');
-      }
-    } catch (error) {
-      console.error('Error updating employment:', error);
-      addToast('An error occurred while updating employment information', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const handleChange = (event) => {
+    const { name, value, files, type } = event.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'file' ? files?.[0] || null : value,
+    }))
+  }
 
   const handleCancel = () => {
-    setIsEditing(false);
-    // Reset form to original values
-    if (employment) {
-      setFormData({
-        employer_name: employment.employer_name || '',
-        job_title: employment.job_title || '',
-        employment_type: employment.employment_type || '',
-        department: employment.department || '',
-        employee_number: employment.employee_number || '',
-        start_date: employment.start_date ? 
-          new Date(employment.start_date).toISOString().split('T')[0] : '',
-        end_date: employment.end_date ? 
-          new Date(employment.end_date).toISOString().split('T')[0] : '',
-        is_current: employment.is_current || true,
-        monthly_income: employment.monthly_income || '',
-        pay_frequency: employment.pay_frequency || 'MONTHLY',
-        employer_address: employment.employer_address || '',
-        employer_phone: employment.employer_phone || '',
-        employer_email: employment.employer_email || '',
-        supervisor_name: employment.supervisor_name || '',
-        supervisor_contact: employment.supervisor_contact || '',
-        work_duration: employment.work_duration || '',
-        contract_type: employment.contract_type || '',
-        profession: employment.profession || '',
-        industry: employment.industry || '',
-        company_size: employment.company_size || '',
-        payment_method: employment.payment_method || '',
-        bank_name: employment.bank_name || '',
-        bank_account_number: employment.bank_account_number || '',
-        payslip_attachment: employment.payslip_attachment || null,
-        contract_attachment: employment.contract_attachment || null,
-        reference_letter_attachment: employment.reference_letter_attachment || null,
-        notes: employment.notes || ''
-      });
+    setFormData(buildFormData(employment))
+    setIsEditing(false)
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setIsSubmitting(true)
+
+    const payload = {}
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value === '' || value === null || value === undefined) {
+        return
+      }
+      payload[key] = value
+    })
+
+    try {
+      const result = await updateEmployment(customerId, payload)
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update employment information')
+      }
+
+      addToast('Employment information updated successfully', 'success')
+      setIsEditing(false)
+      await getEmployment(customerId)
+    } catch (error) {
+      addToast(error.message || 'Failed to update employment information', 'error')
+    } finally {
+      setIsSubmitting(false)
     }
-  };
+  }
 
   if (employmentLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary-600" />
       </div>
-    );
+    )
   }
 
   if (employmentError && !employment) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
         <div className="flex items-center">
-          <DocumentTextIcon className="h-5 w-5 text-yellow-400 mr-2" />
-          <p className="text-yellow-700">No employment information found</p>
+          <DocumentTextIcon className="mr-2 h-5 w-5 text-yellow-500" />
+          <p className="text-sm text-yellow-800">{employmentError}</p>
         </div>
-        <button
-          onClick={() => setIsEditing(true)}
-          className="mt-3 px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
-        >
-          Add Employment Details
-        </button>
       </div>
-    );
+    )
   }
-
-  if (!employment && !isEditing) {
-    return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <div className="flex items-center">
-          <DocumentTextIcon className="h-5 w-5 text-yellow-400 mr-2" />
-          <p className="text-yellow-700">No employment information found</p>
-        </div>
-        <button
-          onClick={() => setIsEditing(true)}
-          className="mt-3 px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
-        >
-          Add Employment Details
-        </button>
-      </div>
-    );
-  }
-
-  const employmentData = employment || {};
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center">
-          <BriefcaseIcon className="h-6 w-6 text-gray-400 mr-2" />
-          <h3 className="text-lg font-medium text-gray-900">Employment Information</h3>
+          <BriefcaseIcon className="mr-2 h-6 w-6 text-gray-400" />
+          <div>
+            <h3 className="text-lg font-medium text-gray-900">Employment Information</h3>
+            <p className="text-sm text-gray-500">
+              {hasEmploymentRecord ? 'Review and update employment details.' : 'Add employment details for this borrower.'}
+            </p>
+          </div>
         </div>
         {!isEditing && (
           <button
+            type="button"
             onClick={() => setIsEditing(true)}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            Edit Employment
+            {hasEmploymentRecord ? 'Edit Employment' : 'Add Employment'}
           </button>
         )}
       </div>
 
-      {isEditing ? (
+      {!isEditing ? (
+        <div className="rounded-lg border border-gray-200 bg-white">
+          <div className="grid grid-cols-1 gap-0 divide-y divide-gray-200 md:grid-cols-2 md:divide-x md:divide-y-0">
+            {summaryRows.map(([label, value]) => (
+              <div key={label} className="px-5 py-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p>
+                <p className="mt-1 text-sm text-gray-900">{value}</p>
+              </div>
+            ))}
+          </div>
+          {employment?.notes && (
+            <div className="border-t border-gray-200 px-5 py-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Notes</p>
+              <p className="mt-1 text-sm text-gray-900">{employment.notes}</p>
+            </div>
+          )}
+        </div>
+      ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Employment Details */}
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h4 className="text-md font-medium text-gray-900 mb-4 flex items-center">
-              <BuildingOfficeIcon className="h-5 w-5 text-gray-400 mr-2" />
-              Employment Details
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-lg bg-gray-50 p-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor="employment-employer-name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Employer Name *
-                </label>
-                <input
-                  id="employment-employer-name"
-                  type="text"
-                  name="employer_name"
-                  value={formData.employer_name}
-                  onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="employment-job-title" className="block text-sm font-medium text-gray-700 mb-1">
-                  Job Title *
-                </label>
-                <input
-                  id="employment-job-title"
-                  type="text"
-                  name="job_title"
-                  value={formData.job_title}
-                  onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="employment-type" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-type" className="mb-1 block text-sm font-medium text-gray-700">
                   Employment Type
                 </label>
                 <select
@@ -289,190 +215,128 @@ const EmploymentForm = ({ customerId }) => {
                   name="employment_type"
                   value={formData.employment_type}
                   onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 >
-                  <option value="">Select Type</option>
-                  <option value="PERMANENT">Permanent</option>
-                  <option value="CONTRACT">Contract</option>
-                  <option value="TEMPORARY">Temporary</option>
-                  <option value="CASUAL">Casual</option>
-                  <option value="INTERN">Intern</option>
+                  <option value="EMPLOYED">Employed</option>
                   <option value="SELF_EMPLOYED">Self-Employed</option>
+                  <option value="UNEMPLOYED">Unemployed</option>
+                  <option value="STUDENT">Student</option>
+                  <option value="RETIRED">Retired</option>
                 </select>
               </div>
               <div>
-                <label htmlFor="employment-department" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-sector" className="mb-1 block text-sm font-medium text-gray-700">
+                  Sector
+                </label>
+                <select
+                  id="employment-sector"
+                  name="sector"
+                  value={formData.sector}
+                  onChange={handleChange}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                >
+                  <option value="">Select sector</option>
+                  <option value="GOVERNMENT">Government</option>
+                  <option value="PRIVATE">Private Sector</option>
+                  <option value="NGO">NGO</option>
+                  <option value="INFORMAL">Informal Sector</option>
+                  <option value="AGRICULTURE">Agriculture</option>
+                  <option value="MANUFACTURING">Manufacturing</option>
+                  <option value="SERVICES">Services</option>
+                  <option value="CONSTRUCTION">Construction</option>
+                  <option value="HEALTH">Health</option>
+                  <option value="EDUCATION">Education</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="employment-occupation" className="mb-1 block text-sm font-medium text-gray-700">
+                  Occupation
+                </label>
+                <input
+                  id="employment-occupation"
+                  name="occupation"
+                  value={formData.occupation}
+                  onChange={handleChange}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="employment-job-title" className="mb-1 block text-sm font-medium text-gray-700">
+                  Job Title
+                </label>
+                <input
+                  id="employment-job-title"
+                  name="job_title"
+                  value={formData.job_title}
+                  onChange={handleChange}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="employment-employer-name" className="mb-1 block text-sm font-medium text-gray-700">
+                  Employer Name
+                </label>
+                <input
+                  id="employment-employer-name"
+                  name="employer_name"
+                  value={formData.employer_name}
+                  onChange={handleChange}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="employment-department" className="mb-1 block text-sm font-medium text-gray-700">
                   Department
                 </label>
                 <input
                   id="employment-department"
-                  type="text"
                   name="department"
                   value={formData.department}
                   onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 />
               </div>
               <div>
-                <label htmlFor="employment-employee-number" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-employee-number" className="mb-1 block text-sm font-medium text-gray-700">
                   Employee Number
                 </label>
                 <input
                   id="employment-employee-number"
-                  type="text"
                   name="employee_number"
                   value={formData.employee_number}
                   onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 />
               </div>
               <div>
-                <label htmlFor="employment-profession" className="block text-sm font-medium text-gray-700 mb-1">
-                  Profession
+                <label htmlFor="employment-date-employed" className="mb-1 block text-sm font-medium text-gray-700">
+                  Date Employed
                 </label>
                 <input
-                  id="employment-profession"
-                  type="text"
-                  name="profession"
-                  value={formData.profession}
+                  id="employment-date-employed"
+                  type="date"
+                  name="date_employed"
+                  value={formData.date_employed}
                   onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Employment Dates */}
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="employment-start-date" className="block text-sm font-medium text-gray-700 mb-1">
-                  Start Date
-                </label>
-                <div className="relative">
-                  <CalendarIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <input
-                    id="employment-start-date"
-                    type="date"
-                    name="start_date"
-                    value={formData.start_date}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  />
-                </div>
-              </div>
-              <div>
-                <label htmlFor="employment-end-date" className="block text-sm font-medium text-gray-700 mb-1">
-                  End Date
-                </label>
-                <div className="relative">
-                  <CalendarIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <input
-                    id="employment-end-date"
-                    type="date"
-                    name="end_date"
-                    value={formData.end_date}
-                    onChange={handleChange}
-                    disabled={formData.is_current}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm disabled:bg-gray-100"
-                  />
-                </div>
-              </div>
-              <div className="flex items-end">
-                <label htmlFor="employment-is-current" className="flex items-center">
-                  <input
-                    id="employment-is-current"
-                    type="checkbox"
-                    name="is_current"
-                    checked={formData.is_current}
-                    onChange={handleChange}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Currently employed</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Income Information */}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="employment-monthly-income" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                  <CurrencyDollarIcon className="h-4 w-4 text-gray-400 mr-1" />
-                  Monthly Income (Ksh)
-                </label>
-                <input
-                  id="employment-monthly-income"
-                  type="number"
-                  name="monthly_income"
-                  value={formData.monthly_income}
-                  onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 />
               </div>
               <div>
-                <label htmlFor="employment-pay-frequency" className="block text-sm font-medium text-gray-700 mb-1">
-                  Pay Frequency
-                </label>
-                <select
-                  id="employment-pay-frequency"
-                  name="pay_frequency"
-                  value={formData.pay_frequency}
-                  onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                >
-                  <option value="MONTHLY">Monthly</option>
-                  <option value="WEEKLY">Weekly</option>
-                  <option value="BIWEEKLY">Bi-weekly</option>
-                  <option value="DAILY">Daily</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="employment-work-duration" className="block text-sm font-medium text-gray-700 mb-1">
-                  Work Duration
-                </label>
-                <input
-                  id="employment-work-duration"
-                  type="text"
-                  name="work_duration"
-                  value={formData.work_duration}
-                  onChange={handleChange}
-                  placeholder="e.g., 2 years 6 months"
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Employer Contact */}
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h4 className="text-md font-medium text-gray-900 mb-4">Employer Contact Information</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label htmlFor="employment-employer-address" className="block text-sm font-medium text-gray-700 mb-1">
-                  Employer Address
-                </label>
-                <input
-                  id="employment-employer-address"
-                  type="text"
-                  name="employer_address"
-                  value={formData.employer_address}
-                  onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                />
-              </div>
-              <div>
-                <label htmlFor="employment-employer-phone" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-employer-phone" className="mb-1 block text-sm font-medium text-gray-700">
                   Employer Phone
                 </label>
                 <input
                   id="employment-employer-phone"
-                  type="text"
                   name="employer_phone"
                   value={formData.employer_phone}
                   onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  placeholder="+254700000000"
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 />
               </div>
               <div>
-                <label htmlFor="employment-employer-email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="employment-employer-email" className="mb-1 block text-sm font-medium text-gray-700">
                   Employer Email
                 </label>
                 <input
@@ -481,369 +345,243 @@ const EmploymentForm = ({ customerId }) => {
                   name="employer_email"
                   value={formData.employer_email}
                   onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 />
               </div>
-              <div>
-                <label htmlFor="employment-supervisor-name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Supervisor Name
+              <div className="md:col-span-2">
+                <label htmlFor="employment-employer-address" className="mb-1 block text-sm font-medium text-gray-700">
+                  Employer Address
                 </label>
                 <input
-                  id="employment-supervisor-name"
-                  type="text"
-                  name="supervisor_name"
-                  value={formData.supervisor_name}
+                  id="employment-employer-address"
+                  name="employer_address"
+                  value={formData.employer_address}
                   onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                />
-              </div>
-              <div>
-                <label htmlFor="employment-supervisor-contact" className="block text-sm font-medium text-gray-700 mb-1">
-                  Supervisor Contact
-                </label>
-                <input
-                  id="employment-supervisor-contact"
-                  type="text"
-                  name="supervisor_contact"
-                  value={formData.supervisor_contact}
-                  onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 />
               </div>
             </div>
           </div>
 
-          {/* Company Information */}
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h4 className="text-md font-medium text-gray-900 mb-4">Company Information</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="rounded-lg bg-gray-50 p-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor="employment-industry" className="block text-sm font-medium text-gray-700 mb-1">
-                  Industry
+                <label htmlFor="employment-monthly-income" className="mb-1 block text-sm font-medium text-gray-700">
+                  Monthly Income
                 </label>
                 <input
-                  id="employment-industry"
-                  type="text"
-                  name="industry"
-                  value={formData.industry}
+                  id="employment-monthly-income"
+                  type="number"
+                  min="0"
+                  name="monthly_income"
+                  value={formData.monthly_income}
                   onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 />
               </div>
               <div>
-                <label htmlFor="employment-company-size" className="block text-sm font-medium text-gray-700 mb-1">
-                  Company Size
+                <label htmlFor="employment-other-income" className="mb-1 block text-sm font-medium text-gray-700">
+                  Other Income
+                </label>
+                <input
+                  id="employment-other-income"
+                  type="number"
+                  min="0"
+                  name="other_income"
+                  value={formData.other_income}
+                  onChange={handleChange}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="employment-payment-frequency" className="mb-1 block text-sm font-medium text-gray-700">
+                  Payment Frequency
                 </label>
                 <select
-                  id="employment-company-size"
-                  name="company_size"
-                  value={formData.company_size}
+                  id="employment-payment-frequency"
+                  name="payment_frequency"
+                  value={formData.payment_frequency}
                   onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 >
-                  <option value="">Select Size</option>
-                  <option value="MICRO">Micro (1-10)</option>
-                  <option value="SMALL">Small (11-50)</option>
-                  <option value="MEDIUM">Medium (51-200)</option>
-                  <option value="LARGE">Large (201-1000)</option>
-                  <option value="ENTERPRISE">Enterprise (1000+)</option>
+                  <option value="MONTHLY">Monthly</option>
+                  <option value="WEEKLY">Weekly</option>
+                  <option value="BIWEEKLY">Bi-weekly</option>
+                  <option value="DAILY">Daily</option>
+                  <option value="QUARTERLY">Quarterly</option>
+                  <option value="ANNUALLY">Annually</option>
+                  <option value="IRREGULAR">Irregular</option>
                 </select>
               </div>
               <div>
-                <label htmlFor="employment-contract-type" className="block text-sm font-medium text-gray-700 mb-1">
-                  Contract Type
-                </label>
-                <select
-                  id="employment-contract-type"
-                  name="contract_type"
-                  value={formData.contract_type}
-                  onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                >
-                  <option value="">Select Contract</option>
-                  <option value="FULL_TIME">Full-time</option>
-                  <option value="PART_TIME">Part-time</option>
-                  <option value="CONSULTANT">Consultant</option>
-                  <option value="REMOTE">Remote</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Payment Information */}
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h4 className="text-md font-medium text-gray-900 mb-4">Payment Information</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="employment-payment-method" className="block text-sm font-medium text-gray-700 mb-1">
-                  Payment Method
-                </label>
-                <select
-                  id="employment-payment-method"
-                  name="payment_method"
-                  value={formData.payment_method}
-                  onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                >
-                  <option value="">Select Method</option>
-                  <option value="BANK_TRANSFER">Bank Transfer</option>
-                  <option value="MPESA">M-Pesa</option>
-                  <option value="CASH">Cash</option>
-                  <option value="CHEQUE">Cheque</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="employment-bank-name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Bank Name
+                <label htmlFor="employment-next-pay-date" className="mb-1 block text-sm font-medium text-gray-700">
+                  Next Pay Date
                 </label>
                 <input
-                  id="employment-bank-name"
-                  type="text"
-                  name="bank_name"
-                  value={formData.bank_name}
+                  id="employment-next-pay-date"
+                  type="date"
+                  name="next_pay_date"
+                  value={formData.next_pay_date}
                   onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                />
-              </div>
-              <div>
-                <label htmlFor="employment-bank-account-number" className="block text-sm font-medium text-gray-700 mb-1">
-                  Bank Account Number
-                </label>
-                <input
-                  id="employment-bank-account-number"
-                  type="text"
-                  name="bank_account_number"
-                  value={formData.bank_account_number}
-                  onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 />
               </div>
             </div>
           </div>
 
-          {/* Documents */}
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h4 className="text-md font-medium text-gray-900 mb-4">Supporting Documents</h4>
-            <div className="space-y-4">
+          <div className="rounded-lg bg-gray-50 p-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor="employment-payslip-attachment" className="block text-sm font-medium text-gray-700 mb-1">
-                  Payslip Attachment
+                <label htmlFor="employment-business-name" className="mb-1 block text-sm font-medium text-gray-700">
+                  Business Name
                 </label>
                 <input
-                  id="employment-payslip-attachment"
-                  type="file"
-                  name="payslip_attachment"
+                  id="employment-business-name"
+                  name="business_name"
+                  value={formData.business_name}
                   onChange={handleChange}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                  disabled={!isSelfEmployed}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
                 />
               </div>
               <div>
-                <label htmlFor="employment-contract-attachment" className="block text-sm font-medium text-gray-700 mb-1">
-                  Contract Attachment
+                <label htmlFor="employment-business-type" className="mb-1 block text-sm font-medium text-gray-700">
+                  Business Type
                 </label>
                 <input
-                  id="employment-contract-attachment"
-                  type="file"
-                  name="contract_attachment"
+                  id="employment-business-type"
+                  name="business_type"
+                  value={formData.business_type}
                   onChange={handleChange}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                  disabled={!isSelfEmployed}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
                 />
               </div>
               <div>
-                <label htmlFor="employment-reference-letter-attachment" className="block text-sm font-medium text-gray-700 mb-1">
-                  Reference Letter
+                <label htmlFor="employment-business-registration" className="mb-1 block text-sm font-medium text-gray-700">
+                  Business Registration
                 </label>
                 <input
-                  id="employment-reference-letter-attachment"
-                  type="file"
-                  name="reference_letter_attachment"
+                  id="employment-business-registration"
+                  name="business_registration"
+                  value={formData.business_registration}
                   onChange={handleChange}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                  disabled={!isSelfEmployed}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
+                />
+              </div>
+              <div>
+                <label htmlFor="employment-business-start-date" className="mb-1 block text-sm font-medium text-gray-700">
+                  Business Start Date
+                </label>
+                <input
+                  id="employment-business-start-date"
+                  type="date"
+                  name="business_start_date"
+                  value={formData.business_start_date}
+                  onChange={handleChange}
+                  disabled={!isSelfEmployed}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
+                />
+              </div>
+              <div>
+                <label htmlFor="employment-number-of-employees" className="mb-1 block text-sm font-medium text-gray-700">
+                  Number of Employees
+                </label>
+                <input
+                  id="employment-number-of-employees"
+                  type="number"
+                  min="0"
+                  name="number_of_employees"
+                  value={formData.number_of_employees}
+                  onChange={handleChange}
+                  disabled={!isSelfEmployed}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
                 />
               </div>
             </div>
           </div>
 
-          {/* Notes */}
-          <div className="bg-gray-50 rounded-lg p-6">
-            <label htmlFor="employment-notes" className="block text-sm font-medium text-gray-700 mb-2">
-              Additional Notes
-            </label>
-            <textarea
-              id="employment-notes"
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              rows="4"
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-              placeholder="Any additional information about employment..."
-            />
+          <div className="rounded-lg bg-gray-50 p-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div>
+                <label htmlFor="employment-letter" className="mb-1 block text-sm font-medium text-gray-700">
+                  Employment Letter
+                </label>
+                <input
+                  id="employment-letter"
+                  type="file"
+                  name="employment_letter"
+                  onChange={handleChange}
+                  className="block w-full text-sm text-gray-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="employment-payslips" className="mb-1 block text-sm font-medium text-gray-700">
+                  Pay Slips
+                </label>
+                <input
+                  id="employment-payslips"
+                  type="file"
+                  name="pay_slips"
+                  onChange={handleChange}
+                  className="block w-full text-sm text-gray-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="employment-business-permit" className="mb-1 block text-sm font-medium text-gray-700">
+                  Business Permit
+                </label>
+                <input
+                  id="employment-business-permit"
+                  type="file"
+                  name="business_permit"
+                  onChange={handleChange}
+                  className="block w-full text-sm text-gray-500"
+                />
+              </div>
+              <div className="md:col-span-3">
+                <label htmlFor="employment-notes" className="mb-1 block text-sm font-medium text-gray-700">
+                  Notes
+                </label>
+                <textarea
+                  id="employment-notes"
+                  name="notes"
+                  rows="4"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-3 pt-6">
+          <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={handleCancel}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               disabled={isSubmitting}
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${isSubmitting ? 'bg-primary-400' : 'bg-primary-600 hover:bg-primary-700'}`}
+              className="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:bg-primary-400"
             >
-              {isSubmitting ? (
+              {isSubmitting ? 'Saving...' : (
                 <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <CheckCircleIcon className="h-4 w-4 mr-2" />
-                  Save Employment Details
+                  <CheckCircleIcon className="mr-2 h-4 w-4" />
+                  Save Employment
                 </>
               )}
             </button>
           </div>
         </form>
-      ) : (
-        /* View Mode */
-        <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-200">
-          {/* Employment Details */}
-          <div className="px-6 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="text-sm font-medium text-gray-500">Employer</h4>
-                <p className="mt-1 text-sm text-gray-900">{employmentData.employer_name || 'Not specified'}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-gray-500">Job Title</h4>
-                <p className="mt-1 text-sm text-gray-900">{employmentData.job_title || 'Not specified'}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-gray-500">Employment Type</h4>
-                <p className="mt-1 text-sm text-gray-900">{employmentData.employment_type || 'Not specified'}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-gray-500">Department</h4>
-                <p className="mt-1 text-sm text-gray-900">{employmentData.department || 'Not specified'}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-gray-500">Start Date</h4>
-                <p className="mt-1 text-sm text-gray-900">
-                  {employmentData.start_date ? 
-                    new Date(employmentData.start_date).toLocaleDateString() : 'Not specified'}
-                </p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-gray-500">Status</h4>
-                <p className="mt-1 text-sm text-gray-900">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    employmentData.is_current ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {employmentData.is_current ? 'Currently Employed' : 'Formerly Employed'}
-                  </span>
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Income Information */}
-          <div className="px-6 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <h4 className="text-sm font-medium text-gray-500">Monthly Income</h4>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
-                  {employmentData.monthly_income ? `Ksh ${Number(employmentData.monthly_income).toLocaleString()}` : 'Not specified'}
-                </p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-gray-500">Pay Frequency</h4>
-                <p className="mt-1 text-sm text-gray-900">{employmentData.pay_frequency || 'Not specified'}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-gray-500">Work Duration</h4>
-                <p className="mt-1 text-sm text-gray-900">{employmentData.work_duration || 'Not specified'}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Employer Contact */}
-          {employmentData.employer_address || employmentData.employer_phone || employmentData.employer_email ? (
-            <div className="px-6 py-4">
-              <h4 className="text-sm font-medium text-gray-900 mb-3">Employer Contact</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {employmentData.employer_address && (
-                  <div>
-                    <h4 className="text-xs font-medium text-gray-500">Address</h4>
-                    <p className="mt-1 text-sm text-gray-900">{employmentData.employer_address}</p>
-                  </div>
-                )}
-                {employmentData.employer_phone && (
-                  <div>
-                    <h4 className="text-xs font-medium text-gray-500">Phone</h4>
-                    <p className="mt-1 text-sm text-gray-900">{employmentData.employer_phone}</p>
-                  </div>
-                )}
-                {employmentData.employer_email && (
-                  <div>
-                    <h4 className="text-xs font-medium text-gray-500">Email</h4>
-                    <p className="mt-1 text-sm text-gray-900">{employmentData.employer_email}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : null}
-
-          {/* Additional Information */}
-          <div className="px-6 py-4">
-            <h4 className="text-sm font-medium text-gray-900 mb-3">Additional Information</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {employmentData.industry && (
-                <div>
-                  <h4 className="text-xs font-medium text-gray-500">Industry</h4>
-                  <p className="mt-1 text-sm text-gray-900">{employmentData.industry}</p>
-                </div>
-              )}
-              {employmentData.company_size && (
-                <div>
-                  <h4 className="text-xs font-medium text-gray-500">Company Size</h4>
-                  <p className="mt-1 text-sm text-gray-900">{employmentData.company_size}</p>
-                </div>
-              )}
-              {employmentData.contract_type && (
-                <div>
-                  <h4 className="text-xs font-medium text-gray-500">Contract Type</h4>
-                  <p className="mt-1 text-sm text-gray-900">{employmentData.contract_type}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Notes */}
-          {employmentData.notes && (
-            <div className="px-6 py-4">
-              <h4 className="text-sm font-medium text-gray-500">Notes</h4>
-              <p className="mt-1 text-sm text-gray-900 bg-gray-50 p-3 rounded">
-                {employmentData.notes}
-              </p>
-            </div>
-          )}
-        </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default EmploymentForm;
-
-
+export default EmploymentForm

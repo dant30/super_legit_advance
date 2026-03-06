@@ -18,6 +18,7 @@ import {
 import { useCustomerContext } from '@contexts/CustomerContext'
 import { 
   CustomerProfile, 
+  EmploymentForm,
   GuarantorsList,
   DocumentUpload,
   RiskIndicator 
@@ -44,6 +45,7 @@ const CustomerDetail = () => {
   const { hasPermission } = useAuth()
   const [activeTab, setActiveTab] = useState('overview')
   const [actionModal, setActionModal] = useState({ open: false, type: '', title: '' })
+  const [blacklistReason, setBlacklistReason] = useState('')
 
   useEffect(() => {
     if (id) {
@@ -67,11 +69,12 @@ const CustomerDetail = () => {
 
   const handleBlacklist = async () => {
     try {
-      const response = await blacklistCustomer(id, 'Manual blacklisting by admin')
+      const response = await blacklistCustomer(id, blacklistReason || 'Manual blacklisting by admin')
       if (!response?.success) {
         throw new Error(response?.error || 'Failed to blacklist customer')
       }
       addToast('Customer blacklisted successfully', 'success')
+      setBlacklistReason('')
       setActionModal({ open: false, type: '', title: '' })
       fetchCustomer(id)
     } catch (error) {
@@ -86,6 +89,7 @@ const CustomerDetail = () => {
         throw new Error(response?.error || 'Failed to activate customer')
       }
       addToast('Customer activated successfully', 'success')
+      setBlacklistReason('')
       setActionModal({ open: false, type: '', title: '' })
       fetchCustomer(id)
     } catch (error) {
@@ -137,7 +141,7 @@ const CustomerDetail = () => {
         
         {isBlacklisted ? (
           <Button 
-            type="primary" 
+            variant="primary" 
             icon={<UserCheck size={16} />}
             onClick={() => setActionModal({ 
               open: true, 
@@ -149,7 +153,7 @@ const CustomerDetail = () => {
           </Button>
         ) : (
           <Button 
-            danger
+            variant="danger"
             icon={<UserX size={16} />}
             onClick={() => setActionModal({ 
               open: true, 
@@ -167,7 +171,7 @@ const CustomerDetail = () => {
         
         {hasPermission('can_manage_customers') && (
           <Button 
-            danger
+            variant="danger"
             icon={<Trash2 size={16} />}
             onClick={() => setActionModal({ 
               open: true, 
@@ -199,7 +203,7 @@ const CustomerDetail = () => {
         description="The customer profile you are looking for does not exist or has been deleted."
         action={
           <Link to="/customers">
-            <Button type="primary">Back to Customers</Button>
+            <Button variant="primary">Back to Customers</Button>
           </Link>
         }
       />
@@ -211,42 +215,50 @@ const CustomerDetail = () => {
       <PageHeader
         title="Customer Profile"
         subTitle={`Customer ID: ${selectedCustomer.customer_number}`}
-        extra={renderActionButtons()}
-        footer={
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">{selectedCustomer.full_name}</h1>
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                <Badge color={
-                  selectedCustomer.status === 'ACTIVE' ? 'green' :
-                  selectedCustomer.status === 'BLACKLISTED' ? 'red' : 'gray'
-                }>
-                  {selectedCustomer.status}
-                </Badge>
-                <span className="text-gray-600">
-                  Member since {formatDate(selectedCustomer.registration_date, 'short')}
-                </span>
-              </div>
-            </div>
-            <Link to="/customers">
-              <Button icon={<ArrowLeft size={16} />}>
-                Back to List
-              </Button>
-            </Link>
-          </div>
-        }
+        extra={[renderActionButtons()]}
       />
 
-      <Card>
-        <div className="overflow-x-auto">
-          <div className="min-w-[680px]">
-            <Tabs 
-              activeKey={activeTab} 
-              onChange={setActiveTab} 
-              items={tabs} 
-            />
+      <div className="rounded-xl border bg-white px-4 py-4 shadow-soft sm:px-6" style={{ borderColor: 'var(--surface-border)' }}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-slate-900">{selectedCustomer.full_name}</h2>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <Badge
+                variant={
+                  selectedCustomer.status === 'ACTIVE'
+                    ? 'success'
+                    : selectedCustomer.status === 'BLACKLISTED'
+                      ? 'danger'
+                      : 'secondary'
+                }
+              >
+                {selectedCustomer.status}
+              </Badge>
+              <span className="text-sm text-gray-600">
+                Member since {formatDate(selectedCustomer.registration_date, 'short')}
+              </span>
+            </div>
           </div>
+          <Link to="/customers">
+            <Button icon={<ArrowLeft size={16} />}>
+              Back to List
+            </Button>
+          </Link>
         </div>
+      </div>
+
+      <Card>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <div className="overflow-x-auto">
+            <Tabs.List className="min-w-max">
+              {tabs.map((tab) => (
+                <Tabs.Trigger key={tab.key} value={tab.key} icon={tab.icon}>
+                  {tab.label}
+                </Tabs.Trigger>
+              ))}
+            </Tabs.List>
+          </div>
+        </Tabs>
 
         <div className="mt-6">
           {activeTab === 'overview' && (
@@ -286,40 +298,40 @@ const CustomerDetail = () => {
             />
           )}
 
-          {activeTab === 'employment' && selectedCustomer.employment && (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Employment Details</h3>
-              <Descriptions column={2} bordered>
-                <Descriptions.Item label="Occupation">
-                  {selectedCustomer.employment.occupation || 'Not specified'}
-                </Descriptions.Item>
-                <Descriptions.Item label="Monthly Income">
-                  {formatCurrency(selectedCustomer.employment.monthly_income || 0)}
-                </Descriptions.Item>
-                <Descriptions.Item label="Employer">
-                  {selectedCustomer.employment.employer_name || 'Not specified'}
-                </Descriptions.Item>
-                <Descriptions.Item label="Employment Start">
-                  {formatDate(selectedCustomer.employment.employment_start_date, 'short')}
-                </Descriptions.Item>
-                <Descriptions.Item label="Employer Phone">
-                  {selectedCustomer.employment.employer_phone || 'Not specified'}
-                </Descriptions.Item>
-                <Descriptions.Item label="Employer Address">
-                  {selectedCustomer.employment.employer_address || 'Not specified'}
-                </Descriptions.Item>
-              </Descriptions>
-            </div>
-          )}
+          {activeTab === 'employment' && <EmploymentForm customerId={id} />}
 
           {activeTab === 'risk' && (
-            <RiskIndicator
-              creditScore={selectedCustomer.credit_score || 0}
-              riskFactors={selectedCustomer.risk_factors || []}
-              onReview={() => {
-                // Handle risk review
-              }}
-            />
+            <Card>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900">Risk Assessment</h3>
+                    <p className="text-sm text-gray-600">
+                      Current borrower risk profile based on score and status.
+                    </p>
+                  </div>
+                  <RiskIndicator
+                    riskLevel={selectedCustomer.risk_level}
+                    score={selectedCustomer.credit_score}
+                    size="large"
+                  />
+                </div>
+                <Descriptions column={2} bordered>
+                  <Descriptions.Item label="Risk Level">
+                    {selectedCustomer.risk_level || 'Not assessed'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Credit Score">
+                    {selectedCustomer.credit_score ?? 'Not available'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Status">
+                    {selectedCustomer.status || 'Unknown'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Outstanding Balance">
+                    {formatCurrency(selectedCustomer.outstanding_balance || 0)}
+                  </Descriptions.Item>
+                </Descriptions>
+              </div>
+            </Card>
           )}
         </div>
       </Card>
@@ -338,8 +350,7 @@ const CustomerDetail = () => {
           </Button>,
           <Button 
             key="confirm" 
-            type="primary"
-            danger={actionModal.type === 'delete' || actionModal.type === 'blacklist'}
+            variant={actionModal.type === 'delete' || actionModal.type === 'blacklist' ? 'danger' : 'primary'}
             onClick={() => {
               if (actionModal.type === 'delete') handleDelete()
               if (actionModal.type === 'blacklist') handleBlacklist()
@@ -377,6 +388,8 @@ const CustomerDetail = () => {
               </label>
               <textarea 
                 id="blacklist-reason"
+                value={blacklistReason}
+                onChange={(event) => setBlacklistReason(event.target.value)}
                 className="w-full border rounded p-2"
                 rows={3}
                 placeholder="Enter reason..."

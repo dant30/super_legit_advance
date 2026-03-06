@@ -1,10 +1,10 @@
-// frontend/src/pages/loans/LoanApprovals.jsx
 import React, { useState } from 'react'
 import PageHeader from '@components/ui/PageHeader'
 import Card from '@components/ui/Card'
 import Button from '@components/ui/Button'
 import { LoanApproval } from '@components/loans'
 import { useLoanContext } from '@contexts/LoanContext'
+import { formatCurrency } from '../services/loans'
 
 const LoanApprovals = () => {
   const { useLoanApplicationsQuery, useApproveLoanApplication, useRejectLoanApplication } = useLoanContext()
@@ -15,7 +15,7 @@ const LoanApprovals = () => {
 
   const applications = Array.isArray(data)
     ? data
-    : (data?.results || data?.data?.results || data?.data || [])
+    : data?.results || data?.data?.results || data?.data || []
 
   const handleApprove = async (payload) => {
     if (!selected) return
@@ -45,8 +45,12 @@ const LoanApprovals = () => {
               {applications.map((app) => (
                 <div key={app.id} className="flex flex-col gap-2 rounded-lg border border-gray-200 p-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{app.customer?.full_name || 'Customer'}</p>
-                    <p className="text-xs text-gray-500">KES {app.amount_requested} - {app.loan_type}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {app.customer_name || app.customer_details?.full_name || 'Customer'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatCurrency(app.amount_requested)} - {app.loan_type}
+                    </p>
                   </div>
                   <Button size="sm" className="w-full sm:w-auto" onClick={() => setSelected(app)}>Review</Button>
                 </div>
@@ -69,4 +73,3 @@ const LoanApprovals = () => {
 }
 
 export default LoanApprovals
-

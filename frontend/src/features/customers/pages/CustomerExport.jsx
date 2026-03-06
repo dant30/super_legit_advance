@@ -122,10 +122,10 @@ const CustomerExport = () => {
                 Fields to Export
               </label>
               <div className="flex items-center gap-2">
-                <Button type="link" size="small" onClick={handleSelectAllFields}>
+                <Button variant="ghost" size="small" onClick={handleSelectAllFields}>
                   Select All
                 </Button>
-                <Button type="link" size="small" onClick={handleDeselectAllFields}>
+                <Button variant="ghost" size="small" onClick={handleDeselectAllFields}>
                   Deselect All
                 </Button>
               </div>
@@ -165,7 +165,7 @@ const CustomerExport = () => {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Space className="w-full sm:w-auto">
                 <Button 
-                  type="primary" 
+                  variant="primary" 
                   icon={<Download size={16} />}
                   onClick={() => setExportDialogOpen(true)}
                   className="w-full sm:w-auto"

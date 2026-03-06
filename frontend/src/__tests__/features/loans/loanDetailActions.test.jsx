@@ -23,6 +23,7 @@ vi.mock("@contexts/LoanContext", () => ({
     useApproveLoan: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useRejectLoan: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useDisburseLoan: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useDeleteLoan: () => ({ mutateAsync: vi.fn(), isPending: false }),
   }),
 }));
 
@@ -30,9 +31,27 @@ vi.mock("@components/loans", () => ({
   LoanDetails: ({ loan }) => <div>Loan details {loan?.loan_number}</div>,
 }));
 
-vi.mock("@components/ui", () => ({
-  PageHeader: ({ extra }) => <div>{extra}</div>,
-  Button: ({ children }) => <button type="button">{children}</button>,
+vi.mock("@components/ui/PageHeader", () => ({
+  default: ({ extra }) => <div>{extra}</div>,
+}));
+
+vi.mock("@components/ui/Button", () => ({
+  default: ({ children }) => <button type="button">{children}</button>,
+}));
+
+vi.mock("@components/ui/Modal", () => {
+  const Modal = ({ open, children }) => (open ? <div>{children}</div> : null);
+  Modal.Footer = ({ children }) => <div>{children}</div>;
+
+  return {
+    __esModule: true,
+    default: Modal,
+    ConfirmationModal: ({ open }) => (open ? <div>confirm</div> : null),
+  };
+});
+
+vi.mock("@components/ui/Input", () => ({
+  default: () => null,
 }));
 
 import LoanDetail from "../../../features/loans/pages/LoanDetail";

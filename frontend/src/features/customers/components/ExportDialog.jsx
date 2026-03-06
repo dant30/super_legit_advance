@@ -40,7 +40,8 @@ const ExportDialog = ({ open = false, onClose, filters = {} }) => {
     try {
       const exportFilters = {
         ...filters,
-        ...dateRange,
+        date_from: dateRange.start_date || undefined,
+        date_to: dateRange.end_date || undefined,
         status: status || undefined
       };
 

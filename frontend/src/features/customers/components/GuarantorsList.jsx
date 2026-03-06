@@ -1,86 +1,119 @@
-// frontend/src/components/customers/GuarantorsList.jsx
-import React, { useState, useEffect } from 'react';
-import { useCustomerContext } from '@contexts/CustomerContext';
-import { useAuth } from '@hooks/useAuth';
-import { useToast } from '@contexts/ToastContext';
+import React, { useEffect, useState } from 'react'
+import { useCustomerContext } from '@contexts/CustomerContext'
+import { useAuth } from '@hooks/useAuth'
+import { useToast } from '@contexts/ToastContext'
 import {
-  UserCircleIcon,
-  PhoneIcon,
-  BriefcaseIcon,
   BanknotesIcon,
-  XCircleIcon,
   PencilIcon,
+  PhoneIcon,
   TrashIcon,
-  UserPlusIcon
-} from '@heroicons/react/24/outline';
-import GuarantorForm from './GuarantorForm';
+  UserCircleIcon,
+  UserPlusIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/outline'
+import GuarantorForm from './GuarantorForm'
 
-const GuarantorsList = ({ customerId }) => {
-  const { 
+const statusClass = (status) => {
+  switch (status) {
+    case 'VERIFIED':
+      return 'bg-green-100 text-green-800'
+    case 'REJECTED':
+      return 'bg-red-100 text-red-800'
+    case 'PENDING':
+    default:
+      return 'bg-yellow-100 text-yellow-800'
+  }
+}
+
+const GuarantorsList = ({
+  customerId,
+  guarantors: guarantorsProp,
+  loading: loadingProp,
+  onRefresh,
+}) => {
+  const {
     guarantors,
     guarantorsLoading,
     guarantorsError,
     getGuarantors,
     deleteGuarantor,
-    verifyGuarantor
-  } = useCustomerContext();
-  
-  const { hasPermission, isAdmin } = useAuth();
-  const { addToast } = useToast();
-  
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingGuarantor, setEditingGuarantor] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
-  const [showVerifyDialog, setShowVerifyDialog] = useState(null);
+    verifyGuarantor,
+  } = useCustomerContext()
+  const { hasPermission, isAdmin } = useAuth()
+  const { addToast } = useToast()
+
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [editingGuarantor, setEditingGuarantor] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [verifyTarget, setVerifyTarget] = useState(null)
+  const [verificationAction, setVerificationAction] = useState('verify')
+  const [verificationNotes, setVerificationNotes] = useState('')
+
+  const canManage = hasPermission('can_manage_customers') || isAdmin()
+  const resolvedGuarantors = guarantorsProp ?? guarantors
+  const resolvedLoading = loadingProp ?? guarantorsLoading
+
+  const refresh = async () => {
+    if (typeof onRefresh === 'function') {
+      await onRefresh()
+      return
+    }
+    if (customerId) {
+      await getGuarantors(customerId)
+    }
+  }
 
   useEffect(() => {
-    if (customerId) {
-      getGuarantors(customerId);
+    if (!guarantorsProp && customerId) {
+      getGuarantors(customerId)
     }
-  }, [customerId]);
+  }, [customerId, guarantorsProp, getGuarantors])
 
-  const handleDelete = async (guarantorId) => {
+  const handleDelete = async () => {
     try {
-      await deleteGuarantor(guarantorId);
-      setShowDeleteConfirm(null);
-      addToast('Guarantor removed successfully', 'success');
+      const result = await deleteGuarantor(deleteTarget)
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to remove guarantor')
+      }
+      setDeleteTarget(null)
+      addToast('Guarantor removed successfully', 'success')
+      await refresh()
     } catch (error) {
-      console.error('Error deleting guarantor:', error);
-      addToast('Failed to remove guarantor', 'error');
+      addToast(error.message || 'Failed to remove guarantor', 'error')
     }
-  };
+  }
 
-  const handleVerify = async (guarantorId, action, notes) => {
+  const handleVerify = async () => {
     try {
-      await verifyGuarantor(guarantorId, action, notes);
-      setShowVerifyDialog(null);
-      addToast(`Guarantor ${action === 'verify' ? 'verified' : 'rejected'} successfully`, 'success');
+      const result = await verifyGuarantor(verifyTarget, verificationAction, verificationNotes)
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update guarantor verification')
+      }
+      setVerifyTarget(null)
+      setVerificationAction('verify')
+      setVerificationNotes('')
+      addToast(
+        verificationAction === 'verify' ? 'Guarantor verified successfully' : 'Guarantor rejected successfully',
+        'success'
+      )
+      await refresh()
     } catch (error) {
-      console.error('Error verifying guarantor:', error);
-      addToast('Failed to verify guarantor', 'error');
+      addToast(error.message || 'Failed to update guarantor verification', 'error')
     }
-  };
-
-  const getVerificationStatusColor = (status) => {
-    switch (status) {
-      case 'APPROVED': return 'bg-green-100 text-green-800';
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-      case 'REJECTED': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  }
 
   if (showAddForm || editingGuarantor) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium text-gray-900">
-            {editingGuarantor ? 'Edit Guarantor' : 'Add New Guarantor'}
+            {editingGuarantor ? 'Edit Guarantor' : 'Add Guarantor'}
           </h3>
           <button
+            type="button"
             onClick={() => {
-              setShowAddForm(false);
-              setEditingGuarantor(null);
+              setShowAddForm(false)
+              setEditingGuarantor(null)
             }}
             className="text-gray-400 hover:text-gray-600"
           >
@@ -90,261 +123,169 @@ const GuarantorsList = ({ customerId }) => {
         <GuarantorForm
           customerId={customerId}
           guarantorId={editingGuarantor?.id}
-          onSuccess={() => {
-            setShowAddForm(false);
-            setEditingGuarantor(null);
-            getGuarantors(customerId);
+          initialData={editingGuarantor}
+          onSuccess={async () => {
+            setShowAddForm(false)
+            setEditingGuarantor(null)
+            await refresh()
           }}
           onCancel={() => {
-            setShowAddForm(false);
-            setEditingGuarantor(null);
+            setShowAddForm(false)
+            setEditingGuarantor(null)
           }}
         />
       </div>
-    );
+    )
   }
 
-  if (guarantorsLoading) {
+  if (resolvedLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <div className="flex h-48 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary-600" />
       </div>
-    );
+    )
   }
 
   if (guarantorsError) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4">
         <div className="flex items-center">
-          <XCircleIcon className="h-5 w-5 text-red-400 mr-2" />
-          <p className="text-red-700">{guarantorsError}</p>
+          <XCircleIcon className="mr-2 h-5 w-5 text-red-500" />
+          <p className="text-sm text-red-700">{guarantorsError}</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-medium text-gray-900">Guarantors</h3>
           <p className="text-sm text-gray-500">
-            {guarantors?.length || 0} guarantor(s) for this customer
+            {resolvedGuarantors?.length || 0} guarantor(s) linked to this customer
           </p>
         </div>
-        {(hasPermission('can_manage_customers') || isAdmin()) && guarantors?.length < 3 && (
+        {canManage && (resolvedGuarantors?.length || 0) < 3 && (
           <button
+            type="button"
             onClick={() => setShowAddForm(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+            className="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
           >
-            <UserPlusIcon className="h-4 w-4 mr-2" />
+            <UserPlusIcon className="mr-2 h-4 w-4" />
             Add Guarantor
           </button>
         )}
       </div>
 
-      {(!guarantors || guarantors.length === 0) ? (
-        <div className="text-center py-12">
+      {!resolvedGuarantors || resolvedGuarantors.length === 0 ? (
+        <div className="py-12 text-center">
           <UserCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">No guarantors</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            This customer does not have any guarantors yet.
-          </p>
-          {(hasPermission('can_manage_customers') || isAdmin()) && (
-            <div className="mt-6">
-              <button
-                onClick={() => setShowAddForm(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
-              >
-                <UserPlusIcon className="h-4 w-4 mr-2" />
-                Add First Guarantor
-              </button>
-            </div>
-          )}
+          <p className="mt-1 text-sm text-gray-500">Add a guarantor to strengthen this borrower profile.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {guarantors.map((guarantor) => (
-            <div
-              key={guarantor.id}
-              className="bg-white rounded-lg shadow-soft border border-gray-200"
-            >
-              <div className="px-6 py-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 h-12 w-12">
-                      {guarantor.profile_picture ? (
-                        <img
-                          className="h-12 w-12 rounded-full"
-                          src={guarantor.profile_picture}
-                          alt={guarantor.full_name}
-                        />
-                      ) : (
-                        <div className="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center">
-                          <UserCircleIcon className="h-10 w-10 text-primary-600" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="ml-4">
-                      <div className="flex items-center">
-                        <h4 className="text-lg font-medium text-gray-900">
-                          {guarantor.full_name || `${guarantor.first_name} ${guarantor.last_name}`}
-                        </h4>
-                        <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${getVerificationStatusColor(guarantor.verification_status)}`}>
-                          {guarantor.verification_status}
-                        </span>
-                      </div>
-                      <div className="mt-1 flex items-center space-x-4">
-                        <span className="text-sm text-gray-500 flex items-center">
-                          <PhoneIcon className="h-4 w-4 mr-1" />
-                          {guarantor.phone_number}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          Relationship: {guarantor.relationship}
-                        </span>
-                      </div>
-                    </div>
+          {resolvedGuarantors.map((guarantor) => (
+            <div key={guarantor.id} className="rounded-lg border border-gray-200 bg-white p-5 shadow-soft">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="text-lg font-medium text-gray-900">
+                      {guarantor.full_name || `${guarantor.first_name} ${guarantor.last_name}`}
+                    </h4>
+                    <span className={`rounded-full px-2 py-1 text-xs font-semibold ${statusClass(guarantor.verification_status)}`}>
+                      {guarantor.verification_status}
+                    </span>
                   </div>
-                  
-                  {(hasPermission('can_manage_customers') || isAdmin()) && (
-                    <div className="flex space-x-2">
-                      {guarantor.verification_status === 'PENDING' && (
-                        <button
-                          onClick={() => setShowVerifyDialog(guarantor.id)}
-                          className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                        >
-                          Verify
-                        </button>
-                      )}
-                      <button
-                        onClick={() => setEditingGuarantor(guarantor)}
-                        className="text-gray-400 hover:text-gray-600"
-                        title="Edit"
-                      >
-                        <PencilIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => setShowDeleteConfirm(guarantor.id)}
-                        className="text-red-400 hover:text-red-600"
-                        title="Delete"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
-                    </div>
-                  )}
+                  <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                    <span className="flex items-center">
+                      <PhoneIcon className="mr-1 h-4 w-4" />
+                      {guarantor.phone_number}
+                    </span>
+                    <span>{guarantor.relationship}</span>
+                    <span>{guarantor.id_number}</span>
+                  </div>
                 </div>
 
-                {/* Guarantor Details */}
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <h5 className="text-xs font-medium text-gray-500">Employment</h5>
-                    <div className="mt-1 flex items-center">
-                      <BriefcaseIcon className="h-4 w-4 text-gray-400 mr-1" />
-                      <span className="text-sm text-gray-900">
-                        {guarantor.employer_name || 'Not specified'}
-                      </span>
-                    </div>
-                    {guarantor.job_title && (
-                      <p className="text-xs text-gray-500 mt-1">{guarantor.job_title}</p>
+                {canManage && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {guarantor.verification_status === 'PENDING' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVerifyTarget(guarantor.id)
+                          setVerificationAction('verify')
+                          setVerificationNotes('')
+                        }}
+                        className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        Verify
+                      </button>
                     )}
-                  </div>
-
-                  <div>
-                    <h5 className="text-xs font-medium text-gray-500">Income</h5>
-                    <div className="mt-1 flex items-center">
-                      <BanknotesIcon className="h-4 w-4 text-gray-400 mr-1" />
-                      <span className="text-sm text-gray-900">
-                        {guarantor.monthly_income ? `Ksh ${Number(guarantor.monthly_income).toLocaleString()}` : 'Not specified'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h5 className="text-xs font-medium text-gray-500">Guarantee</h5>
-                    <div className="mt-1">
-                      {guarantor.guarantee_amount && (
-                        <p className="text-sm text-gray-900">
-                          Ksh {Number(guarantor.guarantee_amount).toLocaleString()}
-                        </p>
-                      )}
-                      {guarantor.guarantee_percentage && (
-                        <p className="text-xs text-gray-500">
-                          ({guarantor.guarantee_percentage}% of loan)
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Additional Information */}
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <h5 className="text-xs font-medium text-gray-500">ID Number</h5>
-                      <p className="text-sm text-gray-900">{guarantor.id_number}</p>
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-medium text-gray-500">Risk Level</h5>
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        guarantor.risk_level === 'LOW' ? 'bg-green-100 text-green-800' :
-                        guarantor.risk_level === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {guarantor.risk_level}
-                      </span>
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-medium text-gray-500">Credit Score</h5>
-                      <p className="text-sm text-gray-900">{guarantor.credit_score || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-medium text-gray-500">Status</h5>
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        guarantor.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {guarantor.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Notes */}
-                {guarantor.notes && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <h5 className="text-xs font-medium text-gray-500">Notes</h5>
-                    <p className="mt-1 text-sm text-gray-700">{guarantor.notes}</p>
+                    <button
+                      type="button"
+                      onClick={() => setEditingGuarantor(guarantor)}
+                      className="text-gray-400 hover:text-gray-600"
+                      title="Edit guarantor"
+                    >
+                      <PencilIcon className="h-5 w-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(guarantor.id)}
+                      className="text-red-400 hover:text-red-600"
+                      title="Remove guarantor"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
                   </div>
                 )}
               </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Occupation</p>
+                  <p className="mt-1 text-sm text-gray-900">{guarantor.occupation || 'Not specified'}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Employer</p>
+                  <p className="mt-1 text-sm text-gray-900">{guarantor.employer || 'Not specified'}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Monthly Income</p>
+                  <p className="mt-1 flex items-center text-sm text-gray-900">
+                    <BanknotesIcon className="mr-1 h-4 w-4 text-gray-400" />
+                    {guarantor.monthly_income ? `KES ${Number(guarantor.monthly_income).toLocaleString()}` : 'Not specified'}
+                  </p>
+                </div>
+              </div>
+
+              {guarantor.notes && (
+                <div className="mt-4 border-t border-gray-200 pt-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Notes</p>
+                  <p className="mt-1 text-sm text-gray-700">{guarantor.notes}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="px-6 py-4 border-b border-gray-200">
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-75 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
+            <div className="border-b border-gray-200 px-6 py-4">
               <h3 className="text-lg font-medium text-gray-900">Remove Guarantor</h3>
             </div>
             <div className="px-6 py-4">
-              <p className="text-sm text-gray-600">
-                Are you sure you want to remove this guarantor? This action cannot be undone.
-              </p>
+              <p className="text-sm text-gray-600">Remove this guarantor from the borrower profile?</p>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
+            <div className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4">
+              <button type="button" onClick={() => setDeleteTarget(null)} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                 Cancel
               </button>
-              <button
-                onClick={() => handleDelete(showDeleteConfirm)}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
+              <button type="button" onClick={handleDelete} className="rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
                 Remove
               </button>
             </div>
@@ -352,79 +293,59 @@ const GuarantorsList = ({ customerId }) => {
         </div>
       )}
 
-      {/* Verify Dialog */}
-      {showVerifyDialog && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="px-6 py-4 border-b border-gray-200">
+      {verifyTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-75 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
+            <div className="border-b border-gray-200 px-6 py-4">
               <h3 className="text-lg font-medium text-gray-900">Verify Guarantor</h3>
             </div>
-            <div className="px-6 py-4">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Verification Action
+            <div className="space-y-4 px-6 py-4">
+              <div>
+                <p className="mb-2 text-sm font-medium text-gray-700">Action</p>
+                <div className="flex gap-4">
+                  <label className="inline-flex items-center">
+                    <input type="radio" name="verification_action" value="verify" checked={verificationAction === 'verify'} onChange={(event) => setVerificationAction(event.target.value)} className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500" />
+                    <span className="ml-2 text-sm text-gray-700">Verify</span>
                   </label>
-                  <div className="flex space-x-4">
-                    <label className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        name="verification_action"
-                        value="verify"
-                        defaultChecked
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">Approve</span>
-                    </label>
-                    <label className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        name="verification_action"
-                        value="reject"
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">Reject</span>
-                    </label>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Verification Notes
+                  <label className="inline-flex items-center">
+                    <input type="radio" name="verification_action" value="reject" checked={verificationAction === 'reject'} onChange={(event) => setVerificationAction(event.target.value)} className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500" />
+                    <span className="ml-2 text-sm text-gray-700">Reject</span>
                   </label>
-                  <textarea
-                    id="verification_notes"
-                    rows="3"
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                    placeholder="Add notes about the verification..."
-                  />
                 </div>
               </div>
+              <div>
+                <label htmlFor="verification-notes" className="mb-2 block text-sm font-medium text-gray-700">Notes</label>
+                <textarea
+                  id="verification-notes"
+                  rows="3"
+                  value={verificationNotes}
+                  onChange={(event) => setVerificationNotes(event.target.value)}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  placeholder="Add verification notes..."
+                />
+              </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+            <div className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4">
               <button
-                onClick={() => setShowVerifyDialog(null)}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                type="button"
+                onClick={() => {
+                  setVerifyTarget(null)
+                  setVerificationAction('verify')
+                  setVerificationNotes('')
+                }}
+                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
-              <button
-                onClick={() => {
-                  const action = document.querySelector('input[name="verification_action"]:checked')?.value;
-                  const notes = document.getElementById('verification_notes')?.value || '';
-                  handleVerify(showVerifyDialog, action, notes);
-                }}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
-                Submit Verification
+              <button type="button" onClick={handleVerify} className="rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">
+                Submit
               </button>
             </div>
           </div>
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default GuarantorsList;
-
-
+export default GuarantorsList

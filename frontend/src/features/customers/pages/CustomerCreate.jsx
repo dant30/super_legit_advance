@@ -5,12 +5,13 @@ import Alert from '@components/ui/Alert'
 import Button from '@components/ui/Button'
 import PageHeader from '@components/ui/PageHeader'
 import { ArrowLeft } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useCustomerContext } from '@contexts/CustomerContext'
 import { CustomerForm } from '@components/customers'
 import { useToast } from '@contexts/ToastContext'
 
 const CustomerCreate = () => {
+  const navigate = useNavigate()
   const { createCustomer, customersLoading } = useCustomerContext()
   const { addToast } = useToast()
 
@@ -18,7 +19,7 @@ const CustomerCreate = () => {
     const response = await createCustomer(formData)
     if (response?.success) {
       addToast('Customer created successfully', 'success')
-      window.location.href = '/customers'
+      navigate('/customers')
       return response
     }
     addToast(response?.error || 'Failed to create customer', 'error')

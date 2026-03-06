@@ -20,6 +20,10 @@ export const CUSTOMER_ENDPOINTS = Object.freeze({
 })
 
 function toFormData(payload = {}) {
+  if (payload instanceof FormData) {
+    return payload
+  }
+
   const form = new FormData()
   Object.entries(payload).forEach(([key, value]) => {
     if (value === undefined || value === null) return

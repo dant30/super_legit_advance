@@ -447,10 +447,12 @@ export const useCustomers = () => {
         setState((prev) => ({
           ...prev,
           guarantors: prev.guarantors.map((guarantor) =>
-            guarantor.id === id ? response.data : guarantor
+            guarantor.id === id ? { ...guarantor, ...response.data } : guarantor
           ),
           selectedGuarantor:
-            prev.selectedGuarantor?.id === id ? response.data : prev.selectedGuarantor,
+            prev.selectedGuarantor?.id === id
+              ? { ...prev.selectedGuarantor, ...response.data }
+              : prev.selectedGuarantor,
         }))
         addToast('Guarantor verified', 'success')
       }

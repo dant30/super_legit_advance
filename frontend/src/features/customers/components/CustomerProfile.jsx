@@ -89,6 +89,7 @@ const CustomerProfile = ({ customer: customerProp, loading: loadingProp, custome
 
   const isLoading = loadingProp ?? selectedCustomerLoading;
   const customer = customerProp ?? selectedCustomer;
+  const isEmbedded = Boolean(customerProp);
 
   if (isLoading) {
     return (
@@ -139,6 +140,8 @@ const CustomerProfile = ({ customer: customerProp, loading: loadingProp, custome
 
   return (
     <div className="space-y-6">
+      {!isEmbedded && (
+        <>
       {/* Header */}
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-5 border-b border-gray-200">
@@ -242,6 +245,8 @@ const CustomerProfile = ({ customer: customerProp, loading: loadingProp, custome
           </nav>
         </div>
       </div>
+        </>
+      )}
 
       {/* Content */}
       <div className="bg-white shadow rounded-lg">

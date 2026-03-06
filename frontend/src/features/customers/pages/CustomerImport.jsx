@@ -59,7 +59,7 @@ const CustomerImport = () => {
           subTitle={`Successfully imported ${importResult?.imported_count || 0} customers`}
           extra={[
             <Link to="/customers" key="view">
-              <Button type="primary">View Customers</Button>
+              <Button variant="primary">View Customers</Button>
             </Link>,
             <Button 
               key="importMore" 
@@ -88,7 +88,7 @@ const CustomerImport = () => {
             
             <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
               <Button 
-                type="primary" 
+                variant="primary" 
                 size="large"
                 icon={<Upload size={20} />}
                 onClick={() => setImportDialogOpen(true)}
