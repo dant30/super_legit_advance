@@ -20,6 +20,7 @@ import {
   AUTH_PASSWORD_POLICY,
   AUTH_STORAGE_KEYS,
 } from '../types'
+import { AuthPrimaryButton } from '../components'
 
 const Login = () => {
   const navigate = useNavigate()
@@ -316,12 +317,7 @@ const Login = () => {
                 </Link>
               </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitDisabled}
-                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-brand-700 bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ backgroundColor: 'var(--color-brand-600)', color: '#ffffff' }}
-              >
+              <AuthPrimaryButton type="submit" disabled={isSubmitDisabled} className="mt-2 disabled:opacity-60">
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -333,7 +329,7 @@ const Login = () => {
                     Sign In
                   </>
                 )}
-              </button>
+              </AuthPrimaryButton>
             </form>
 
             <div className="mt-6 rounded-lg border border-surface-border bg-surface-subtle px-3 py-3">
