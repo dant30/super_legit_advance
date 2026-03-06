@@ -4,29 +4,99 @@ import axiosInstance from '@api/axios'
 /**
  * Staff Management API
  */
+const extractData = (response) => response?.data || response
+const STAFF_ROLES = ['admin', 'staff', 'loan_officer']
+
 const staffAPI = {
   // Staff CRUD -> use backend users/staff-profiles endpoints
-  getStaff: (params = {}) =>
-    axiosInstance.get('/users/staff-profiles/', { params }),
+  async getStaff(params = {}) {
+    if (typeof params === 'string') {
+      const response = await axiosInstance.get(`/users/staff-profiles/${params}/`)
+      return extractData(response)
+    }
 
-  getStaffById: (id) =>
-    axiosInstance.get(`/users/staff-profiles/${id}/`),
+    const response = await axiosInstance.get('/users/staff-profiles/', { params })
+    return extractData(response)
+  },
 
-  createStaff: (data) =>
-    axiosInstance.post('/users/staff-profiles/', data),
+  async getStaffById(id) {
+    const response = await axiosInstance.get(`/users/staff-profiles/${id}/`)
+    return extractData(response)
+  },
 
-  updateStaff: (id, data) =>
-    axiosInstance.put(`/users/staff-profiles/${id}/`, data),
+  async createStaff(data) {
+    const response = await axiosInstance.post('/users/staff-profiles/', data)
+    return extractData(response)
+  },
 
-  patchStaff: (id, data) =>
-    axiosInstance.patch(`/users/staff-profiles/${id}/`, data),
+  async updateStaff(id, data) {
+    const response = await axiosInstance.patch(`/users/staff-profiles/${id}/`, data)
+    return extractData(response)
+  },
 
-  deleteStaff: (id) =>
-    axiosInstance.delete(`/users/staff-profiles/${id}/`),
+  async patchStaff(id, data) {
+    const response = await axiosInstance.patch(`/users/staff-profiles/${id}/`, data)
+    return extractData(response)
+  },
+
+  async deleteStaff(id) {
+    const response = await axiosInstance.delete(`/users/staff-profiles/${id}/`)
+    return extractData(response)
+  },
 
   // NEW: staff stats endpoint used by frontend pages
-  getStaffStats: () =>
-    axiosInstance.get('/users/staff-profiles/stats/'),
+  async getStaffStats() {
+    const response = await axiosInstance.get('/users/staff-profiles/stats/')
+    return extractData(response)
+  },
+
+  async getCurrentStaff() {
+    const response = await axiosInstance.get('/users/staff-profiles/me/')
+    return extractData(response)
+  },
+
+  async getAvailableOfficers() {
+    const response = await axiosInstance.get('/users/staff-profiles/available-officers/')
+    return extractData(response)
+  },
+
+  async assignSupervisor(staffId, supervisorId) {
+    const response = await axiosInstance.post(`/users/staff-profiles/${staffId}/assign-supervisor/`, {
+      supervisor_id: supervisorId,
+    })
+    return extractData(response)
+  },
+
+  async updateStaffPerformance(staffId, payload) {
+    const response = await axiosInstance.post(`/users/staff-profiles/${staffId}/update-performance/`, payload)
+    return extractData(response)
+  },
+
+  async getEligibleStaffUsers() {
+    const responses = await Promise.all(
+      STAFF_ROLES.map((role) =>
+        axiosInstance.get('/users/users/', {
+          params: {
+            role,
+            is_active: true,
+            page_size: 100,
+          },
+        })
+      )
+    )
+
+    const seen = new Set()
+    return responses
+      .flatMap((response) => extractData(response)?.results || extractData(response) || [])
+      .filter((user) => {
+        if (!user?.id || seen.has(user.id)) {
+          return false
+        }
+
+        seen.add(user.id)
+        return true
+      })
+  },
 
   // Keep import/export paths if your backend implements them under users/staff-profiles/
   importStaff: (file) => {
@@ -43,12 +113,27 @@ const staffAPI = {
       responseType: 'blob',
     }),
 
-  // other staff related helpers (assignRole, tasks, activity) should also point to /users/staff-profiles/ or to proper users/ endpoints
-  assignRole: (staffId, data) =>
-    axiosInstance.post(`/users/staff-profiles/${staffId}/assign-role/`, data),
+  // Unsupported helpers retained as explicit stubs so the UI does not call fictional endpoints.
+  assignRole: async () => {
+    throw new Error('Role assignment is not exposed by the current backend API.')
+  },
 
-  getStaffTasks: (staffId) =>
-    axiosInstance.get(`/users/staff-profiles/${staffId}/tasks/`),
+  getStaffTasks: async () => {
+    return { results: [] }
+  },
+
+  getStaffSchedule: async () => {
+    return { results: [] }
+  },
+
+  getStaffPerformance: async (staffId) => {
+    const profile = await staffAPI.getStaffById(staffId)
+    return {
+      performanceRating: profile?.performance_rating || null,
+      performanceLevel: profile?.performance_level || 'Not rated',
+      lastPerformanceReview: profile?.last_performance_review || null,
+    }
+  },
 }
 
 /**

@@ -1,259 +1,119 @@
-import React, { useState } from 'react'
-import Card from '@components/ui/Card'
+import React from 'react'
 import Button from '@components/ui/Button'
-import Descriptions from '@components/ui/Descriptions'
-import Tabs from '@components/ui/Tabs'
-import Alert from '@components/ui/Alert'
-import Statistic from '@components/ui/Statistic'
-import Row from '@components/ui/Row'
-import Col from '@components/ui/Col'
+import Card from '@components/ui/Card'
 import Tag from '@components/ui/Tag'
-import Space from '@components/ui/Space'
-import Timeline from '@components/ui/Timeline'
-import {
-  Edit,
-  CheckCircle,
-  AlertCircle,
-  ArrowLeft,
-} from 'lucide-react'
-import { formatDate, formatCurrency } from '@utils/formatters'
-import { cn } from '@utils/cn'
+import { ArrowLeft, Edit } from 'lucide-react'
+import { formatCurrency, formatDate } from '@utils/formatters'
 
-const StaffDetail = ({
-  staff,
-  onEdit,
-  onBack,
-}) => {
-  const [activeTab, setActiveTab] = useState('profile')
+const DetailRow = ({ label, value }) => (
+  <div className="grid gap-1 border-b border-gray-100 py-3 last:border-b-0 sm:grid-cols-[180px_minmax(0,1fr)]">
+    <div className="text-sm font-medium text-text-muted">{label}</div>
+    <div className="min-w-0 text-sm text-text-primary">{value || 'Not set'}</div>
+  </div>
+)
 
-  const statusColors = {
-    ACTIVE: 'success',
-    INACTIVE: 'warning',
-    ON_LEAVE: 'default',
-    TERMINATED: 'danger',
+const formatPermissions = (permissions) => {
+  const items = Object.entries(permissions || {}).filter(([, enabled]) => Boolean(enabled))
+  if (items.length === 0) {
+    return 'No custom permissions'
   }
 
-  const roleColors = {
-    ADMIN: 'purple',
-    MANAGER: 'blue',
-    OFFICER: 'cyan',
-    STAFF: 'green',
-  }
+  return items.map(([key]) => key.replace(/_/g, ' ')).join(', ')
+}
 
+const StaffDetail = ({ staff, onEdit, onBack }) => {
   if (!staff) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">No staff data available</p>
-      </div>
-    )
+    return null
   }
+
+  const user = staff.user_details || {}
+  const supervisor = staff.supervisor_details || {}
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <Button
-          type="text"
-          icon={<ArrowLeft className="h-4 w-4" />}
-          onClick={onBack}
-        >
-          Back
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Button variant="ghost" leadingIcon={<ArrowLeft className="h-4 w-4" />} onClick={onBack}>
+          Back to staff
         </Button>
-        <Space>
-          <Button
-            type="primary"
-            icon={<Edit className="h-4 w-4" />}
-            onClick={() => onEdit?.(staff)}
-          >
-            Edit
-          </Button>
-        </Space>
+        <Button leadingIcon={<Edit className="h-4 w-4" />} onClick={() => onEdit?.(staff)}>
+          Edit profile
+        </Button>
       </div>
 
-      {/* Profile Overview */}
-      <Card className="shadow-soft">
-        <div className="flex items-start justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-24 h-24 rounded-lg bg-primary-100 flex items-center justify-center">
-              <span className="text-2xl font-bold text-primary-600">
-                {staff.first_name?.charAt(0)}
-                {staff.last_name?.charAt(0)}
-              </span>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">{staff.full_name}</h1>
-              <p className="text-gray-600">{staff.employee_id}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <Tag color={statusColors[staff.status]}>
-                  {staff.status?.replace(/_/g, ' ')}
-                </Tag>
-                <Tag color={roleColors[staff.role]}>
-                  {staff.role}
-                </Tag>
-              </div>
+      <Card className="p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-text-primary">{user.full_name || user.email}</h1>
+            <p className="mt-1 text-sm text-text-muted">{staff.employee_id || 'No employee ID'}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Tag color="info">{user.role_display || user.role || 'Unknown role'}</Tag>
+              <Tag color={staff.is_available ? 'success' : 'warning'}>
+                {staff.is_available ? 'Available' : 'Unavailable'}
+              </Tag>
+              {staff.can_approve_loans && <Tag color="success">Loan approver</Tag>}
             </div>
           </div>
 
-          <div className="text-right">
-            <div className="text-3xl font-bold text-primary-600">
-              {formatCurrency(staff.approval_limit || 0)}
+          <div className="grid gap-2 text-sm">
+            <div>
+              <span className="text-text-muted">Approval tier</span>
+              <div className="font-medium text-text-primary">{staff.approval_tier || 'Not set'}</div>
             </div>
-            <p className="text-gray-500 text-sm">Approval Limit</p>
+            <div>
+              <span className="text-text-muted">Max approval</span>
+              <div className="font-medium text-text-primary">
+                {staff.max_loan_approval_amount ? formatCurrency(staff.max_loan_approval_amount) : 'No limit set'}
+              </div>
+            </div>
+            <div>
+              <span className="text-text-muted">Performance</span>
+              <div className="font-medium text-text-primary">
+                {staff.performance_rating ? `${staff.performance_rating} / 5 (${staff.performance_level})` : 'Not rated'}
+              </div>
+            </div>
           </div>
         </div>
       </Card>
 
-      {/* Status Alert */}
-      {staff.status !== 'ACTIVE' && (
-        <Alert
-          message={`Staff is currently ${staff.status?.replace(/_/g, ' ').toLowerCase()}`}
-          type={staff.status === 'TERMINATED' ? 'error' : 'warning'}
-          showIcon
-          icon={
-            staff.status === 'TERMINATED' ? (
-              <AlertCircle className="h-4 w-4" />
-            ) : (
-              <CheckCircle className="h-4 w-4" />
-            )
-          }
-        />
-      )}
+      <Card className="p-5">
+        <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-text-muted">Profile summary</h2>
+        <div className="mt-4">
+          <DetailRow label="Email" value={staff.work_email || user.email} />
+          <DetailRow label="Phone" value={staff.work_phone || user.phone_number} />
+          <DetailRow label="Department" value={staff.department} />
+          <DetailRow label="Position" value={staff.position} />
+          <DetailRow label="Hire date" value={staff.hire_date ? formatDate(staff.hire_date, 'MMM dd, yyyy') : 'Not set'} />
+          <DetailRow label="Employment type" value={staff.employment_type?.replace(/_/g, ' ')} />
+          <DetailRow label="Supervisor" value={supervisor.full_name || supervisor.email} />
+          <DetailRow label="Office location" value={staff.office_location} />
+          <DetailRow label="Availability note" value={staff.availability_note} />
+        </div>
+      </Card>
 
-      {/* Tabs */}
-      <Tabs
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        items={[
-          {
-            label: 'Profile Information',
-            key: 'profile',
-            children: (
-              <Card className="shadow-soft">
-                <Descriptions
-                  column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}
-                  bordered
-                >
-                  <Descriptions.Item label="Full Name">
-                    {staff.full_name}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Employee ID">
-                    {staff.employee_id}
-                  </Descriptions.Item>
+      <Card className="p-5">
+        <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-text-muted">Access and controls</h2>
+        <div className="mt-4">
+          <DetailRow label="Loan approvals" value={staff.can_approve_loans ? 'Enabled' : 'Disabled'} />
+          <DetailRow label="Customer management" value={staff.can_manage_customers ? 'Enabled' : 'Disabled'} />
+          <DetailRow label="Payment processing" value={staff.can_process_payments ? 'Enabled' : 'Disabled'} />
+          <DetailRow label="Report generation" value={staff.can_generate_reports ? 'Enabled' : 'Disabled'} />
+          <DetailRow label="Custom permissions" value={formatPermissions(staff.permissions)} />
+          <DetailRow label="Work schedule" value={staff.work_schedule_display} />
+        </div>
+      </Card>
 
-                  <Descriptions.Item label="Email">
-                    <a href={`mailto:${staff.email}`} className="text-primary-600 hover:underline">
-                      {staff.email}
-                    </a>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Phone">
-                    <a href={`tel:${staff.phone}`} className="text-primary-600 hover:underline">
-                      {staff.phone}
-                    </a>
-                  </Descriptions.Item>
-
-                  <Descriptions.Item label="Date of Birth">
-                    {formatDate(staff.date_of_birth, 'MMM dd, yyyy')}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Age">
-                    {staff.age || 'N/A'} years
-                  </Descriptions.Item>
-
-                  <Descriptions.Item label="Department">
-                    {staff.department}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Role">
-                    <Tag color={roleColors[staff.role]}>{staff.role}</Tag>
-                  </Descriptions.Item>
-
-                  <Descriptions.Item label="Date Joined">
-                    {formatDate(staff.date_joined, 'MMM dd, yyyy')}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Status">
-                    <Tag color={statusColors[staff.status]}>
-                      {staff.status?.replace(/_/g, ' ')}
-                    </Tag>
-                  </Descriptions.Item>
-                </Descriptions>
-              </Card>
-            ),
-          },
-          {
-            label: 'Work Information',
-            key: 'work',
-            children: (
-              <Card className="shadow-soft">
-                <Row gutter={16}>
-                  <Col xs={24} sm={12} md={6}>
-                    <Statistic
-                      title="Approval Limit"
-                      value={staff.approval_limit || 0}
-                      prefix="KES "
-                      valueStyle={{ color: '#3b82f6' }}
-                    />
-                  </Col>
-                  <Col xs={24} sm={12} md={6}>
-                    <Statistic
-                      title="Loans Processed"
-                      value={staff.loans_processed || 0}
-                      valueStyle={{ color: '#10b981' }}
-                    />
-                  </Col>
-                  <Col xs={24} sm={12} md={6}>
-                    <Statistic
-                      title="Collections"
-                      value={formatCurrency(staff.collections_amount || 0)}
-                      valueStyle={{ color: '#f59e0b' }}
-                    />
-                  </Col>
-                  <Col xs={24} sm={12} md={6}>
-                    <Statistic
-                      title="Active Cases"
-                      value={staff.active_cases || 0}
-                      valueStyle={{ color: '#ef4444' }}
-                    />
-                  </Col>
-                </Row>
-
-                <div className="mt-6 pt-6 border-t">
-                  <h3 className="font-semibold mb-4">Permissions</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[
-                      'can_approve_loans',
-                      'can_disburse_loans',
-                      'can_view_reports',
-                      'can_manage_customers',
-                      'can_manage_repayments',
-                      'can_manage_staff',
-                    ].map((perm) => (
-                      <div
-                        key={perm}
-                        className={cn(
-                          'flex items-center gap-2 p-2 rounded',
-                          staff.permissions?.includes(perm)
-                            ? 'bg-success-50 text-success-700'
-                            : 'bg-gray-50 text-gray-500'
-                        )}
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                        <span className="text-sm">{perm.replace(/_/g, ' ')}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Card>
-            ),
-          },
-          {
-            label: 'Activity & History',
-            key: 'activity',
-            children: (
-              <Card className="shadow-soft">
-                <Timeline items={staff.activity_log || []} />
-              </Card>
-            ),
-          },
-        ]}
-      />
+      <Card className="p-5">
+        <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-text-muted">Emergency and banking</h2>
+        <div className="mt-4">
+          <DetailRow label="Emergency contact" value={staff.emergency_contact_name} />
+          <DetailRow label="Emergency phone" value={staff.emergency_contact_phone} />
+          <DetailRow label="Relationship" value={staff.emergency_contact_relationship} />
+          <DetailRow label="Bank" value={staff.bank_name} />
+          <DetailRow label="Account" value={staff.bank_account_masked} />
+          <DetailRow label="Branch" value={staff.bank_branch} />
+          <DetailRow label="Notes" value={staff.notes} />
+        </div>
+      </Card>
     </div>
   )
 }

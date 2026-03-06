@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import Button from '@components/ui/Button'
 import Space from '@components/ui/Space'
-import Modal from '@components/ui/Modal'
 import PageHeader from '@components/ui/PageHeader'
 import {
   StaffTable,
   StaffFilters,
 } from '@components/admin/staff'
-import { Plus, Download, RefreshCw, Users, UserCheck, UserMinus } from 'lucide-react'
+import { Plus, RefreshCw, Users, UserCheck, UserMinus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '@contexts/ToastContext'
 import { useAuth } from '@hooks/useAuth'
@@ -42,7 +41,7 @@ const StaffList = () => {
       })
       setStaff(response.results || [])
       setPagination({
-        page: response.page || page,
+        page,
         page_size: response.page_size || 20,
         total: response.count || 0,
       })
@@ -77,78 +76,53 @@ const StaffList = () => {
   }
 
   const handleDelete = (record) => {
-    Modal.confirm({
-      title: 'Delete Staff Member?',
-      content: `Are you sure you want to delete ${record.full_name}? This action cannot be undone.`,
-      okText: 'Delete',
-      okType: 'danger',
-      onOk: async () => {
-        try {
-          await staffAPI.deleteStaff(record.id)
-          addToast({
-            type: 'success',
-            title: 'Success',
-            message: 'Staff member deleted successfully',
-          })
-          fetchStaff(pagination.page, filters)
-        } catch (error) {
-          addToast({
-            type: 'error',
-            title: 'Error',
-            message: error?.message || 'Failed to delete staff',
-          })
-        }
-      },
-    })
-  }
-
-  const handleExport = async () => {
-    try {
-      await staffAPI.exportStaff('excel', filters)
-      addToast({
-        type: 'success',
-        title: 'Success',
-        message: 'Staff list exported successfully',
-      })
-    } catch (error) {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: error?.message || 'Failed to export staff',
-      })
+    const displayName = record?.user_details?.full_name || record?.user_details?.email || record?.employee_id || 'this staff profile'
+    if (!window.confirm(`Delete ${displayName}? This action cannot be undone.`)) {
+      return
     }
+
+    ;(async () => {
+      try {
+        await staffAPI.deleteStaff(record.id)
+        addToast({
+          type: 'success',
+          title: 'Success',
+          message: 'Staff member deleted successfully',
+        })
+        fetchStaff(pagination.page, filters)
+      } catch (error) {
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: error?.message || 'Failed to delete staff',
+        })
+      }
+    })()
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Staff Management"
-        subTitle="Manage team members and their assignments"
+        subTitle="Manage staff profiles, reporting lines, and approval controls"
         extra={
           <Space wrap>
             <Button
               className="w-full sm:w-auto"
-              icon={<RefreshCw className="h-4 w-4" />}
+              leadingIcon={<RefreshCw className="h-4 w-4" />}
               onClick={() => fetchStaff(pagination.page, filters)}
               loading={loading}
             >
               Refresh
             </Button>
-            <Button
-              className="w-full sm:w-auto"
-              icon={<Download className="h-4 w-4" />}
-              onClick={handleExport}
-            >
-              Export
-            </Button>
             {hasPermission('can_manage_staff') && (
               <Button
                 className="w-full sm:w-auto"
                 variant="primary"
-                icon={<Plus className="h-4 w-4" />}
+                leadingIcon={<Plus className="h-4 w-4" />}
                 onClick={() => navigate('/admin/staff/create')}
               >
-                Add Staff
+                Create profile
               </Button>
             )}
           </Space>

@@ -1,164 +1,128 @@
-import React, { useState } from 'react'
-import Card from '@components/ui/Card'
+import React, { useEffect, useState } from 'react'
 import Button from '@components/ui/Button'
-import Select from '@components/ui/Select'
+import Card from '@components/ui/Card'
 import Input from '@components/ui/Input'
-import Row from '@components/ui/Row'
-import Col from '@components/ui/Col'
-import DatePicker from '@components/ui/DatePicker'
-import { Search, X, Filter } from 'lucide-react'
+import Select from '@components/ui/Select'
+import { Filter, Search, X } from 'lucide-react'
 
-const ROLES = [
-  { value: 'ADMIN', label: 'Administrator' },
-  { value: 'MANAGER', label: 'Manager' },
-  { value: 'OFFICER', label: 'Loan Officer' },
-  { value: 'STAFF', label: 'Service Staff' },
+const EMPLOYMENT_TYPES = [
+  { value: 'full_time', label: 'Full time' },
+  { value: 'part_time', label: 'Part time' },
+  { value: 'contract', label: 'Contract' },
+  { value: 'intern', label: 'Intern' },
 ]
 
-const DEPARTMENTS = [
-  { value: 'LOANS', label: 'Loans Department' },
-  { value: 'COLLECTIONS', label: 'Collections' },
-  { value: 'DISBURSEMENTS', label: 'Disbursements' },
-  { value: 'ADMIN', label: 'Administration' },
-  { value: 'IT', label: 'IT/Technical' },
+const AVAILABILITY_OPTIONS = [
+  { value: 'true', label: 'Available' },
+  { value: 'false', label: 'Unavailable' },
 ]
 
-const STATUSES = [
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'INACTIVE', label: 'Inactive' },
-  { value: 'ON_LEAVE', label: 'On Leave' },
-  { value: 'TERMINATED', label: 'Terminated' },
+const APPROVAL_OPTIONS = [
+  { value: 'true', label: 'Can approve loans' },
+  { value: 'false', label: 'Cannot approve loans' },
 ]
+
+const normalizeFilters = (filters) => ({
+  search: filters.search || '',
+  department: filters.department || '',
+  employment_type: filters.employment_type || '',
+  is_available: filters.is_available ?? '',
+  can_approve_loans: filters.can_approve_loans ?? '',
+})
 
 const StaffFilters = ({ filters = {}, onFilterChange }) => {
-  const [localFilters, setLocalFilters] = useState(filters)
-  const [expandFilters, setExpandFilters] = useState(false)
+  const [localFilters, setLocalFilters] = useState(() => normalizeFilters(filters))
+  const [expanded, setExpanded] = useState(false)
 
-  const activeFilterCount = Object.values(localFilters).filter(
-    (v) => v !== '' && v !== null && v !== undefined
-  ).length
+  useEffect(() => {
+    setLocalFilters(normalizeFilters(filters))
+  }, [filters])
 
-  const handleFilterChange = (key, value) => {
-    const newFilters = { ...localFilters, [key]: value }
-    setLocalFilters(newFilters)
+  const handleChange = (field) => (eventOrValue) => {
+    const value = eventOrValue?.target?.value ?? eventOrValue ?? ''
+    setLocalFilters((current) => ({
+      ...current,
+      [field]: value,
+    }))
   }
 
-  const handleApplyFilters = () => {
-    onFilterChange?.(localFilters)
-  }
-
-  const handleClearFilters = () => {
-    const cleared = Object.keys(localFilters).reduce((acc, key) => {
-      acc[key] = ''
-      return acc
+  const handleApply = () => {
+    const nextFilters = Object.entries(localFilters).reduce((accumulator, [key, value]) => {
+      if (value !== '' && value !== null && value !== undefined) {
+        accumulator[key] = value
+      }
+      return accumulator
     }, {})
-    setLocalFilters(cleared)
-    onFilterChange?.(cleared)
+
+    onFilterChange?.(nextFilters)
   }
+
+  const handleClear = () => {
+    const cleared = normalizeFilters({})
+    setLocalFilters(cleared)
+    onFilterChange?.({})
+  }
+
+  const activeCount = Object.values(localFilters).filter(Boolean).length
 
   return (
-    <Card className="shadow-soft">
-      <div className="space-y-4">
-        {/* Search Bar */}
-        <div className="flex items-center gap-2">
-          <Input
-            placeholder="Search by name, email, or ID..."
-            prefix={<Search className="h-4 w-4" />}
-            value={localFilters.search || ''}
-            onChange={(e) => handleFilterChange('search', e.target.value)}
-            onPressEnter={handleApplyFilters}
-            className="flex-1"
-          />
-          <Button type="primary" onClick={handleApplyFilters}>
-            Search
+    <Card className="p-5">
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Input
+          containerClassName="flex-1"
+          placeholder="Search by name, email, employee ID or position"
+          value={localFilters.search}
+          onChange={handleChange('search')}
+          prefix={<Search className="h-4 w-4" />}
+          onPressEnter={handleApply}
+        />
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setExpanded((current) => !current)} leadingIcon={<Filter className="h-4 w-4" />}>
+            Filters{activeCount ? ` (${activeCount})` : ''}
           </Button>
+          <Button onClick={handleApply}>Apply</Button>
         </div>
-
-        {/* Expandable Filters Button */}
-        <button
-          onClick={() => setExpandFilters(!expandFilters)}
-          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 text-left font-medium transition-colors"
-        >
-          <Filter className="h-4 w-4" />
-          <span>Advanced Filters</span>
-          {activeFilterCount > 0 && (
-            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-200 rounded-full">
-              {activeFilterCount} active
-            </span>
-          )}
-        </button>
-
-        {/* Filters Content */}
-        {expandFilters && (
-          <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <Row gutter={16}>
-              <Col xs={24} sm={12} md={6}>
-                <label className="block text-sm font-medium mb-2">
-                  Role
-                </label>
-                <Select
-                  placeholder="Select role"
-                  options={ROLES}
-                  value={localFilters.role || undefined}
-                  onChange={(value) => handleFilterChange('role', value)}
-                  allowClear
-                />
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <label className="block text-sm font-medium mb-2">
-                  Department
-                </label>
-                <Select
-                  placeholder="Select department"
-                  options={DEPARTMENTS}
-                  value={localFilters.department || undefined}
-                  onChange={(value) =>
-                    handleFilterChange('department', value)
-                  }
-                  allowClear
-                />
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <label className="block text-sm font-medium mb-2">
-                  Status
-                </label>
-                <Select
-                  placeholder="Select status"
-                  options={STATUSES}
-                  value={localFilters.status || undefined}
-                  onChange={(value) => handleFilterChange('status', value)}
-                  allowClear
-                />
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <label className="block text-sm font-medium mb-2">
-                  Date Range
-                </label>
-                <DatePicker.RangePicker
-                  style={{ width: '100%' }}
-                  onChange={(dates) =>
-                    handleFilterChange('dateRange', dates)
-                  }
-                />
-              </Col>
-            </Row>
-
-            {/* Filter Actions */}
-            <div className="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <Button onClick={handleClearFilters}>
-                <X className="h-4 w-4" />
-                Clear Filters
-              </Button>
-              <Button type="primary" onClick={handleApplyFilters}>
-                Apply Filters
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {expanded && (
+        <div className="mt-4 grid gap-4 border-t border-gray-200 pt-4 md:grid-cols-2 xl:grid-cols-4">
+          <Input
+            label="Department"
+            value={localFilters.department}
+            onChange={handleChange('department')}
+            placeholder="Operations"
+          />
+          <Select
+            label="Employment type"
+            value={localFilters.employment_type}
+            onValueChange={handleChange('employment_type')}
+            options={EMPLOYMENT_TYPES}
+            placeholder="All employment types"
+          />
+          <Select
+            label="Availability"
+            value={String(localFilters.is_available)}
+            onValueChange={handleChange('is_available')}
+            options={AVAILABILITY_OPTIONS}
+            placeholder="All staff"
+          />
+          <Select
+            label="Loan approvals"
+            value={String(localFilters.can_approve_loans)}
+            onValueChange={handleChange('can_approve_loans')}
+            options={APPROVAL_OPTIONS}
+            placeholder="Any approval status"
+          />
+
+          <div className="md:col-span-2 xl:col-span-4 flex justify-end">
+            <Button variant="ghost" leadingIcon={<X className="h-4 w-4" />} onClick={handleClear}>
+              Clear filters
+            </Button>
+          </div>
+        </div>
+      )}
     </Card>
   )
 }
 
 export default StaffFilters
-
