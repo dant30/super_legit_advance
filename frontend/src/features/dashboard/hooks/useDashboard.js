@@ -37,34 +37,84 @@ export const useDashboard = () => {
 
   const loadDashboard = useCallback(async () => {
     return withLoading(async () => {
-      const [overview, customers, loans, approvals, collections, performance, activity] =
-        await Promise.all([
-          dashboardAPI.getOverview(),
-          dashboardAPI.getMyCustomers(),
-          dashboardAPI.getMyLoans(),
-          dashboardAPI.getPendingApprovals(),
-          dashboardAPI.getCollectionsSummary(),
-          dashboardAPI.getPerformanceMetrics(),
-          dashboardAPI.getRecentActivity(),
-        ]);
+      const jobs = [
+        {
+          key: "overview",
+          label: "overview",
+          run: () => dashboardAPI.getOverview(),
+          fallback: { customers: 0, activeLoans: 0, dueToday: 0, collectionRate: 0 },
+          apply: (payload) => dispatch(setOverview(payload)),
+        },
+        {
+          key: "customers",
+          label: "customers",
+          run: () => dashboardAPI.getMyCustomers(),
+          fallback: [],
+          apply: (payload) => dispatch(setDashboardCustomers(payload)),
+        },
+        {
+          key: "loans",
+          label: "loans",
+          run: () => dashboardAPI.getMyLoans(),
+          fallback: [],
+          apply: (payload) => dispatch(setDashboardLoans(payload)),
+        },
+        {
+          key: "approvals",
+          label: "pending approvals",
+          run: () => dashboardAPI.getPendingApprovals(),
+          fallback: [],
+          apply: (payload) => dispatch(setPendingApprovals(payload)),
+        },
+        {
+          key: "collections",
+          label: "collections",
+          run: () => dashboardAPI.getCollectionsSummary(),
+          fallback: { collected: "KES 0", target: "KES 0", rate: 0, dueToday: 0 },
+          apply: (payload) => dispatch(setCollections(payload)),
+        },
+        {
+          key: "performance",
+          label: "performance",
+          run: () => dashboardAPI.getPerformanceMetrics(),
+          fallback: [],
+          apply: (payload) => dispatch(setPerformance(payload)),
+        },
+        {
+          key: "activity",
+          label: "recent activity",
+          run: () => dashboardAPI.getRecentActivity(),
+          fallback: [],
+          apply: (payload) => dispatch(setRecentActivity(payload)),
+        },
+      ];
 
-      dispatch(setOverview(overview));
-      dispatch(setDashboardCustomers(customers));
-      dispatch(setDashboardLoans(loans));
-      dispatch(setPendingApprovals(approvals));
-      dispatch(setCollections(collections));
-      dispatch(setPerformance(performance));
-      dispatch(setRecentActivity(activity));
+      const settled = await Promise.allSettled(jobs.map((job) => job.run()));
+      const result = {};
+      const failed = [];
 
-      return {
-        overview,
-        customers,
-        loans,
-        approvals,
-        collections,
-        performance,
-        activity,
-      };
+      settled.forEach((entry, index) => {
+        const job = jobs[index];
+        if (entry.status === "fulfilled") {
+          result[job.key] = entry.value;
+          job.apply(entry.value);
+          return;
+        }
+
+        result[job.key] = job.fallback;
+        job.apply(job.fallback);
+        failed.push(job.label);
+      });
+
+      if (failed.length) {
+        dispatch(
+          setDashboardError(
+            `Dashboard partially loaded. Failed sections: ${failed.join(", ")}`
+          )
+        );
+      }
+
+      return result;
     });
   }, [dispatch, withLoading]);
 

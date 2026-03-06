@@ -7,6 +7,7 @@ import { loansReducer } from "../../features/loans/store";
 import { notificationsReducer } from "../../features/notifications/store";
 import { repaymentsReducer } from "../../features/repayments/store";
 import { reportsReducer } from "../../features/reports/store";
+import { dashboardReducer } from "../../features/dashboard/store";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -15,6 +16,7 @@ const rootReducer = combineReducers({
   notifications: notificationsReducer,
   repayments: repaymentsReducer,
   reports: reportsReducer,
+  dashboard: dashboardReducer,
   toast: toastReducer,
 });
 
