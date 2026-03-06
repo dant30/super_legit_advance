@@ -372,6 +372,19 @@ class UserPasswordResetConfirmSerializer(serializers.Serializer):
         required=True,
         style={'input_type': 'password'}
     )
+    # Backward-compatible aliases used by frontend payloads.
+    password = serializers.CharField(
+        required=False,
+        write_only=True,
+        style={'input_type': 'password'},
+        min_length=8,
+        max_length=128
+    )
+    confirm_password = serializers.CharField(
+        required=False,
+        write_only=True,
+        style={'input_type': 'password'}
+    )
     
     def validate(self, attrs):
         from django.utils.encoding import force_str
@@ -380,8 +393,9 @@ class UserPasswordResetConfirmSerializer(serializers.Serializer):
         
         uid = attrs.get('uid')
         token = attrs.get('token')
-        new_password = attrs.get('new_password')
-        confirm_new_password = attrs.get('confirm_new_password')
+        new_password = attrs.get('new_password') or attrs.get('password')
+        confirm_new_password = attrs.get('confirm_new_password') or attrs.get('confirm_password')
+        attrs['new_password'] = new_password
         
         # Check passwords match
         if new_password != confirm_new_password:
@@ -417,6 +431,8 @@ class UserPasswordResetConfirmSerializer(serializers.Serializer):
         
         # Remove confirm_new_password from validated data
         attrs.pop('confirm_new_password', None)
+        attrs.pop('password', None)
+        attrs.pop('confirm_password', None)
         
         return attrs
     

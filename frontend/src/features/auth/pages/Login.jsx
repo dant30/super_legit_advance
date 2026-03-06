@@ -1,5 +1,5 @@
 // frontend/src/pages/auth/Login.jsx
-import React, { useMemo, useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   Mail,
@@ -9,11 +9,10 @@ import {
   ShieldCheck,
   AlertCircle,
   Loader2,
-  Sparkles,
+  Building2,
+  CheckCircle2,
+  KeyRound,
 } from 'lucide-react'
-
-import Particles from '@tsparticles/react'
-import { loadSlim } from '@tsparticles/slim'
 
 import { useAuth } from '@hooks/useAuth'
 import {
@@ -47,7 +46,7 @@ const Login = () => {
   useEffect(() => {
     const savedEmail = localStorage.getItem(AUTH_STORAGE_KEYS.rememberedEmail)
     if (savedEmail) {
-      setFormData(prev => ({ ...prev, email: savedEmail, remember: true }))
+      setFormData((prev) => ({ ...prev, email: savedEmail, remember: true }))
     }
   }, [])
 
@@ -70,7 +69,7 @@ const Login = () => {
   }, [authError])
 
   const togglePasswordVisibility = useCallback(() => {
-    setShowPassword(prev => !prev)
+    setShowPassword((prev) => !prev)
   }, [])
 
   const validateForm = useCallback(() => {
@@ -135,7 +134,7 @@ const Login = () => {
 
   const handleInputChange = useCallback(
     (field) => (value) => {
-      setFormData(prev => ({ ...prev, [field]: value }))
+      setFormData((prev) => ({ ...prev, [field]: value }))
       if (localError) setLocalError('')
       if (validationError) setValidationError('')
     },
@@ -166,217 +165,194 @@ const Login = () => {
   const displayError = localError || validationError
   const isSubmitDisabled = isLoading || !formData.email.trim() || !formData.password
 
-  const particlesInit = useCallback(async (engine) => {
-    await loadSlim(engine)
-  }, [])
-
-  const particlesOptions = useMemo(() => ({
-    background: {
-      color: { value: 'transparent' },
-    },
-    fpsLimit: 60,
-    interactivity: {
-      events: {
-        onHover: { enable: true, mode: 'repulse' },
-        resize: true,
-      },
-      modes: {
-        repulse: { distance: 90, duration: 0.4 },
-      },
-    },
-    particles: {
-      color: { value: ['#60a5fa', '#22d3ee', '#93c5fd'] },
-      links: {
-        color: '#93c5fd',
-        distance: 140,
-        enable: true,
-        opacity: 0.25,
-        width: 1,
-      },
-      collisions: { enable: false },
-      move: {
-        direction: 'none',
-        enable: true,
-        outModes: { default: 'out' },
-        random: false,
-        speed: 0.7,
-        straight: false,
-      },
-      number: {
-        density: { enable: true, area: 900 },
-        value: 60,
-      },
-      opacity: { value: 0.4 },
-      shape: { type: 'circle' },
-      size: { value: { min: 1, max: 3 } },
-    },
-    detectRetina: true,
-  }), [])
-
   return (
-    <div className="relative min-h-screen overflow-hidden bg-neutral-950 text-white">
+    <div className="relative min-h-screen overflow-y-auto overflow-x-hidden bg-surface-bg text-text-primary">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-cyan-500/20 blur-3xl" />
-        <div className="absolute -bottom-40 -right-24 h-[30rem] w-[30rem] rounded-full bg-blue-500/20 blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:24px_24px]" />
+        <div className="absolute -top-44 left-10 h-80 w-80 rounded-full bg-brand-200/35 blur-3xl" />
+        <div className="absolute -bottom-40 right-10 h-96 w-96 rounded-full bg-brand-100/40 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(56,80,107,0.08)_1px,transparent_1px)] [background-size:28px_28px]" />
       </div>
 
-      <Particles
-        id="loginParticles"
-        init={particlesInit}
-        options={particlesOptions}
-        className="absolute inset-0"
-      />
-
-      <div className="relative z-10 flex min-h-screen items-center justify-center p-6">
-        <div className="w-full max-w-md animate-fade-in">
-          <div className="text-center mb-8">
-            <div className="mx-auto mb-4 h-16 w-16 flex items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 shadow-[0_12px_30px_rgba(34,211,238,0.35)]">
-              <ShieldCheck className="h-8 w-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-white mb-1">
-              Super Legit Advance
-            </h1>
-            <p className="text-sm text-slate-300">
-              Loan Operations Portal
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_25px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-            <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-200">
-              <Sparkles className="h-4 w-4 text-cyan-300" />
-              Secure staff portal access
-            </div>
-
-            <div className="mt-5">
-              {displayError && (
-                <div
-                  className="mb-4 flex items-start gap-3 rounded-lg border border-danger-500/30 bg-danger-500/10 p-4 text-danger-100 animate-slide-up"
-                  role="alert"
-                >
-                  <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-danger-200" />
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{displayError}</p>
-                    <p className="text-xs opacity-80 mt-1">
-                      Please check your credentials and try again
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div>
-                  <label className="text-xs font-semibold text-slate-200">
-                    Email Address
-                  </label>
-                  <div className="relative mt-2">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
-                    <input
-                      type="email"
-                      placeholder="staff@superlegitadvance.com"
-                      value={formData.email}
-                      onChange={handleEmailChange}
-                      disabled={isLoading}
-                      required
-                      autoComplete="email"
-                      className="w-full rounded-lg border border-white/10 bg-white/5 px-10 py-2.5 text-sm text-white placeholder:text-slate-400 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-slate-200">
-                    Password
-                  </label>
-                  <div className="relative mt-2">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      value={formData.password}
-                      onChange={handlePasswordChange}
-                      disabled={isLoading}
-                      required
-                      autoComplete="current-password"
-                      className="w-full rounded-lg border border-white/10 bg-white/5 px-10 py-2.5 text-sm text-white placeholder:text-slate-400 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
-                    />
-                    <button
-                      type="button"
-                      onClick={togglePasswordVisibility}
-                      disabled={isLoading}
-                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-200 disabled:opacity-50"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.remember}
-                      onChange={handleRememberChange}
-                      disabled={isLoading}
-                      className="h-4 w-4 rounded border-white/20 bg-white/5 text-cyan-400 focus:ring-cyan-400/30"
-                    />
-                    <span>Remember me</span>
-                  </label>
-
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-cyan-300 hover:text-cyan-200 font-medium disabled:opacity-50"
-                    onClick={(e) => isLoading && e.preventDefault()}
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitDisabled}
-                  className="w-full rounded-lg bg-gradient-to-r from-cyan-400 to-blue-500 py-2.5 text-sm font-semibold text-slate-900 shadow-[0_10px_25px_rgba(34,211,238,0.35)] transition hover:from-cyan-300 hover:to-blue-400 disabled:opacity-60"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Signing in...
-                    </>
-                  ) : (
-                    'Sign In'
-                  )}
-                </button>
-              </form>
-            </div>
-
-            <div className="mt-6 border-t border-white/10 pt-4">
-              <div className="flex items-center justify-center gap-2 text-xs text-slate-300 mb-2">
-                <ShieldCheck className="h-3 w-3" />
-                <span>Secure login with industry-standard encryption</span>
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl items-center p-6 lg:p-8">
+        <div
+          className="grid w-full overflow-hidden rounded-2xl border bg-surface-panel shadow-medium lg:grid-cols-2"
+          style={{ borderColor: 'var(--surface-border)' }}
+        >
+          <section className="hidden border-r border-surface-border bg-gradient-to-b from-brand-50 to-surface-panel p-10 lg:block">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-brand-600 p-3 text-white shadow-soft">
+                <Building2 className="h-5 w-5" />
               </div>
-              <p className="text-center text-xs text-slate-400">
-                Unauthorized access is prohibited. Contact{' '}
-                <a
-                  href="mailto:support@superlegitadvance.com"
-                  className="text-cyan-300 hover:text-cyan-200 font-medium"
-                >
-                  support@superlegitadvance.com
-                </a>{' '}
-                for assistance
+              <div>
+                <p className="text-sm font-semibold tracking-wide text-text-secondary">
+                  Super Legit Advance
+                </p>
+                <p className="text-xs text-text-muted">Loan Operations Portal</p>
+              </div>
+            </div>
+
+            <div className="mt-12">
+              <p className="text-3xl font-semibold leading-tight text-text-primary">
+                Corporate lending operations, with secure staff access.
+              </p>
+              <p className="mt-4 max-w-md text-sm text-text-secondary">
+                Monitor portfolio performance, manage approvals, and execute collections in one
+                controlled workspace.
               </p>
             </div>
-          </div>
 
-          <div className="mt-6 text-center">
-            <p className="text-xs text-slate-400">
-              v2.1.0 • © {new Date().getFullYear()} Super Legit Advance
+            <ul className="mt-10 space-y-4">
+              <li className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 text-feedback-success" />
+                <span className="text-sm text-text-secondary">Role-based access and audit-safe workflows</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 text-feedback-success" />
+                <span className="text-sm text-text-secondary">Protected session and token lifecycle controls</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 text-feedback-success" />
+                <span className="text-sm text-text-secondary">Operational visibility for executive reporting</span>
+              </li>
+            </ul>
+          </section>
+
+          <section className="p-6 sm:p-8 lg:p-10">
+            <div className="mb-6 lg:hidden">
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-brand-600 p-2.5 text-white shadow-soft">
+                  <Building2 className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-text-primary">Super Legit Advance</p>
+                  <p className="text-xs text-text-muted">Loan Operations Portal</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h1 className="text-2xl font-semibold text-text-primary">Sign in</h1>
+              <p className="mt-1 text-sm text-text-secondary">Use your staff account credentials to continue.</p>
+            </div>
+
+            {displayError && (
+              <div
+                className="mt-5 flex items-start gap-3 rounded-lg border bg-rose-50 px-4 py-3 text-rose-700"
+                role="alert"
+              >
+                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold">{displayError}</p>
+                  <p className="text-xs">Verify your credentials and try again.</p>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-[0.06em] text-text-secondary">
+                  Email Address
+                </label>
+                <div className="relative mt-1.5">
+                  <Mail className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-text-muted" />
+                  <input
+                    type="email"
+                    placeholder="staff@superlegitadvance.com"
+                    value={formData.email}
+                    onChange={handleEmailChange}
+                    disabled={isLoading}
+                    required
+                    autoComplete="email"
+                    className="w-full rounded-lg border border-surface-border bg-surface-panel px-10 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-[0.06em] text-text-secondary">
+                  Password
+                </label>
+                <div className="relative mt-1.5">
+                  <Lock className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-text-muted" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handlePasswordChange}
+                    disabled={isLoading}
+                    required
+                    autoComplete="current-password"
+                    className="w-full rounded-lg border border-surface-border bg-surface-panel px-10 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    disabled={isLoading}
+                    className="absolute right-3 top-3 text-text-muted hover:text-text-secondary disabled:opacity-50"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-text-secondary">
+                  <input
+                    type="checkbox"
+                    checked={formData.remember}
+                    onChange={handleRememberChange}
+                    disabled={isLoading}
+                    className="h-4 w-4 rounded border-surface-border text-brand-600 focus:ring-brand-200"
+                  />
+                  <span>Remember me</span>
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-sm font-medium text-brand-700 hover:text-brand-800"
+                  onClick={(e) => isLoading && e.preventDefault()}
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitDisabled}
+                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-brand-700 bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ backgroundColor: 'var(--color-brand-600)', color: '#ffffff' }}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <KeyRound className="h-4 w-4" />
+                    Sign In
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="mt-6 rounded-lg border border-surface-border bg-surface-subtle px-3 py-3">
+              <div className="flex items-center gap-2 text-xs text-text-secondary">
+                <ShieldCheck className="h-3.5 w-3.5 text-brand-700" />
+                <span>Secure login with controlled access policies</span>
+              </div>
+              <p className="mt-1 text-xs text-text-muted">
+                Need support?{' '}
+                <a href="mailto:support@superlegitadvance.com" className="font-medium text-brand-700 hover:text-brand-800">
+                  support@superlegitadvance.com
+                </a>
+              </p>
+            </div>
+
+            <p className="mt-5 text-center text-xs text-text-muted">
+              &copy; {new Date().getFullYear()} Super Legit Advance
             </p>
-          </div>
+          </section>
         </div>
       </div>
     </div>

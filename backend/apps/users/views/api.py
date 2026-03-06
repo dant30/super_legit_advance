@@ -57,7 +57,11 @@ class LoginView(TokenObtainPairView, APIResponseMixin):
                 status=status.HTTP_401_UNAUTHORIZED
             )
         except Exception as e:
-            logger.error(f'Exception in LoginView: {str(e)}')
+            # Authentication failures should never bubble up as 500s in the UI.
+            detail = getattr(e, 'detail', None) or str(e)
+            if detail and detail != str(type(e)):
+                return Response({'detail': detail}, status=status.HTTP_401_UNAUTHORIZED)
+            logger.error(f'Exception in LoginView: {str(e)}', exc_info=True)
             return Response(
                 {'detail': 'Login failed'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -154,6 +158,13 @@ class UserViewSet(StandardViewSet):
         """Return appropriate permissions based on action."""
         if self.action in ['list', 'retrieve']:
             permission_classes = [permissions.IsAuthenticated, IsStaff]
+        elif self.action in [
+            'request_password_reset',
+            'reset_password_confirm',
+            'verify_email',
+            'resend_verification',
+        ]:
+            permission_classes = [permissions.AllowAny]
         elif self.action == 'create':
             permission_classes = [permissions.AllowAny]  # Allow registration
         elif self.action in ['update', 'partial_update', 'destroy']:
@@ -300,6 +311,28 @@ class UserViewSet(StandardViewSet):
             return self.success(None, "Email verified successfully.")
         
         return self.validation_error(serializer.errors)
+
+    @action(detail=False, methods=['post'], url_path='resend-verification')
+    def resend_verification(self, request):
+        """Resend verification email for an active user account."""
+        email = (request.data.get('email') or '').strip().lower()
+        if not email:
+            return self.validation_error({'email': ['This field is required.']})
+
+        try:
+            user = User.objects.get(email=email, is_active=True, is_deleted=False)
+            if not user.email_verified:
+                user.send_verification_email()
+        except User.DoesNotExist:
+            # Keep response generic to avoid account enumeration.
+            pass
+        except Exception as exc:
+            logger.warning(f"Failed to resend verification email for {email}: {exc}")
+
+        return self.success(
+            None,
+            "If an account exists and is eligible, a verification email has been sent."
+        )
     
     @action(detail=False, methods=['get'], url_path='stats')
     def user_stats(self, request):

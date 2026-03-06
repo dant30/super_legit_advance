@@ -28,6 +28,34 @@ export default {
     
     extend: {
       colors: {
+        brand: {
+          50: 'var(--color-brand-50)',
+          100: 'var(--color-brand-100)',
+          200: 'var(--color-brand-200)',
+          300: 'var(--color-brand-300)',
+          400: 'var(--color-brand-400)',
+          500: 'var(--color-brand-500)',
+          600: 'var(--color-brand-600)',
+          700: 'var(--color-brand-700)',
+          800: 'var(--color-brand-800)',
+          900: 'var(--color-brand-900)',
+        },
+        surface: {
+          bg: 'var(--surface-bg)',
+          panel: 'var(--surface-panel)',
+          subtle: 'var(--surface-subtle)',
+          border: 'var(--surface-border)',
+        },
+        text: {
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
+        },
+        feedback: {
+          success: 'var(--success)',
+          warning: 'var(--warning)',
+          danger: 'var(--danger)',
+        },
         primary: {
           50: '#eff6ff',
           100: '#dbeafe',
@@ -97,19 +125,19 @@ export default {
       },
 
       transitionTimingFunction: {
-        'standard': 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+        'standard': 'var(--ease-standard)',
       },
       
       spacing: {
-        'sidebar': '16rem',
-        'header': '4rem',
+        'sidebar': 'var(--sidebar-width)',
+        'header': 'var(--header-height)',
         'mobile-header': '3.5rem',
       },
       
       // Add custom shadows here
       boxShadow: {
-        'soft': '0 2px 10px rgba(0, 0, 0, 0.06)',
-        'medium': '0 6px 24px rgba(0, 0, 0, 0.12)',
+        'soft': 'var(--shadow-soft)',
+        'medium': 'var(--shadow-medium)',
         'hard': '0 10px 40px rgba(0, 0, 0, 0.15)',
         'focus': '0 0 0 3px rgba(59, 130, 246, 0.35)',
         'inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',

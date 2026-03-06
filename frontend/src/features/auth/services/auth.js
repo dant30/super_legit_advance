@@ -180,6 +180,9 @@ class AuthAPI {
       const response = await axiosInstance.post(AUTH_ENDPOINTS.confirmPasswordReset, {
         uid,
         token,
+        // Use canonical backend fields and keep aliases for compatibility.
+        new_password: password,
+        confirm_new_password: confirm_password,
         password,
         confirm_password,
       })
