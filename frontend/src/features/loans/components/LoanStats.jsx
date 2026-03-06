@@ -1,6 +1,9 @@
 // frontend/src/components/loans/LoanStats.jsx
 import React from 'react'
-import { Card, Col, Row, Statistic } from '@components/ui'
+import Card from '@components/ui/Card'
+import Col from '@components/ui/Col'
+import Row from '@components/ui/Row'
+import Statistic from '@components/ui/Statistic'
 import { formatCurrency } from '@api/loans'
 
 const LoanStats = ({ stats }) => {

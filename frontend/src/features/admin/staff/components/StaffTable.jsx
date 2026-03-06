@@ -1,12 +1,10 @@
 import React from 'react'
-import {
-  Table,
-  Button,
-  Tag,
-  Dropdown,
-  Tooltip,
-} from '@components/ui'
-import { Avatar } from '@components/ui'
+import Table from '@components/ui/Table'
+import Button from '@components/ui/Button'
+import Tag from '@components/ui/Tag'
+import Dropdown from '@components/ui/Dropdown'
+import Tooltip from '@components/ui/Tooltip'
+import Avatar from '@components/ui/Avatar'
 import {
   Edit,
   Trash2,

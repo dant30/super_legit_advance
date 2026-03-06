@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
-import { PageHeader } from "@components/ui";
+import PageHeader from "@components/ui/PageHeader";
 import useReports from "../hooks/useReports";
 import {
   ExportOptions,

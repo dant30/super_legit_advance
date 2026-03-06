@@ -1,17 +1,15 @@
 import React, { useState } from 'react'
-import {
-  Card,
-  Button,
-  Descriptions,
-  Tabs,
-  Alert,
-  Statistic,
-  Row,
-  Col,
-  Tag,
-  Space,
-  Timeline,
-} from '@components/ui'
+import Card from '@components/ui/Card'
+import Button from '@components/ui/Button'
+import Descriptions from '@components/ui/Descriptions'
+import Tabs from '@components/ui/Tabs'
+import Alert from '@components/ui/Alert'
+import Statistic from '@components/ui/Statistic'
+import Row from '@components/ui/Row'
+import Col from '@components/ui/Col'
+import Tag from '@components/ui/Tag'
+import Space from '@components/ui/Space'
+import Timeline from '@components/ui/Timeline'
 import {
   Edit,
   CheckCircle,

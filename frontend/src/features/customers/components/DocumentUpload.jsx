@@ -1,7 +1,12 @@
 // frontend/src/components/customers/DocumentUpload.jsx
 import React, { useState } from 'react';
-import { Upload, Button, Card, List, Tag, Modal } from '@components/ui';
-import { ProgressBar } from '@components/ui';
+import Upload from '@components/ui/Upload';
+import Button from '@components/ui/Button';
+import Card from '@components/ui/Card';
+import List from '@components/ui/List';
+import Tag from '@components/ui/Tag';
+import Modal from '@components/ui/Modal';
+import ProgressBar from '@components/ui/ProgressBar';
 import { Upload as UploadIcon, FileText, Image, X, Eye, Download, CheckCircle } from 'lucide-react';
 
 const DocumentUpload = ({

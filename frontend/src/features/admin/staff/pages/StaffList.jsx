@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import {
-  Button,
-  Card,
-  Space,
-  Row,
-  Col,
-  Statistic,
-  Modal,
-} from '@components/ui'
-import { PageHeader } from '@components/ui'
+import Button from '@components/ui/Button'
+import Card from '@components/ui/Card'
+import Space from '@components/ui/Space'
+import Row from '@components/ui/Row'
+import Col from '@components/ui/Col'
+import Statistic from '@components/ui/Statistic'
+import Modal from '@components/ui/Modal'
+import PageHeader from '@components/ui/PageHeader'
 import {
   StaffTable,
   StaffFilters,

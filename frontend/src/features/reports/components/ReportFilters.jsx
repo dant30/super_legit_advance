@@ -1,5 +1,7 @@
 import React from "react";
-import { Card, Input, Button } from "@components/ui";
+import Card from "@components/ui/Card";
+import Input from "@components/ui/Input";
+import Button from "@components/ui/Button";
 
 const ReportFilters = ({ filters = {}, onChange, onApply, onReset, loading = false }) => {
   const handleField = (field) => (event) => {

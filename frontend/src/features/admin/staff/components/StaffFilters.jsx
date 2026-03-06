@@ -1,13 +1,11 @@
 import React, { useState } from 'react'
-import {
-  Card,
-  Button,
-  Select,
-  Input,
-  Row,
-  Col,
-} from '@components/ui'
-import { DatePicker } from '@components/ui'
+import Card from '@components/ui/Card'
+import Button from '@components/ui/Button'
+import Select from '@components/ui/Select'
+import Input from '@components/ui/Input'
+import Row from '@components/ui/Row'
+import Col from '@components/ui/Col'
+import DatePicker from '@components/ui/DatePicker'
 import { Search, X, Filter } from 'lucide-react'
 
 const ROLES = [

@@ -1,6 +1,7 @@
 // frontend/src/components/loans/CollateralForm.jsx
 import React, { useState } from 'react'
-import { Button, Card } from '@components/ui'
+import Button from '@components/ui/Button'
+import Card from '@components/ui/Card'
 
 const CollateralForm = ({ onSubmit, submitting = false }) => {
   const [values, setValues] = useState({

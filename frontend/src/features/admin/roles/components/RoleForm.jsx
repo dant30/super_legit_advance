@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import {
-  Form,
-  Input,
-  Button,
-  Card,
-  Space,
-  Switch,
-  Checkbox,
-  Alert,
-} from '@components/ui'
+import Form from '@components/ui/Form'
+import Input from '@components/ui/Input'
+import Button from '@components/ui/Button'
+import Card from '@components/ui/Card'
+import Space from '@components/ui/Space'
+import Switch from '@components/ui/Switch'
+import Checkbox from '@components/ui/Checkbox'
+import Alert from '@components/ui/Alert'
 import { useToast } from '@contexts/ToastContext'
 import staffAPI from '@api/admin'
 import { AlertCircle } from 'lucide-react'

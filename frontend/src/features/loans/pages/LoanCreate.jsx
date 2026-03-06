@@ -1,7 +1,7 @@
 // frontend/src/pages/loans/LoanCreate.jsx
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PageHeader } from '@components/ui'
+import PageHeader from '@components/ui/PageHeader'
 import { LoanForm } from '@components/loans'
 import { useLoanContext } from '@contexts/LoanContext'
 

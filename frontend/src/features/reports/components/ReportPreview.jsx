@@ -1,5 +1,5 @@
 import React from "react";
-import { Card } from "@components/ui";
+import Card from "@components/ui/Card";
 
 const ReportPreview = ({ title = "Report Preview", report }) => {
   const summary = report?.summary && typeof report.summary === "object" ? report.summary : null;

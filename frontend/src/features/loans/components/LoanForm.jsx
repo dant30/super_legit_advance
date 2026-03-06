@@ -1,7 +1,8 @@
 // frontend/src/components/loans/LoanForm.jsx
 import React, { useState } from 'react'
 import { LOAN_TYPE, REPAYMENT_FREQUENCY } from '@api/loans'
-import { Button, Card } from '@components/ui'
+import Button from '@components/ui/Button'
+import Card from '@components/ui/Card'
 
 const LOAN_PURPOSE_OPTIONS = [
   { value: 'MEDICAL', label: 'Medical Expenses' },

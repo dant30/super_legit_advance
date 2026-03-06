@@ -1,6 +1,7 @@
 // frontend/src/components/loans/LoanApplication.jsx
 import React, { useState } from 'react'
-import { Button, Card } from '@components/ui'
+import Button from '@components/ui/Button'
+import Card from '@components/ui/Card'
 import { LOAN_TYPE } from '@api/loans'
 
 const LoanApplication = ({ onSubmit, submitting = false }) => {

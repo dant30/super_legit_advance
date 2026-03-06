@@ -1,5 +1,6 @@
 import React from 'react'
-import { Button, Card } from '@components/ui'
+import Button from '@components/ui/Button'
+import Card from '@components/ui/Card'
 import { Link } from 'react-router-dom'
 import { formatCurrency, formatDateTime } from '@utils/formatters'
 import { APP_ROUTES } from '../../../shared/constants/routes'

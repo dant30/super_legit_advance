@@ -1,6 +1,7 @@
 // frontend/src/components/loans/LoanApproval.jsx
 import React, { useState } from 'react'
-import { Button, Card } from '@components/ui'
+import Button from '@components/ui/Button'
+import Card from '@components/ui/Card'
 
 const LoanApproval = ({ item, onApprove, onReject, submitting = false }) => {
   const [approvedAmount, setApprovedAmount] = useState(item?.amount_requested || '')

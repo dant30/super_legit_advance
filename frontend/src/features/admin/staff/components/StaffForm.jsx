@@ -1,16 +1,14 @@
 import React, { useEffect } from 'react'
-import {
-  Form,
-  Input,
-  Select,
-  Checkbox,
-  Button,
-  Card,
-  Row,
-  Col,
-  Alert,
-} from '@components/ui'
-import { DatePicker } from '@components/ui'
+import Form from '@components/ui/Form'
+import Input from '@components/ui/Input'
+import Select from '@components/ui/Select'
+import Checkbox from '@components/ui/Checkbox'
+import Button from '@components/ui/Button'
+import Card from '@components/ui/Card'
+import Row from '@components/ui/Row'
+import Col from '@components/ui/Col'
+import Alert from '@components/ui/Alert'
+import DatePicker from '@components/ui/DatePicker'
 import { useToast } from '@contexts/ToastContext'
 import dayjs from 'dayjs'
 

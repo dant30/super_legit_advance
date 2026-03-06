@@ -1,7 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card } from '@components/ui'
-import { PageHeader } from '@components/ui'
+import Card from '@components/ui/Card'
+import PageHeader from '@components/ui/PageHeader'
 import { RoleForm } from '@components/admin/roles'
 
 const RoleCreate = () => {

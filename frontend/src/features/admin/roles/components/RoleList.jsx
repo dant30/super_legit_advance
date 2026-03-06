@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Card,
-  Button,
-  Space,
-  Table,
-  Tag,
-  Modal,
-  Spin,
-  Badge,
-} from '@components/ui'
-import { EmptyState } from '@components/ui'
+import Card from '@components/ui/Card'
+import Button from '@components/ui/Button'
+import Space from '@components/ui/Space'
+import Table from '@components/ui/Table'
+import Tag from '@components/ui/Tag'
+import Modal from '@components/ui/Modal'
+import Spin from '@components/ui/Loading'
+import Badge from '@components/ui/Badge'
+import EmptyState from '@components/ui/EmptyState'
 import {
   Edit,
   Trash2,

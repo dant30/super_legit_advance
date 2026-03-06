@@ -1,5 +1,6 @@
 import React from "react";
-import { Button, Card } from "@components/ui";
+import Button from "@components/ui/Button";
+import Card from "@components/ui/Card";
 
 const ExportOptions = ({ onExportPdf, onExportExcel, exporting = false }) => {
   return (

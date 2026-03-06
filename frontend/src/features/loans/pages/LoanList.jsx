@@ -1,8 +1,9 @@
 // frontend/src/pages/loans/LoanList.jsx
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Button, Card } from '@components/ui'
-import { PageHeader } from '@components/ui'
+import Button from '@components/ui/Button'
+import Card from '@components/ui/Card'
+import PageHeader from '@components/ui/PageHeader'
 import { LoanFilters, LoanSearch, LoanStats, LoanTable } from '@components/loans'
 import { useLoanContext } from '@contexts/LoanContext'
 import { normalizeLoanCollection } from '../services/loans'

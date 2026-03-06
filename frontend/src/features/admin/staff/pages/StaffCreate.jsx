@@ -1,6 +1,6 @@
 import React from 'react'
-import { Card } from '@components/ui'
-import { PageHeader } from '@components/ui'
+import Card from '@components/ui/Card'
+import PageHeader from '@components/ui/PageHeader'
 import { StaffForm } from '@components/admin/staff'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '@contexts/ToastContext'

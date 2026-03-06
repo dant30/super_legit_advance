@@ -1,11 +1,9 @@
 import React from 'react'
-import {
-  Card,
-  Row,
-  Col,
-  Tabs,
-} from '@components/ui'
-import { ProgressBar } from '@components/ui'
+import Card from '@components/ui/Card'
+import Row from '@components/ui/Row'
+import Col from '@components/ui/Col'
+import Tabs from '@components/ui/Tabs'
+import ProgressBar from '@components/ui/ProgressBar'
 import {
   TrendingUp,
   TrendingDown,

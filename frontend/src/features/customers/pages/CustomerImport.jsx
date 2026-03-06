@@ -1,7 +1,10 @@
 // frontend/src/pages/customers/CustomerImport.jsx
 import React, { useState } from 'react'
-import { Card, Steps, Result, Button } from '@components/ui'
-import { PageHeader } from '@components/ui'
+import Card from '@components/ui/Card'
+import Steps from '@components/ui/Steps'
+import Result from '@components/ui/Result'
+import Button from '@components/ui/Button'
+import PageHeader from '@components/ui/PageHeader'
 import { ArrowLeft, Upload, CheckCircle, FileSpreadsheet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ImportDialog } from '@components/customers'

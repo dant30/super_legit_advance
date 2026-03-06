@@ -1,6 +1,6 @@
 // frontend/src/pages/loans/LoanCalculator.jsx
 import React, { useState } from 'react'
-import { PageHeader } from '@components/ui'
+import PageHeader from '@components/ui/PageHeader'
 import { LoanCalculator } from '@components/loans'
 import { useLoanContext } from '@contexts/LoanContext'
 

@@ -1,7 +1,8 @@
 // frontend/src/pages/loans/LoanApprovals.jsx
 import React, { useState } from 'react'
-import { PageHeader } from '@components/ui'
-import { Card, Button } from '@components/ui'
+import PageHeader from '@components/ui/PageHeader'
+import Card from '@components/ui/Card'
+import Button from '@components/ui/Button'
 import { LoanApproval } from '@components/loans'
 import { useLoanContext } from '@contexts/LoanContext'
 

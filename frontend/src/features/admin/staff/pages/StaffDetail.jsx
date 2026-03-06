@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Spin, Tabs } from '@components/ui'
-import { PageHeader } from '@components/ui'
+import Spin from '@components/ui/Loading'
+import Tabs from '@components/ui/Tabs'
+import PageHeader from '@components/ui/PageHeader'
 import {
   StaffDetail as StaffDetailComponent,
   TaskAssignment,

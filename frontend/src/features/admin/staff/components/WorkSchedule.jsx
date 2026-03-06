@@ -1,16 +1,14 @@
 import React, { useState } from 'react'
-import {
-  Card,
-  Button,
-  Table,
-  Tag,
-  Modal,
-  Form,
-  Select,
-  Space,
-  Alert,
-} from '@components/ui'
-import { DatePicker } from '@components/ui'
+import Card from '@components/ui/Card'
+import Button from '@components/ui/Button'
+import Table from '@components/ui/Table'
+import Tag from '@components/ui/Tag'
+import Modal from '@components/ui/Modal'
+import Form from '@components/ui/Form'
+import Select from '@components/ui/Select'
+import Space from '@components/ui/Space'
+import Alert from '@components/ui/Alert'
+import DatePicker from '@components/ui/DatePicker'
 import { Plus, Edit, Trash2 } from 'lucide-react'
 import dayjs from 'dayjs'
 

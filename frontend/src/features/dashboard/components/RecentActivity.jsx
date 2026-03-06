@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card } from '@components/ui'
+import Card from '@components/ui/Card'
 import { formatRelativeTime } from '@utils/formatters'
 import { t } from '../../../core/i18n/i18n'
 

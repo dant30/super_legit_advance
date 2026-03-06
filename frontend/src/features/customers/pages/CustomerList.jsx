@@ -1,10 +1,14 @@
 // frontend/src/pages/customers/CustomerList.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { 
-  Button, Card, Row, Col, 
-  Statistic, Tabs, Badge, Modal 
-} from '@components/ui'
-import { PageHeader } from '@components/ui'
+import Button from '@components/ui/Button'
+import Card from '@components/ui/Card'
+import Row from '@components/ui/Row'
+import Col from '@components/ui/Col'
+import Statistic from '@components/ui/Statistic'
+import Tabs from '@components/ui/Tabs'
+import Badge from '@components/ui/Badge'
+import Modal from '@components/ui/Modal'
+import PageHeader from '@components/ui/PageHeader'
 import { Plus, Download, Upload, Filter, RefreshCw, Users } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCustomerContext } from '@contexts/CustomerContext'

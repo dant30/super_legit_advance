@@ -1,6 +1,7 @@
 // frontend/src/components/loans/LoanCard.jsx
 import React from 'react'
-import { Card, Button } from '@components/ui'
+import Card from '@components/ui/Card'
+import Button from '@components/ui/Button'
 import { formatCurrency } from '@api/loans'
 import LoanStatusBadge from './LoanStatusBadge'
 

@@ -1,10 +1,15 @@
 // frontend/src/pages/customers/CustomerDetail.jsx
 import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { 
-  Card, Button, Space, Tabs, 
-  Alert, Spin, Modal, Descriptions, Badge 
-} from '@components/ui'
+import Card from '@components/ui/Card'
+import Button from '@components/ui/Button'
+import Space from '@components/ui/Space'
+import Tabs from '@components/ui/Tabs'
+import Alert from '@components/ui/Alert'
+import Spin from '@components/ui/Loading'
+import Modal from '@components/ui/Modal'
+import Descriptions from '@components/ui/Descriptions'
+import Badge from '@components/ui/Badge'
 import PageHeader from '@components/ui/PageHeader'
 import { 
   ArrowLeft, Edit, Trash2, UserCheck, UserX, 

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { Button, Card, Select } from "@components/ui";
+import Button from "@components/ui/Button";
+import Card from "@components/ui/Card";
+import Select from "@components/ui/Select";
 import { REPORT_TYPE } from "../types";
 
 const REPORT_TYPE_OPTIONS = [

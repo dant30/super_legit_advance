@@ -1,6 +1,6 @@
 // frontend/src/components/loans/AmortizationSchedule.jsx
 import React from 'react'
-import { Card } from '@components/ui'
+import Card from '@components/ui/Card'
 import { formatCurrency } from '@api/loans'
 
 const AmortizationSchedule = ({ schedule = [] }) => {

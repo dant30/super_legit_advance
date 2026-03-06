@@ -1,8 +1,11 @@
 // frontend/src/pages/customers/CustomerEdit.jsx
 import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { PageHeader, Card, Alert, Button } from '@components/ui'
-import { Loading } from '@components/ui'
+import PageHeader from '@components/ui/PageHeader'
+import Card from '@components/ui/Card'
+import Alert from '@components/ui/Alert'
+import Button from '@components/ui/Button'
+import Loading from '@components/ui/Loading'
 import { ArrowLeft } from 'lucide-react'
 import { useCustomerContext } from '@contexts/CustomerContext'
 import { CustomerForm } from '@components/customers'

@@ -1,8 +1,8 @@
 // frontend/src/pages/loans/LoanDetail.jsx
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button } from '@components/ui'
-import { PageHeader } from '@components/ui'
+import Button from '@components/ui/Button'
+import PageHeader from '@components/ui/PageHeader'
 import { LoanDetails } from '@components/loans'
 import { useLoanContext } from '@contexts/LoanContext'
 

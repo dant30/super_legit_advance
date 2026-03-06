@@ -1,6 +1,7 @@
 // frontend/src/components/loans/LoanCalculator.jsx
 import React, { useState } from 'react'
-import { Card, Button } from '@components/ui'
+import Card from '@components/ui/Card'
+import Button from '@components/ui/Button'
 
 const LoanCalculator = ({ onCalculate, result }) => {
   const [values, setValues] = useState({

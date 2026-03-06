@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 import { useNotificationContext } from '@contexts/NotificationContext'
 import PageHeader from '@components/ui/PageHeader'
 import { NotificationList, NotificationSettings, BulkMessenger } from '@components/notifications'
-import { Card } from '@components/ui'
+import Card from '@components/ui/Card'
 import { Bell, Settings, Send, BarChart3 } from 'lucide-react'
 import useNotifications from '../hooks/useNotifications'
 import {

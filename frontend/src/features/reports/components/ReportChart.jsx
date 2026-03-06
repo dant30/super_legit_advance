@@ -1,5 +1,5 @@
 import React from "react";
-import { Card } from "@components/ui";
+import Card from "@components/ui/Card";
 
 const ReportChart = ({ title = "Chart", data = [] }) => {
   const chartData = Array.isArray(data) ? data : [];

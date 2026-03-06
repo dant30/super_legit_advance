@@ -1,7 +1,9 @@
 // frontend/src/pages/customers/CustomerCreate.jsx
 import React from 'react'
-import { Card, Alert, Button } from '@components/ui'
-import { PageHeader } from '@components/ui'
+import Card from '@components/ui/Card'
+import Alert from '@components/ui/Alert'
+import Button from '@components/ui/Button'
+import PageHeader from '@components/ui/PageHeader'
 import { ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useCustomerContext } from '@contexts/CustomerContext'
