@@ -14,7 +14,7 @@ const metricTone = (value, type) => {
 
 const StatCard = ({ title, value, icon: Icon, helper, type, rawValue }) => (
   <article
-    className="rounded-xl border bg-white px-4 py-4 shadow-sm transition-colors hover:border-slate-300"
+    className="rounded-xl border bg-white px-4 py-4 shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-medium"
     style={{ borderColor: 'var(--surface-border)' }}
   >
     <div className="mb-3 flex items-center justify-between gap-3">

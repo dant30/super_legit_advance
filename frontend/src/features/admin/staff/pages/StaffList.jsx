@@ -1,17 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import Button from '@components/ui/Button'
-import Card from '@components/ui/Card'
 import Space from '@components/ui/Space'
-import Row from '@components/ui/Row'
-import Col from '@components/ui/Col'
-import Statistic from '@components/ui/Statistic'
 import Modal from '@components/ui/Modal'
 import PageHeader from '@components/ui/PageHeader'
 import {
   StaffTable,
   StaffFilters,
 } from '@components/admin/staff'
-import { Plus, Download, RefreshCw } from 'lucide-react'
+import { Plus, Download, RefreshCw, Users, UserCheck, UserMinus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '@contexts/ToastContext'
 import { useAuth } from '@hooks/useAuth'
@@ -156,36 +152,53 @@ const StaffList = () => {
         }
       />
 
-      {/* Statistics */}
-      <Row gutter={16}>
-        <Col xs={24} sm={8}>
-          <Card className="shadow-soft">
-            <Statistic
-              title="Total Staff"
-              value={stats.total_staff}
-              valueStyle={{ color: '#3b82f6' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card className="shadow-soft">
-            <Statistic
-              title="Active"
-              value={stats.active_staff}
-              valueStyle={{ color: '#10b981' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card className="shadow-soft">
-            <Statistic
-              title="Inactive"
-              value={stats.inactive_staff}
-              valueStyle={{ color: '#f59e0b' }}
-            />
-          </Card>
-        </Col>
-      </Row>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {[
+          {
+            key: 'total',
+            title: 'Total Staff',
+            value: Number(stats.total_staff || 0).toLocaleString(),
+            helper: 'All team members in organization',
+            icon: Users,
+            valueClass: 'text-brand-700',
+          },
+          {
+            key: 'active',
+            title: 'Active',
+            value: Number(stats.active_staff || 0).toLocaleString(),
+            helper: 'Currently available staff members',
+            icon: UserCheck,
+            valueClass: 'text-feedback-success',
+          },
+          {
+            key: 'inactive',
+            title: 'Inactive',
+            value: Number(stats.inactive_staff || 0).toLocaleString(),
+            helper: 'On leave or inactive assignments',
+            icon: UserMinus,
+            valueClass: 'text-feedback-warning',
+          },
+        ].map((item, index) => (
+          <article
+            key={item.key}
+            className="rounded-xl border bg-surface-panel p-5 shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium animate-fade-in"
+            style={{
+              borderColor: 'var(--surface-border)',
+              animationDelay: `${index * 35}ms`,
+              animationFillMode: 'both',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">{item.title}</p>
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-subtle text-text-secondary">
+                <item.icon className="h-4 w-4" />
+              </span>
+            </div>
+            <p className={`mt-3 text-2xl font-semibold leading-none ${item.valueClass}`}>{item.value}</p>
+            <p className="mt-2 text-xs text-text-muted">{item.helper}</p>
+          </article>
+        ))}
+      </div>
 
       {/* Filters */}
       <StaffFilters filters={filters} onFilterChange={handleFilterChange} />

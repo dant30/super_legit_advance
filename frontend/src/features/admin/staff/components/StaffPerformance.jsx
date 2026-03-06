@@ -1,7 +1,5 @@
 import React from 'react'
 import Card from '@components/ui/Card'
-import Row from '@components/ui/Row'
-import Col from '@components/ui/Col'
 import Tabs from '@components/ui/Tabs'
 import ProgressBar from '@components/ui/ProgressBar'
 import {
@@ -57,32 +55,37 @@ const StaffPerformance = ({ performanceData = {} }) => {
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards */}
-      <Row gutter={16}>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {kpis.map((kpi, index) => (
-          <Col xs={24} sm={12} lg={6} key={index}>
-            <Card className="shadow-soft h-full">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-medium">
-                    {kpi.title}
-                  </p>
-                  <p className="text-2xl font-bold mt-2">{kpi.value}</p>
-                  <div className="flex items-center gap-1 mt-2 text-xs">
-                    {kpi.trend === 'up' ? (
-                      <TrendingUp className="h-3 w-3 text-success-600" />
-                    ) : (
-                      <TrendingDown className="h-3 w-3 text-success-600" />
-                    )}
-                    <span className="text-success-600">{kpi.change}</span>
-                  </div>
-                </div>
-                <div className="text-gray-300">{kpi.icon}</div>
-              </div>
-            </Card>
-          </Col>
+          <article
+            key={kpi.title}
+            className="rounded-xl border bg-surface-panel p-5 shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium animate-fade-in"
+            style={{
+              borderColor: 'var(--surface-border)',
+              animationDelay: `${index * 35}ms`,
+              animationFillMode: 'both',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">{kpi.title}</p>
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-subtle text-text-secondary">
+                {kpi.icon}
+              </span>
+            </div>
+            <p className="mt-3 text-2xl font-semibold leading-none text-text-primary">{kpi.value}</p>
+            <div className="mt-2 flex items-center gap-1 text-xs">
+              {kpi.trend === 'up' ? (
+                <TrendingUp className="h-3 w-3 text-feedback-success" />
+              ) : (
+                <TrendingDown className="h-3 w-3 text-feedback-warning" />
+              )}
+              <span className={kpi.trend === 'up' ? 'text-feedback-success' : 'text-feedback-warning'}>
+                {kpi.change}
+              </span>
+            </div>
+          </article>
         ))}
-      </Row>
+      </div>
 
       {/* Charts & Details */}
       <Tabs

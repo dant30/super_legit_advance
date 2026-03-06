@@ -133,7 +133,7 @@ const StaffDashboard = () => {
         </div>
 
         <div className={`space-y-4 transition-all duration-300 ease-standard ${sectionAnimClass}`}>
-          <Card className="border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
+          <Card className="border bg-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium" style={{ borderColor: 'var(--surface-border)' }}>
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
               {t('dashboard.page.quickActionsTitle', 'Quick Actions')}
             </h3>
@@ -150,7 +150,7 @@ const StaffDashboard = () => {
                     <Link
                       key={action.key}
                       to={action.to}
-                      className="flex items-center gap-3 rounded-md border px-3 py-2 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                      className="flex items-center gap-3 rounded-md border px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                       style={{
                         borderColor: 'var(--surface-border)',
                         animationDelay: `${index * 35}ms`,

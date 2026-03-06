@@ -51,7 +51,7 @@ const MyCustomers = ({ customers = [], loading = false }) => {
   const highRiskCount = data.filter((customer) => customer.risk === 'high').length
 
   return (
-    <Card className="animate-fade-in border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
+    <Card className="animate-fade-in border bg-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium" style={{ borderColor: 'var(--surface-border)' }}>
       <div className="flex items-center justify-between">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
           {t('dashboard.customers.title', 'My Borrowers')}
@@ -92,7 +92,7 @@ const MyCustomers = ({ customers = [], loading = false }) => {
           {data.map((customer) => (
             <li
               key={customer.id}
-              className="flex items-center justify-between rounded-lg border bg-white px-3 py-2.5"
+              className="flex items-center justify-between rounded-lg border bg-white px-3 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft"
               style={{ borderColor: 'var(--surface-border)' }}
             >
               <div className="min-w-0">

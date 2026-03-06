@@ -38,7 +38,7 @@ const PendingApprovals = ({ approvals = [], loading = false }) => {
   const totalPendingAmount = data.reduce((sum, item) => sum + Number(item.amount || 0), 0)
 
   return (
-    <Card className="animate-fade-in border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
+    <Card className="animate-fade-in border bg-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium" style={{ borderColor: 'var(--surface-border)' }}>
       <div className="flex items-center justify-between">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
           {t('dashboard.approvals.title', 'Pending Approvals')}
@@ -79,7 +79,7 @@ const PendingApprovals = ({ approvals = [], loading = false }) => {
           {data.map((item) => (
             <li
               key={item.id}
-              className="rounded-lg border bg-white px-3 py-2.5"
+              className="rounded-lg border bg-white px-3 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft"
               style={{ borderColor: 'var(--surface-border)' }}
             >
               <div className="flex items-center justify-between">

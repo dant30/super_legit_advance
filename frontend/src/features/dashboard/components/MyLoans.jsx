@@ -60,7 +60,7 @@ const MyLoans = ({ loans = [], loading = false }) => {
   const totalExposure = data.reduce((sum, loan) => sum + Number(loan.amount || 0), 0)
 
   return (
-    <Card className="animate-fade-in border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
+    <Card className="animate-fade-in border bg-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium" style={{ borderColor: 'var(--surface-border)' }}>
       <div className="flex items-center justify-between">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
           {t('dashboard.loans.title', 'My Loans')}
@@ -107,7 +107,7 @@ const MyLoans = ({ loans = [], loading = false }) => {
           {data.map((loan) => (
             <li
               key={loan.id}
-              className="flex items-center justify-between rounded-lg border bg-white px-3 py-2.5"
+              className="flex items-center justify-between rounded-lg border bg-white px-3 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft"
               style={{ borderColor: 'var(--surface-border)' }}
             >
               <div className="min-w-0">

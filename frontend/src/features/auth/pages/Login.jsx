@@ -180,15 +180,18 @@ const Login = () => {
           style={{ borderColor: 'var(--surface-border)' }}
         >
           <section className="hidden border-r border-surface-border bg-surface-subtle p-10 lg:block">
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl border border-brand-200 bg-brand-50 p-3 text-brand-700 shadow-soft dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-200">
-                <Building2 className="h-5 w-5" />
+            <div className="inline-flex items-center gap-3 rounded-xl border bg-white/90 px-3 py-2 shadow-soft backdrop-blur dark:bg-slate-900/60" style={{ borderColor: 'var(--surface-border)' }}>
+              <div className="rounded-lg bg-brand-600 px-2.5 py-1.5 text-xs font-bold tracking-[0.08em] text-white shadow-soft">
+                SLA
               </div>
-              <div>
-                <p className="text-sm font-semibold tracking-wide text-text-primary">
-                  Super Legit Advance
-                </p>
-                <p className="text-xs text-text-muted">Loan Operations Portal</p>
+              <div className="flex items-center gap-2 text-brand-700 dark:text-brand-200">
+                <Building2 className="h-4 w-4" />
+                <div>
+                  <p className="text-sm font-semibold tracking-wide text-text-primary">
+                    Super Legit Advance
+                  </p>
+                  <p className="text-xs text-text-muted">Loan Operations Portal</p>
+                </div>
               </div>
             </div>
 
@@ -220,13 +223,16 @@ const Login = () => {
 
           <section className="p-6 sm:p-8 lg:p-10">
             <div className="mb-6 lg:hidden">
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl border border-brand-200 bg-brand-50 p-2.5 text-brand-700 shadow-soft dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-200">
-                  <Building2 className="h-4 w-4" />
+              <div className="inline-flex items-center gap-3 rounded-xl border bg-white/90 px-3 py-2 shadow-soft backdrop-blur dark:bg-slate-900/60" style={{ borderColor: 'var(--surface-border)' }}>
+                <div className="rounded-lg bg-brand-600 px-2 py-1 text-[10px] font-bold tracking-[0.08em] text-white shadow-soft">
+                  SLA
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-text-primary">Super Legit Advance</p>
-                  <p className="text-xs text-text-muted">Loan Operations Portal</p>
+                <div className="flex items-center gap-2 text-brand-700 dark:text-brand-200">
+                  <Building2 className="h-4 w-4" />
+                  <div>
+                    <p className="text-sm font-semibold text-text-primary">Super Legit Advance</p>
+                    <p className="text-xs text-text-muted">Loan Operations Portal</p>
+                  </div>
                 </div>
               </div>
             </div>

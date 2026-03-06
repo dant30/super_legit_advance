@@ -31,7 +31,7 @@ const Collections = ({ summary, loading = false }) => {
   }
 
   return (
-    <Card className="animate-fade-in border bg-white shadow-sm" style={{ borderColor: 'var(--surface-border)' }}>
+    <Card className="animate-fade-in border bg-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium" style={{ borderColor: 'var(--surface-border)' }}>
       <div className="flex items-center justify-between">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
           {t('dashboard.collections.title', 'Collections')}
@@ -73,7 +73,7 @@ const Collections = ({ summary, loading = false }) => {
         </p>
       </div>
 
-      <div className="mt-3 flex items-center justify-between rounded-lg border bg-white p-3" style={{ borderColor: 'var(--surface-border)' }}>
+      <div className="mt-3 flex items-center justify-between rounded-lg border bg-white p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft" style={{ borderColor: 'var(--surface-border)' }}>
         <div>
           <p className="text-xs font-medium text-slate-500">
             {t('dashboard.collections.dueToday', 'Due Today')}
