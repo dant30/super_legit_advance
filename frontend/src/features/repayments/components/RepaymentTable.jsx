@@ -1,4 +1,3 @@
-// frontend/src/components/repayments/RepaymentTable.jsx
 import React from 'react'
 import Table from '@components/ui/Table'
 import Badge from '@components/ui/Badge'
@@ -14,6 +13,7 @@ const RepaymentTable = ({
   onProcess,
   onWaive,
   onCancel,
+  onDelete,
   formatCurrency,
   formatStatus,
   className,
@@ -36,6 +36,12 @@ const RepaymentTable = ({
         return 'neutral'
     }
   }
+
+  const lifecycleStatus = (status) => String(status || '').toUpperCase()
+  const canProcess = (status) => ['PENDING', 'PARTIAL', 'OVERDUE', 'FAILED'].includes(lifecycleStatus(status))
+  const canWaive = (status) => !['WAIVED', 'CANCELLED', 'COMPLETED'].includes(lifecycleStatus(status))
+  const canCancel = (status) => !['WAIVED', 'CANCELLED', 'COMPLETED'].includes(lifecycleStatus(status))
+  const canDelete = (status) => !['COMPLETED'].includes(lifecycleStatus(status))
 
   const columns = [
     { key: 'repayment_number', header: 'Repayment #' },
@@ -80,32 +86,37 @@ const RepaymentTable = ({
       header: 'Actions',
       align: 'right',
       render: (row) => (
-        <div className="flex items-center justify-end gap-2">
-          {onView && (
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {onView ? (
             <Button size="xs" variant="outline" onClick={() => onView(row)}>
               View
             </Button>
-          )}
-          {onEdit && (
+          ) : null}
+          {onEdit && canCancel(row?.status) ? (
             <Button size="xs" variant="outline" onClick={() => onEdit(row)}>
               Edit
             </Button>
-          )}
-          {onProcess && (
+          ) : null}
+          {onProcess && canProcess(row?.status) ? (
             <Button size="xs" variant="primary" onClick={() => onProcess(row)}>
               Process
             </Button>
-          )}
-          {onWaive && (
+          ) : null}
+          {onWaive && canWaive(row?.status) ? (
             <Button size="xs" variant="warning" onClick={() => onWaive(row)}>
               Waive
             </Button>
-          )}
-          {onCancel && (
+          ) : null}
+          {onCancel && canCancel(row?.status) ? (
             <Button size="xs" variant="danger" onClick={() => onCancel(row)}>
               Cancel
             </Button>
-          )}
+          ) : null}
+          {onDelete && canDelete(row?.status) ? (
+            <Button size="xs" variant="ghost" onClick={() => onDelete(row)}>
+              Delete
+            </Button>
+          ) : null}
         </div>
       ),
     },

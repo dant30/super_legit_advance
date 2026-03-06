@@ -59,4 +59,19 @@ describe('NotificationCard lifecycle actions', () => {
     fireEvent.click(screen.getByTitle('Delete'))
     expect(onDelete).toHaveBeenCalledWith('notif-1')
   })
+
+  it('shows send-now action for pending notifications', () => {
+    const onSend = vi.fn()
+    render(
+      <NotificationCard
+        notification={{ ...baseNotification, status: 'PENDING' }}
+        onMarkAsRead={() => {}}
+        onSend={onSend}
+        onDelete={() => {}}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send now' }))
+    expect(onSend).toHaveBeenCalledWith('notif-1')
+  })
 })

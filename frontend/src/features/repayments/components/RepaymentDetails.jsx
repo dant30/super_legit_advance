@@ -1,12 +1,13 @@
-// frontend/src/components/repayments/RepaymentDetails.jsx
 import React from 'react'
-import { Card, CardHeader, CardContent } from '@components/ui/Card'
+import { Card, CardContent, CardHeader } from '@components/ui/Card'
 import Badge from '@components/ui/Badge'
 import Button from '@components/ui/Button'
 import { REPAYMENT_STATUS } from '../types'
 
 const RepaymentDetails = ({
   repayment,
+  onEdit,
+  onDelete,
   onProcess,
   onWaive,
   onCancel,
@@ -18,9 +19,11 @@ const RepaymentDetails = ({
   const canProcess = ['PENDING', 'PARTIAL', 'OVERDUE', 'FAILED'].includes(status)
   const canWaive = !['WAIVED', 'CANCELLED', 'COMPLETED'].includes(status)
   const canCancel = !['WAIVED', 'CANCELLED', 'COMPLETED'].includes(status)
+  const canEdit = !['COMPLETED'].includes(status)
+  const canDelete = !['COMPLETED'].includes(status)
 
-  const statusVariant = (status) => {
-    switch (status) {
+  const statusVariant = (repaymentStatus) => {
+    switch (repaymentStatus) {
       case REPAYMENT_STATUS.COMPLETED:
         return 'success'
       case REPAYMENT_STATUS.PENDING:
@@ -45,7 +48,7 @@ const RepaymentDetails = ({
         description="Detailed repayment information"
       />
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <p className="text-sm text-gray-500">Loan</p>
             <p className="font-medium text-gray-900 dark:text-gray-100">
@@ -85,21 +88,31 @@ const RepaymentDetails = ({
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          {onProcess && canProcess && (
+          {onEdit && canEdit ? (
+            <Button onClick={() => onEdit(repayment)} size="sm" variant="outline">
+              Edit Repayment
+            </Button>
+          ) : null}
+          {onProcess && canProcess ? (
             <Button onClick={() => onProcess(repayment)} size="sm">
               Process Payment
             </Button>
-          )}
-          {onWaive && canWaive && (
+          ) : null}
+          {onWaive && canWaive ? (
             <Button onClick={() => onWaive(repayment)} size="sm" variant="warning">
               Waive Amount
             </Button>
-          )}
-          {onCancel && canCancel && (
+          ) : null}
+          {onCancel && canCancel ? (
             <Button onClick={() => onCancel(repayment)} size="sm" variant="danger">
               Cancel Repayment
             </Button>
-          )}
+          ) : null}
+          {onDelete && canDelete ? (
+            <Button onClick={() => onDelete(repayment)} size="sm" variant="ghost">
+              Delete Repayment
+            </Button>
+          ) : null}
         </div>
       </CardContent>
     </Card>

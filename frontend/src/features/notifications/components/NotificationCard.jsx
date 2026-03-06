@@ -14,6 +14,7 @@ import { cn } from '@utils/cn'
 const NotificationCard = ({
   notification,
   onMarkAsRead,
+  onSend,
   onDelete,
   onClick,
   isCompact = false,
@@ -26,6 +27,7 @@ const NotificationCard = ({
     notification
 
   const isUnread = !read_at && ['SENT', 'DELIVERED'].includes(status)
+  const canSend = ['PENDING', 'FAILED'].includes(status)
 
   // Icon and color mapping
   const typeConfig = {
@@ -76,6 +78,13 @@ const NotificationCard = ({
     }
   }
 
+  const handleSend = (e) => {
+    e.stopPropagation()
+    if (onSend) {
+      onSend(id)
+    }
+  }
+
   if (isCompact) {
     return (
       <div
@@ -116,6 +125,15 @@ const NotificationCard = ({
           {/* Status & Actions */}
           {isHovered && (
             <div className="flex gap-1 flex-shrink-0">
+              {canSend && (
+                <button
+                  onClick={handleSend}
+                  className="p-1 hover:bg-primary-100 dark:hover:bg-primary-900/30 rounded"
+                  title="Send now"
+                >
+                  <CheckCircle className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                </button>
+              )}
               {isUnread && (
                 <button
                   onClick={handleMarkAsRead}
@@ -208,14 +226,30 @@ const NotificationCard = ({
               <span>{format(new Date(created_at), 'MMM d, yyyy HH:mm')}</span>
             </div>
 
-            {isUnread && (
+            <div className="flex flex-wrap items-center gap-2">
+              {canSend && (
+                <button
+                  onClick={handleSend}
+                  className="px-3 py-1 text-xs font-medium bg-secondary text-app-primary rounded transition hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                >
+                  Send now
+                </button>
+              )}
+              {isUnread && (
+                <button
+                  onClick={handleMarkAsRead}
+                  className="px-3 py-1 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded transition"
+                >
+                  Mark as read
+                </button>
+              )}
               <button
-                onClick={handleMarkAsRead}
-                className="px-3 py-1 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded transition"
+                onClick={handleDelete}
+                className="px-3 py-1 text-xs font-medium bg-danger-50 text-danger-700 rounded transition hover:bg-danger-100 dark:bg-danger-900/20 dark:text-danger-400 dark:hover:bg-danger-900/30"
               >
-                Mark as read
+                Delete
               </button>
-            )}
+            </div>
           </div>
         </div>
       </div>

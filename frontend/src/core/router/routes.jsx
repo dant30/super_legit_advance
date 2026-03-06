@@ -74,6 +74,7 @@ const LoanCalculator = lazy(() => import('@pages/loans/pages/LoanCalculator'))
 // Repayment Pages
 const RepaymentList = lazy(() => import('@pages/repayments/pages/RepaymentList'))
 const RepaymentCreate = lazy(() => import('@pages/repayments/pages/RepaymentCreate'))
+const RepaymentEdit = lazy(() => import('@pages/repayments/pages/RepaymentEdit'))
 const RepaymentDetail = lazy(() => import('@pages/repayments/pages/RepaymentDetail'))
 const PaymentHistory = lazy(() => import('@pages/repayments/pages/PaymentHistory'))
 const OverdueRepayments = lazy(() => import('@pages/repayments/pages/OverdueRepayments'))
@@ -184,6 +185,7 @@ export const protectedRoutes = [
     children: [
       { index: true, element: <RepaymentList /> },
       { path: 'create', element: <RepaymentCreate /> },
+      { path: ':id/edit', element: <RepaymentEdit /> },
       { path: 'history', element: <PaymentHistory /> },
       { path: 'overdue', element: <OverdueRepayments /> },
       { path: ':id', element: <RepaymentDetail /> },

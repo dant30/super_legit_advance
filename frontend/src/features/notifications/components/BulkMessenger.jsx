@@ -1,6 +1,33 @@
-import React, { useState } from 'react'
-import { Send, Users, AlertCircle, CheckCircle } from 'lucide-react'
+import React, { useMemo, useState } from 'react'
+import { AlertCircle, CheckCircle, Send, Users } from 'lucide-react'
 import { cn } from '@utils/cn'
+
+const parseRecipients = (rawText, templateType) => {
+  const lines = rawText
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+
+  return lines
+    .map((line) => {
+      const parts = line.split(',').map((part) => part.trim()).filter(Boolean)
+
+      if (templateType === 'SMS' || templateType === 'WHATSAPP') {
+        const [nameOrPhone, phoneMaybe] = parts
+        const phone = phoneMaybe || nameOrPhone
+        const name = phoneMaybe ? nameOrPhone : phone
+        if (!phone) return null
+        return { name, phone }
+      }
+
+      const [nameOrEmail, emailMaybe] = parts
+      const email = emailMaybe || nameOrEmail
+      const name = emailMaybe ? nameOrEmail : email.split('@')[0]
+      if (!email || !/^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/.test(email)) return null
+      return { name, email }
+    })
+    .filter(Boolean)
+}
 
 const BulkMessenger = ({
   templates = [],
@@ -11,16 +38,26 @@ const BulkMessenger = ({
   const [formData, setFormData] = useState({
     template_id: '',
     recipients: '',
-    context: {},
+    contextText: '{}',
   })
-
   const [confirmDialog, setConfirmDialog] = useState(false)
   const [successMessage, setSuccessMessage] = useState(null)
+  const [localError, setLocalError] = useState('')
 
-  const recipientList = formData.recipients
-    .split('\n')
-    .map((r) => r.trim())
-    .filter((r) => r && /^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/.test(r))
+  const selectedTemplate = useMemo(
+    () => templates.find((template) => String(template.id) === String(formData.template_id)) || null,
+    [formData.template_id, templates]
+  )
+
+  const templateType = selectedTemplate?.template_type || 'EMAIL'
+  const recipientHint = templateType === 'SMS' || templateType === 'WHATSAPP'
+    ? 'Format each line as Name,+2547XXXXXXXX or just +2547XXXXXXXX'
+    : 'Format each line as Name,email@example.com or just email@example.com'
+
+  const recipientList = useMemo(
+    () => parseRecipients(formData.recipients, templateType),
+    [formData.recipients, templateType]
+  )
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -28,10 +65,20 @@ const BulkMessenger = ({
       ...prev,
       [name]: value,
     }))
+    setLocalError('')
   }
 
   const handleSend = async () => {
     if (!formData.template_id || recipientList.length === 0) {
+      setLocalError('Select a template and provide at least one valid recipient.')
+      return
+    }
+
+    let parsedContext = {}
+    try {
+      parsedContext = formData.contextText ? JSON.parse(formData.contextText) : {}
+    } catch {
+      setLocalError('Additional context must be valid JSON.')
       return
     }
 
@@ -39,16 +86,17 @@ const BulkMessenger = ({
       await onSend({
         template_id: formData.template_id,
         recipients: recipientList,
-        context: formData.context,
+        context: parsedContext,
       })
 
       setSuccessMessage(`Sent to ${recipientList.length} recipients`)
       setFormData({
         template_id: '',
         recipients: '',
-        context: {},
+        contextText: '{}',
       })
       setConfirmDialog(false)
+      setLocalError('')
 
       setTimeout(() => setSuccessMessage(null), 3000)
     } catch (e) {
@@ -59,7 +107,7 @@ const BulkMessenger = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+        <div className="rounded-lg bg-primary-100 p-3 dark:bg-primary-900/30">
           <Users className="h-6 w-6 text-primary-600 dark:text-primary-400" />
         </div>
         <div>
@@ -67,32 +115,31 @@ const BulkMessenger = ({
             Bulk Messenger
           </h2>
           <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            Send notifications to multiple recipients at once
+            Send template-driven notifications to multiple recipients.
           </p>
         </div>
       </div>
 
-      {error && (
-        <div className="p-4 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800 rounded-lg flex gap-3">
-          <AlertCircle className="h-5 w-5 text-danger-600 dark:text-danger-400 flex-shrink-0 mt-0.5" />
+      {(error || localError) && (
+        <div className="flex gap-3 rounded-lg border border-danger-200 bg-danger-50 p-4 dark:border-danger-800 dark:bg-danger-900/20">
+          <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-danger-600 dark:text-danger-400" />
           <div>
             <p className="font-medium text-danger-700 dark:text-danger-400">Error</p>
-            <p className="text-sm text-danger-600 dark:text-danger-300">{error}</p>
+            <p className="text-sm text-danger-600 dark:text-danger-300">{localError || error}</p>
           </div>
         </div>
       )}
 
       {successMessage && (
-        <div className="p-4 bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg flex gap-3">
-          <CheckCircle className="h-5 w-5 text-success-600 dark:text-success-400 flex-shrink-0 mt-0.5" />
+        <div className="flex gap-3 rounded-lg border border-success-200 bg-success-50 p-4 dark:border-success-800 dark:bg-success-900/20">
+          <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-success-600 dark:text-success-400" />
           <p className="text-sm text-success-700 dark:text-success-400">{successMessage}</p>
         </div>
       )}
 
-      <div className="bg-white dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-lg p-6 space-y-6">
-        {/* Template Selection */}
+      <div className="space-y-6 rounded-lg border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-800/50">
         <div>
-          <label className="block text-sm font-medium text-neutral-900 dark:text-white mb-2">
+          <label className="mb-2 block text-sm font-medium text-neutral-900 dark:text-white">
             Select Template *
           </label>
           <select
@@ -100,9 +147,8 @@ const BulkMessenger = ({
             value={formData.template_id}
             onChange={handleChange}
             className={cn(
-              'w-full px-4 py-2 rounded-lg border',
-              'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white',
-              'border-neutral-300 dark:border-neutral-700',
+              'w-full rounded-lg border px-4 py-2',
+              'border-neutral-300 bg-white text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white',
               'focus:outline-none focus:ring-2 focus:ring-primary-500'
             )}
           >
@@ -115,11 +161,10 @@ const BulkMessenger = ({
           </select>
         </div>
 
-        {/* Recipients */}
         <div>
-          <div className="flex items-center justify-between mb-2">
+          <div className="mb-2 flex items-center justify-between">
             <label className="block text-sm font-medium text-neutral-900 dark:text-white">
-              Recipients (email addresses, one per line) *
+              Recipients *
             </label>
             {recipientList.length > 0 && (
               <span className="text-xs font-medium text-primary-600 dark:text-primary-400">
@@ -131,65 +176,50 @@ const BulkMessenger = ({
             name="recipients"
             value={formData.recipients}
             onChange={handleChange}
-            placeholder="john@example.com&#10;jane@example.com&#10;admin@example.com"
+            placeholder={recipientHint}
             rows={6}
             className={cn(
-              'w-full px-4 py-2 rounded-lg border',
-              'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white',
-              'border-neutral-300 dark:border-neutral-700',
-              'focus:outline-none focus:ring-2 focus:ring-primary-500',
-              'font-mono text-sm'
+              'w-full rounded-lg border px-4 py-2 font-mono text-sm',
+              'border-neutral-300 bg-white text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white',
+              'focus:outline-none focus:ring-2 focus:ring-primary-500'
             )}
           />
+          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">{recipientHint}</p>
           {formData.recipients && recipientList.length === 0 && (
             <p className="mt-2 text-xs text-danger-600 dark:text-danger-400">
-              No valid email addresses found
+              No valid recipients found for the selected template type.
             </p>
           )}
         </div>
 
-        {/* Additional Context (if needed) */}
         <div>
-          <label className="block text-sm font-medium text-neutral-900 dark:text-white mb-2">
+          <label className="mb-2 block text-sm font-medium text-neutral-900 dark:text-white">
             Additional Context (JSON)
           </label>
           <textarea
-            value={JSON.stringify(formData.context, null, 2)}
-            onChange={(e) => {
-              try {
-                setFormData((prev) => ({
-                  ...prev,
-                  context: JSON.parse(e.target.value),
-                }))
-              } catch {
-                // Keep invalid JSON as is
-              }
-            }}
+            name="contextText"
+            value={formData.contextText}
+            onChange={handleChange}
             placeholder='{"key": "value"}'
             rows={4}
             className={cn(
-              'w-full px-4 py-2 rounded-lg border',
-              'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white',
-              'border-neutral-300 dark:border-neutral-700',
-              'focus:outline-none focus:ring-2 focus:ring-primary-500',
-              'font-mono text-sm'
+              'w-full rounded-lg border px-4 py-2 font-mono text-sm',
+              'border-neutral-300 bg-white text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white',
+              'focus:outline-none focus:ring-2 focus:ring-primary-500'
             )}
           />
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-between items-center pt-4 border-t border-neutral-200 dark:border-neutral-700">
+        <div className="flex items-center justify-between border-t border-neutral-200 pt-4 dark:border-neutral-700">
           <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            This will send to {recipientList.length} recipients
+            This will send to {recipientList.length} recipients.
           </p>
           <button
             onClick={() => setConfirmDialog(true)}
             disabled={!formData.template_id || recipientList.length === 0 || isSending}
             className={cn(
-              'px-6 py-2 rounded-lg font-medium text-white flex items-center gap-2 transition',
-              isSending
-                ? 'bg-primary-400 cursor-not-allowed'
-                : 'bg-primary-600 hover:bg-primary-700'
+              'flex items-center gap-2 rounded-lg px-6 py-2 font-medium text-white transition',
+              isSending ? 'cursor-not-allowed bg-primary-400' : 'bg-primary-600 hover:bg-primary-700'
             )}
           >
             <Send className="h-4 w-4" />
@@ -198,20 +228,19 @@ const BulkMessenger = ({
         </div>
       </div>
 
-      {/* Confirmation Dialog */}
       {confirmDialog && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-sm w-full">
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-lg bg-white p-6 dark:bg-neutral-800">
+            <h3 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
               Confirm Bulk Send
             </h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
-              Are you sure you want to send this message to {recipientList.length} recipients?
+            <p className="mb-6 text-sm text-neutral-600 dark:text-neutral-400">
+              Send this message to {recipientList.length} recipients?
             </p>
-            <div className="flex gap-3 justify-end">
+            <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConfirmDialog(false)}
-                className="px-4 py-2 border border-neutral-200 dark:border-neutral-700 rounded-lg font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                className="rounded-lg border border-neutral-200 px-4 py-2 font-medium text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
               >
                 Cancel
               </button>
@@ -219,10 +248,8 @@ const BulkMessenger = ({
                 onClick={handleSend}
                 disabled={isSending}
                 className={cn(
-                  'px-4 py-2 rounded-lg font-medium text-white flex items-center gap-2 transition',
-                  isSending
-                    ? 'bg-primary-400 cursor-not-allowed'
-                    : 'bg-primary-600 hover:bg-primary-700'
+                  'flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-white transition',
+                  isSending ? 'cursor-not-allowed bg-primary-400' : 'bg-primary-600 hover:bg-primary-700'
                 )}
               >
                 <Send className="h-4 w-4" />

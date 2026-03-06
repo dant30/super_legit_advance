@@ -29,6 +29,15 @@ export const NotificationProvider = ({ children }) => {
   const [recentNotifications, setRecentNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
 
+  const normalizeResults = useCallback((payload) => {
+    if (!payload) return []
+    if (Array.isArray(payload)) return payload
+    if (Array.isArray(payload.results)) return payload.results
+    if (Array.isArray(payload.data)) return payload.data
+    if (Array.isArray(payload.data?.results)) return payload.data.results
+    return []
+  }, [])
+
   const { data: notificationsData, refetch: refetchNotifications, isLoading: notificationsLoading } =
     useGetNotifications(
       { page_size: 10, ordering: '-created_at' },
@@ -41,11 +50,11 @@ export const NotificationProvider = ({ children }) => {
 
   // derive unread + recent on data change
   useEffect(() => {
-    const results = notificationsData?.results || []
+    const results = normalizeResults(notificationsData)
     setRecentNotifications(results.slice(0, 5))
     const unread = results.filter(n => ['SENT', 'DELIVERED'].includes(n.status)).length
     setUnreadCount(unread)
-  }, [notificationsData])
+  }, [notificationsData, normalizeResults])
 
   useEffect(() => {
     if (!canFetchNotifications) {
@@ -57,7 +66,7 @@ export const NotificationProvider = ({ children }) => {
   const handleMarkAsRead = useCallback(async (id) => {
     try {
       await markAsRead(id)
-      setUnreadCount(prev => Math.max(0, prev - 1))
+      await refetchNotifications()
     } catch (e) {
       console.error(e)
     }
@@ -112,8 +121,8 @@ export const NotificationProvider = ({ children }) => {
     unreadCount,
     recentNotifications,
     showNotifications,
-    notifications: notificationsData?.results || [],
-    totalNotifications: notificationsData?.count || 0,
+    notifications: normalizeResults(notificationsData),
+    totalNotifications: notificationsData?.count || notificationsData?.pagination?.total || normalizeResults(notificationsData).length,
     isLoading: notificationsLoading,
     error,
     successMessage,

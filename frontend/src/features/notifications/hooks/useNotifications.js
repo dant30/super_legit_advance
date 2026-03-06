@@ -348,6 +348,7 @@ export const useNotifications = () => {
     mutationFn: (data) => notificationsAPI.createNotification(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: notificationKeys.lists() })
+      qc.invalidateQueries({ queryKey: notificationKeys.stats() })
       handleSuccess('Notification created')
     },
     onError: handleError,
@@ -358,6 +359,7 @@ export const useNotifications = () => {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: notificationKeys.detail(vars.id) })
       qc.invalidateQueries({ queryKey: notificationKeys.lists() })
+      qc.invalidateQueries({ queryKey: notificationKeys.stats() })
       handleSuccess('Notification sent')
     },
     onError: handleError,
@@ -368,6 +370,7 @@ export const useNotifications = () => {
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: notificationKeys.detail(id) })
       qc.invalidateQueries({ queryKey: notificationKeys.lists() })
+      qc.invalidateQueries({ queryKey: notificationKeys.stats() })
       handleSuccess('Marked as read')
     },
     onError: handleError,
@@ -377,6 +380,7 @@ export const useNotifications = () => {
     mutationFn: () => notificationsAPI.markAllAsRead(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: notificationKeys.lists() })
+      qc.invalidateQueries({ queryKey: notificationKeys.stats() })
       handleSuccess('All marked as read')
     },
     onError: handleError,
@@ -386,6 +390,7 @@ export const useNotifications = () => {
     mutationFn: (id) => notificationsAPI.deleteNotification(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: notificationKeys.lists() })
+      qc.invalidateQueries({ queryKey: notificationKeys.stats() })
       handleSuccess('Notification deleted')
     },
     onError: handleError,

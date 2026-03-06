@@ -1,11 +1,10 @@
 export const NOTIFICATION_STATUS = Object.freeze({
-  DRAFT: "DRAFT",
-  QUEUED: "QUEUED",
+  PENDING: "PENDING",
   SENT: "SENT",
   DELIVERED: "DELIVERED",
   FAILED: "FAILED",
-  CANCELLED: "CANCELLED",
   READ: "READ",
+  ARCHIVED: "ARCHIVED",
 });
 
 export const NOTIFICATION_PRIORITY = Object.freeze({
@@ -20,6 +19,7 @@ export const NOTIFICATION_CHANNEL = Object.freeze({
   SMS: "SMS",
   EMAIL: "EMAIL",
   PUSH: "PUSH",
+  WHATSAPP: "WHATSAPP",
 });
 
 export const NOTIFICATION_TYPE = Object.freeze({

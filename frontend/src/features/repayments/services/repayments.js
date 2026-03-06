@@ -1,4 +1,3 @@
-// frontend/src/api/repayments.js
 import axiosInstance from '@api/axios'
 import {
   PENALTY_STATUS,
@@ -35,12 +34,26 @@ export const REPAYMENT_ENDPOINTS = Object.freeze({
   penaltyWaive: (id) => `/repayments/penalties/${id}/waive/`,
 })
 
+const appendMultipartValue = (formData, key, value) => {
+  if (value === undefined || value === null || value === '') return
+
+  if (value instanceof File) {
+    formData.append(key, value)
+    return
+  }
+
+  if (typeof value === 'object') {
+    formData.append(key, JSON.stringify(value))
+    return
+  }
+
+  formData.append(key, String(value))
+}
+
 class RepaymentsAPI {
   constructor() {
     this.endpoints = REPAYMENT_ENDPOINTS
   }
-
-  // ===== REPAYMENTS =====
 
   async getRepayments(params = {}) {
     const response = await axiosInstance.get(this.endpoints.list, { params })
@@ -56,16 +69,8 @@ class RepaymentsAPI {
     const formData = new FormData()
 
     Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        const normalizedKey = key === 'loan_id' ? 'loan' : key
-        if (key === 'receipt_file' && value instanceof File) {
-          formData.append(normalizedKey, value)
-        } else if (typeof value === 'object' && !(value instanceof File)) {
-          formData.append(normalizedKey, JSON.stringify(value))
-        } else {
-          formData.append(normalizedKey, String(value))
-        }
-      }
+      const normalizedKey = key === 'loan_id' ? 'loan' : key
+      appendMultipartValue(formData, normalizedKey, value)
     })
 
     const response = await axiosInstance.post(this.endpoints.create, formData, {
@@ -77,6 +82,22 @@ class RepaymentsAPI {
   }
 
   async updateRepayment(id, data) {
+    const hasFile = data?.receipt_file instanceof File
+
+    if (hasFile) {
+      const formData = new FormData()
+      Object.entries(data).forEach(([key, value]) => {
+        appendMultipartValue(formData, key, value)
+      })
+
+      const response = await axiosInstance.patch(this.endpoints.detail(id), formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      return response.data
+    }
+
     const response = await axiosInstance.patch(this.endpoints.detail(id), data)
     return response.data
   }
@@ -101,8 +122,6 @@ class RepaymentsAPI {
     return response.data
   }
 
-  // ===== SCHEDULES =====
-
   async getSchedules(loanId, params = {}) {
     const response = await axiosInstance.get(this.endpoints.schedules(loanId), { params })
     return response.data
@@ -117,8 +136,6 @@ class RepaymentsAPI {
     const response = await axiosInstance.post(this.endpoints.scheduleAdjust(scheduleId), data)
     return response.data
   }
-
-  // ===== PENALTIES =====
 
   async getPenalties(params = {}) {
     const response = await axiosInstance.get(this.endpoints.penalties, { params })
@@ -145,8 +162,6 @@ class RepaymentsAPI {
     return response.data
   }
 
-  // ===== SPECIAL VIEWS =====
-
   async searchRepayments(params = {}) {
     const response = await axiosInstance.get(this.endpoints.search, { params })
     return response.data
@@ -172,8 +187,6 @@ class RepaymentsAPI {
     return response.data
   }
 
-  // ===== BULK & EXPORT =====
-
   async bulkCreateRepayments(data) {
     const response = await axiosInstance.post(this.endpoints.bulkCreate, data)
     return response.data
@@ -187,8 +200,6 @@ class RepaymentsAPI {
     return response.data
   }
 
-  // ===== CUSTOMER / LOAN SPECIFIC =====
-
   async getCustomerRepayments(customerId, params = {}) {
     const response = await axiosInstance.get(this.endpoints.customerRepayments(customerId), { params })
     return response.data
@@ -198,8 +209,6 @@ class RepaymentsAPI {
     const response = await axiosInstance.get(this.endpoints.loanRepayments(loanId), { params })
     return response.data
   }
-
-  // ===== UTILITIES =====
 
   downloadExport(blob, filename = 'repayments_export.xlsx') {
     const url = window.URL.createObjectURL(blob)
@@ -230,7 +239,7 @@ class RepaymentsAPI {
     return new Intl.NumberFormat('en-KE', {
       style: 'currency',
       currency: 'KES',
-      minimumFractionDigits: 2
+      minimumFractionDigits: 2,
     }).format(Number(amount || 0))
   }
 }

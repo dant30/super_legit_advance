@@ -7,8 +7,10 @@ const NotificationList = ({
   notifications = [],
   isLoading = false,
   onMarkAsRead,
+  onSend,
   onDelete,
   onNotificationClick,
+  onMarkAllRead,
   filters: _filters = {},
   onFilterChange: _onFilterChange,
   pagination,
@@ -78,6 +80,14 @@ const NotificationList = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {unreadCount > 0 && onMarkAllRead && (
+            <button
+              onClick={onMarkAllRead}
+              className="px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 text-sm font-medium text-primary-700 transition hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20"
+            >
+              Mark all read
+            </button>
+          )}
           {/* Sort dropdown */}
           <div className="relative">
             <button
@@ -129,6 +139,7 @@ const NotificationList = ({
             key={notification.id}
             notification={notification}
             onMarkAsRead={onMarkAsRead}
+            onSend={onSend}
             onDelete={onDelete}
             onClick={() => onNotificationClick?.(notification)}
             isCompact={false}

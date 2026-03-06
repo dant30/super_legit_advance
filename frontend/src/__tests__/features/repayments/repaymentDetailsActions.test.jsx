@@ -6,6 +6,8 @@ import RepaymentDetails from '../../../features/repayments/components/RepaymentD
 
 describe('RepaymentDetails lifecycle actions', () => {
   const baseProps = {
+    onEdit: () => {},
+    onDelete: () => {},
     onProcess: () => {},
     onWaive: () => {},
     onCancel: () => {},
@@ -26,6 +28,8 @@ describe('RepaymentDetails lifecycle actions', () => {
       />
     )
 
+    expect(screen.getByRole('button', { name: 'Edit Repayment' })).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Delete Repayment' })).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Process Payment' })).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Waive Amount' })).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Cancel Repayment' })).not.toBeNull()
@@ -44,8 +48,10 @@ describe('RepaymentDetails lifecycle actions', () => {
       />
     )
 
+    expect(screen.queryByRole('button', { name: 'Edit Repayment' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Process Payment' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Waive Amount' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Cancel Repayment' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Delete Repayment' })).toBeNull()
   })
 })

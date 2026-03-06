@@ -1,11 +1,11 @@
-// frontend/src/pages/repayments/RepaymentList.jsx
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import Button from '@components/ui/Button'
+import { ConfirmationModal } from '@components/ui/Modal'
 import PageHeader from '@components/ui/PageHeader'
 import Pagination from '@components/ui/Pagination'
-import Button from '@components/ui/Button'
 import SearchBar from '@components/ui/SearchBar'
-import { useSelector } from 'react-redux'
 import { useRepaymentContext } from '@contexts/RepaymentContext'
 import {
   selectRepayments,
@@ -26,6 +26,7 @@ const RepaymentList = () => {
   const {
     getRepayments,
     getStats,
+    deleteRepayment,
     setPage,
     setPageSize,
     formatCurrency,
@@ -35,6 +36,8 @@ const RepaymentList = () => {
   const [filters, setFilters] = useState({})
   const [stats, setStats] = useState(null)
   const [search, setSearch] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteError, setDeleteError] = useState('')
 
   const params = useMemo(() => {
     const next = { ...filters }
@@ -43,28 +46,57 @@ const RepaymentList = () => {
   }, [filters, search])
 
   useEffect(() => {
-    getRepayments(params)
-  }, [params, pagination.page, pagination.pageSize])
+    getRepayments(params).catch(() => {})
+  }, [getRepayments, params, pagination.page, pagination.pageSize])
 
   useEffect(() => {
     let mounted = true
-    getStats().then((res) => mounted && setStats(res)).catch(() => {})
-    return () => { mounted = false }
-  }, [])
+    getStats()
+      .then((res) => {
+        if (mounted) setStats(res)
+      })
+      .catch(() => {})
+    return () => {
+      mounted = false
+    }
+  }, [getStats])
+
+  const handleDelete = async () => {
+    if (!deleteTarget?.id) return
+
+    setDeleteError('')
+    try {
+      await deleteRepayment(deleteTarget.id)
+      setDeleteTarget(null)
+    } catch (error) {
+      const payload = error?.response?.data
+      if (typeof payload?.detail === 'string') {
+        setDeleteError(payload.detail)
+        return
+      }
+      setDeleteError(error?.message || 'Failed to delete repayment.')
+    }
+  }
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Repayments"
-        subTitle="Track and manage repayments"
+        subTitle="Track, update, and resolve repayment records end to end."
         extra={[
           <Button key="create" className="w-full sm:w-auto" onClick={() => navigate('/repayments/create')}>
             New Repayment
-          </Button>
+          </Button>,
         ]}
       />
 
-      <div className="mb-4">
+      {deleteError ? (
+        <div className="rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 text-sm text-danger-700">
+          {deleteError}
+        </div>
+      ) : null}
+
+      <div>
         <SearchBar
           placeholder="Search repayment number, loan, customer"
           value={search}
@@ -75,37 +107,47 @@ const RepaymentList = () => {
       <RepaymentFilters
         value={filters}
         onApply={setFilters}
-        onReset={setFilters}
+        onReset={() => setFilters({})}
       />
 
-      <div className="mt-4">
-        <RepaymentStats stats={stats} />
-      </div>
+      <RepaymentStats stats={stats} />
 
-      <div className="mt-6">
-        <RepaymentTable
-          data={repayments}
-          loading={loading}
-          formatCurrency={formatCurrency}
-          formatStatus={formatStatus}
-          onView={(row) => navigate(`/repayments/${row.id}`)}
-        />
-      </div>
+      <RepaymentTable
+        data={repayments}
+        loading={loading}
+        formatCurrency={formatCurrency}
+        formatStatus={formatStatus}
+        onView={(row) => navigate(`/repayments/${row.id}`)}
+        onEdit={(row) => navigate(`/repayments/${row.id}/edit`)}
+        onDelete={(row) => {
+          setDeleteError('')
+          setDeleteTarget(row)
+        }}
+      />
 
-      <div className="mt-4">
-        <Pagination
-          page={pagination.page}
-          pageSize={pagination.pageSize}
-          totalItems={pagination.count}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-          showPageSize
-        />
-      </div>
+      <Pagination
+        page={pagination.page}
+        pageSize={pagination.pageSize}
+        totalItems={pagination.count}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+        showPageSize
+      />
+
+      <ConfirmationModal
+        open={Boolean(deleteTarget)}
+        onClose={() => {
+          setDeleteTarget(null)
+          setDeleteError('')
+        }}
+        onConfirm={handleDelete}
+        title="Delete repayment"
+        description={`Delete ${deleteTarget?.repayment_number || 'this repayment'}? This action cannot be undone.`}
+        confirmText="Delete Repayment"
+        loading={loading}
+      />
     </div>
   )
 }
 
 export default RepaymentList
-
-
