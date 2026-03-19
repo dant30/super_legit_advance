@@ -32,6 +32,9 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(rootDir, './src'),
+        '@core': path.resolve(rootDir, './src/core'),
+        '@features': path.resolve(rootDir, './src/features'),
+        '@shared': path.resolve(rootDir, './src/shared'),
         '@components/customers': path.resolve(rootDir, './src/features/customers/components'),
         '@components/loans': path.resolve(rootDir, './src/features/loans/components'),
         '@components/repayments': path.resolve(rootDir, './src/features/repayments/components'),
@@ -40,11 +43,11 @@ export default defineConfig(({ mode }) => {
         '@components/admin/roles': path.resolve(rootDir, './src/features/admin/roles/components'),
         '@components/admin/staff': path.resolve(rootDir, './src/features/admin/staff/components'),
         '@components/admin/audit': path.resolve(rootDir, './src/features/admin/audit/components'),
-        '@components/admin': path.resolve(rootDir, './src/features/admin'),
         '@components': path.resolve(rootDir, './src/shared/components'),
         '@pages': path.resolve(rootDir, './src/features'),
         '@hooks': path.resolve(rootDir, './src/features/auth/hooks'),
         '@utils': path.resolve(rootDir, './src/shared/utils'),
+        '@constants': path.resolve(rootDir, './src/shared/constants'),
         '@api/axios': path.resolve(rootDir, './src/core/api/axios.js'),
         '@api/admin': path.resolve(rootDir, './src/features/admin/dashboard/services/admin.js'),
         '@api/audit': path.resolve(rootDir, './src/features/admin/audit/services/audit.js'),

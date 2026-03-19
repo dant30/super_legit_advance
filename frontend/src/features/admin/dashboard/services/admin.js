@@ -6,6 +6,18 @@ import axiosInstance from '@api/axios'
  */
 const extractData = (response) => response?.data || response
 const STAFF_ROLES = ['admin', 'staff', 'loan_officer']
+const normalizeCollectionResponse = (payload) => {
+  const collection = extractData(payload)
+
+  return {
+    items: collection?.data || collection?.results || [],
+    pagination: collection?.pagination || {
+      total: collection?.count || 0,
+      per_page: collection?.page_size || 20,
+      current_page: collection?.page || 1,
+    },
+  }
+}
 
 const staffAPI = {
   // Staff CRUD -> use backend users/staff-profiles endpoints
@@ -16,7 +28,7 @@ const staffAPI = {
     }
 
     const response = await axiosInstance.get('/users/staff-profiles/', { params })
-    return extractData(response)
+    return normalizeCollectionResponse(response)
   },
 
   async getStaffById(id) {
@@ -87,7 +99,7 @@ const staffAPI = {
 
     const seen = new Set()
     return responses
-      .flatMap((response) => extractData(response)?.results || extractData(response) || [])
+      .flatMap((response) => normalizeCollectionResponse(response).items)
       .filter((user) => {
         if (!user?.id || seen.has(user.id)) {
           return false

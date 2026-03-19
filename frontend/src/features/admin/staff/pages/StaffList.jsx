@@ -39,11 +39,11 @@ const StaffList = () => {
         page_size: 20,
         ...filtersObj,
       })
-      setStaff(response.results || [])
+      setStaff(response.items || [])
       setPagination({
-        page,
-        page_size: response.page_size || 20,
-        total: response.count || 0,
+        page: response.pagination?.current_page || page,
+        page_size: response.pagination?.per_page || 20,
+        total: response.pagination?.total || 0,
       })
     } catch (error) {
       addToast({
@@ -72,7 +72,6 @@ const StaffList = () => {
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters)
-    fetchStaff(1, newFilters)
   }
 
   const handleDelete = (record) => {

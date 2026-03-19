@@ -1,21 +1,24 @@
 {
   "compilerOptions": {
-    /* Base Configuration */
     "target": "ES2020",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
-    
-    /* Module Resolution */
+
     "module": "ESNext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    
-    /* Path Aliases */
+
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
+
+      "@core/*": ["src/core/*"],
+      "@features/*": ["src/features/*"],
+      "@shared/*": ["src/shared/*"],
+
+      "@components/*": ["src/shared/components/*"],
       "@components/customers": ["src/features/customers/components/index.js"],
       "@components/customers/*": ["src/features/customers/components/*"],
       "@components/loans": ["src/features/loans/components/index.js"],
@@ -32,11 +35,12 @@
       "@components/admin/staff/*": ["src/features/admin/staff/components/*"],
       "@components/admin/audit": ["src/features/admin/audit/components/index.js"],
       "@components/admin/audit/*": ["src/features/admin/audit/components/*"],
-      "@components/admin/*": ["src/features/admin/*"],
-      "@components/*": ["src/shared/components/*"],
+
       "@pages/*": ["src/features/*"],
-      "@hooks/*": ["src/features/auth/hooks/*"],
+      "@hooks/*": ["src/features/auth/hooks/*", "src/shared/hooks/*"],
       "@utils/*": ["src/shared/utils/*"],
+      "@constants/*": ["src/shared/constants/*", "src/core/constants/*"],
+
       "@api/axios": ["src/core/api/axios.js"],
       "@api/admin": ["src/features/admin/dashboard/services/admin.js"],
       "@api/audit": ["src/features/admin/audit/services/audit.js"],
@@ -48,32 +52,30 @@
       "@api/repayments": ["src/features/repayments/services/repayments.js"],
       "@api/reports": ["src/features/reports/services/reports.js"],
       "@api/*": ["src/core/api/*"],
+
       "@styles/*": ["src/styles/*"],
       "@router/*": ["src/core/router/*"],
       "@contexts/*": ["src/core/contexts/*"]
     },
-    
-    /* Output */
+
     "noEmit": true,
     "allowJs": true,
-    "checkJs": false,  /* ← This is CRITICAL: disable JS type checking */
-    
-    /* Interop */
+    "checkJs": false,
     "skipLibCheck": true
   },
-  
+
   "include": [
     "src/**/*.js",
     "src/**/*.jsx",
     "vite.config.js"
   ],
-  
+
   "exclude": [
     "node_modules",
     "dist",
     "build",
     "coverage",
     "**/*.ts",
-    "**/*.tsx"  /* ← Explicitly exclude TypeScript files */
+    "**/*.tsx"
   ]
 }

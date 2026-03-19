@@ -29,7 +29,7 @@ const StaffCreate = () => {
 
         if (!active) return
 
-        const existingProfileUserIds = new Set((profiles.results || []).map((profile) => profile.user))
+        const existingProfileUserIds = new Set((profiles.items || []).map((profile) => profile.user))
         setEligibleUsers(users.filter((user) => !existingProfileUserIds.has(user.id)))
         setSupervisorUsers(users)
       } catch (error) {
