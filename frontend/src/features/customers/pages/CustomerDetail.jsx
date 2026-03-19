@@ -24,7 +24,7 @@ import {
   RiskIndicator 
 } from '@components/customers'
 import { useToast } from '@contexts/ToastContext'
-import { useAuth } from '@hooks/useAuth'
+import { useAuth } from '@features/auth/hooks/useAuth'
 import { formatCurrency, formatDate } from '@utils/formatters'
 
 const CustomerDetail = () => {

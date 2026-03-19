@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { t } from "../i18n/i18n";
-import { useAuth } from "@hooks/useAuth";
+import { useAuth } from "@features/auth/hooks/useAuth";
 
 function normalizeList(value) {
   if (!value) return [];

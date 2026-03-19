@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, Loader2, Building2 } from 'lucide-react'
 
-import { useAuth } from '@hooks/useAuth'
+import { useAuth } from '@features/auth/hooks/useAuth'
 import {
   AUTH_EMAIL_REGEX,
   AUTH_PASSWORD_POLICY,

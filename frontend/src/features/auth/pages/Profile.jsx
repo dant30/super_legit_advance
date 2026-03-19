@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Save, Shield } from 'lucide-react'
-import { useAuth } from '@hooks/useAuth'
+import { useAuth } from '@features/auth/hooks/useAuth'
 import {
   AuthAlert,
   AuthField,

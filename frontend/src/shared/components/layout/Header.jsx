@@ -1,7 +1,7 @@
 // frontend/src/components/layout/Header.jsx
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@hooks/useAuth'
+import { useAuth } from '@features/auth/hooks/useAuth'
 import { useTheme } from '@contexts/ThemeContext'
 import { useQuery } from '@tanstack/react-query'
 import axios from '@api/axios'

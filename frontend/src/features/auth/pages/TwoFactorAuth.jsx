@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ShieldCheck } from 'lucide-react'
-import { useAuth } from '@hooks/useAuth'
+import { useAuth } from '@features/auth/hooks/useAuth'
 import {
   AuthAlert,
   AuthPanel,

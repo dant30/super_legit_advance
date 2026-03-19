@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useCustomerContext } from '@contexts/CustomerContext'
-import { useAuth } from '@hooks/useAuth'
+import { useAuth } from '@features/auth/hooks/useAuth'
 import { useToast } from '@contexts/ToastContext'
 import {
   BanknotesIcon,

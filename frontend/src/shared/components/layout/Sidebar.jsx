@@ -1,7 +1,7 @@
 // frontend/src/components/layout/Sidebar.jsx
 import React, { useMemo, useState, useEffect } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '@hooks/useAuth'
+import { useAuth } from '@features/auth/hooks/useAuth'
 import { useQuery } from '@tanstack/react-query'
 import axios from '@api/axios'
 import { APP_ROUTES } from '../../constants/routes'

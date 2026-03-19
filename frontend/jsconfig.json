@@ -37,7 +37,6 @@
       "@components/admin/audit/*": ["src/features/admin/audit/components/*"],
 
       "@pages/*": ["src/features/*"],
-      "@hooks/*": ["src/features/auth/hooks/*", "src/shared/hooks/*"],
       "@utils/*": ["src/shared/utils/*"],
       "@constants/*": ["src/shared/constants/*", "src/core/constants/*"],
 

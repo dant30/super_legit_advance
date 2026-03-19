@@ -35,7 +35,7 @@ vi.mock('@contexts/ToastContext', () => ({
   useToast: () => ({ addToast: vi.fn() }),
 }))
 
-vi.mock('@hooks/useAuth', () => ({
+vi.mock('@features/auth/hooks/useAuth', () => ({
   useAuth: () => ({ hasPermission: () => true }),
 }))
 

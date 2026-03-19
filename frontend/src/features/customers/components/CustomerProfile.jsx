@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCustomerContext } from '@contexts/CustomerContext';
-import { useAuth } from '@hooks/useAuth';
+import { useAuth } from '@features/auth/hooks/useAuth';
 import { format } from 'date-fns';
 import { 
   UserCircleIcon,

@@ -1,7 +1,7 @@
 // frontend/src/contexts/NotificationContext.jsx
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import useNotifications from '../../features/notifications/hooks/useNotifications'
-import { useAuth } from '@hooks/useAuth'
+import { useAuth } from '@features/auth/hooks/useAuth'
 
 const NotificationContext = createContext(null)
 

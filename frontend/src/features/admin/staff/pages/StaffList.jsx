@@ -9,7 +9,7 @@ import {
 import { Plus, RefreshCw, Users, UserCheck, UserMinus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '@contexts/ToastContext'
-import { useAuth } from '@hooks/useAuth'
+import { useAuth } from '@features/auth/hooks/useAuth'
 import staffAPI from '@api/admin'
 
 const StaffList = () => {

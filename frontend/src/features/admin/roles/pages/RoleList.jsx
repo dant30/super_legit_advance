@@ -6,7 +6,7 @@ import PageHeader from '@components/ui/PageHeader'
 import { RoleList as RoleListComponent, PermissionEditor } from '@components/admin/roles'
 import { Plus } from 'lucide-react'
 import { useToast } from '@contexts/ToastContext'
-import { useAuth } from '@hooks/useAuth'
+import { useAuth } from '@features/auth/hooks/useAuth'
 
 const RoleList = () => {
   const navigate = useNavigate()

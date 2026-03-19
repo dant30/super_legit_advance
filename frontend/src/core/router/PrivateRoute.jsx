@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "@hooks/useAuth";
+import { useAuth } from "@features/auth/hooks/useAuth";
 import Loading from "@components/ui/Loading";
 import { t } from "../i18n/i18n";
 

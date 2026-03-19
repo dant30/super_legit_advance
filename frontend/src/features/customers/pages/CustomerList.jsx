@@ -10,7 +10,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useCustomerContext } from '@contexts/CustomerContext'
 import { CustomerTable, CustomerFilters, CustomerSearch } from '@components/customers'
 import { ImportDialog, ExportDialog } from '@components/customers'
-import { useAuth } from '@hooks/useAuth'
+import { useAuth } from '@features/auth/hooks/useAuth'
 import { useToast } from '@contexts/ToastContext'
 
 const CustomerList = () => {

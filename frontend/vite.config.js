@@ -45,7 +45,6 @@ export default defineConfig(({ mode }) => {
         '@components/admin/audit': path.resolve(rootDir, './src/features/admin/audit/components'),
         '@components': path.resolve(rootDir, './src/shared/components'),
         '@pages': path.resolve(rootDir, './src/features'),
-        '@hooks': path.resolve(rootDir, './src/features/auth/hooks'),
         '@utils': path.resolve(rootDir, './src/shared/utils'),
         '@constants': path.resolve(rootDir, './src/shared/constants'),
         '@api/axios': path.resolve(rootDir, './src/core/api/axios.js'),

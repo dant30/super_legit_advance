@@ -18,7 +18,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useToast } from '@contexts/ToastContext'
-import { useAuth } from '@hooks/useAuth'
+import { useAuth } from '@features/auth/hooks/useAuth'
 import staffAPI from '@api/admin'
 import { formatDate } from '@utils/formatters'
 
